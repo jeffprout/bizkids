@@ -1,0 +1,304 @@
+import type { GameEvent } from '../engine/types';
+
+/**
+ * Event cards. Every card is one character, one line of dialogue, and 2-3 big
+ * buttons. Keep `line` under ~14 words and every choice label under 5 words.
+ *
+ * Effects are deliberately small relative to a week of revenue: an event should
+ * bend a week, not decide the run.
+ */
+export const UNIVERSAL_EVENTS: GameEvent[] = [
+  {
+    id: 'heat-wave',
+    pool: 'universal',
+    character: 'Weather Kid',
+    emoji: '🥵',
+    title: 'Heat Wave!',
+    line: "It's boiling out there. Everybody is thirsty.",
+    weight: 10,
+    concept: 'Demand shocks',
+    choices: [
+      { id: 'raise', label: 'Raise price today', cash: 0, demandMod: 0.85, reputation: -0.15, result: 'You charge more. Some kids grumble, most still buy.' },
+      { id: 'normal', label: 'Keep my price', demandMod: 1.35, reputation: 0.1, result: 'A long, happy line all week.' },
+    ],
+  },
+  {
+    id: 'cold-snap',
+    pool: 'universal',
+    character: 'Weather Kid',
+    emoji: '🥶',
+    title: 'Cold Snap',
+    line: 'A freezing wind blew in. Nobody wants a cold drink.',
+    weight: 8,
+    concept: 'Seasonality',
+    choices: [
+      { id: 'hot', label: 'Sell it warm', cash: -6, demandMod: 0.95, result: 'Warm lemonade. Weirdly, it works.' },
+      { id: 'ride', label: 'Ride it out', demandMod: 0.6, result: 'Quiet week. You save your supplies.' },
+    ],
+  },
+  {
+    id: 'broken-cooler',
+    pool: 'universal',
+    character: 'Your Cooler',
+    emoji: '🧊',
+    title: 'The Cooler Cracked',
+    line: 'Water everywhere. Your ice is melting fast.',
+    weight: 8,
+    concept: 'Equipment and repair costs',
+    choices: [
+      { id: 'fix', label: 'Buy a new one', cash: -15, result: 'Fixed. Money hurts, drinks stay cold.' },
+      { id: 'tape', label: 'Tape it up', cash: -1, demandMod: 0.8, reputation: -0.1, result: 'Warm-ish lemonade. Customers noticed.' },
+    ],
+  },
+  {
+    id: 'supplier-hike',
+    pool: 'universal',
+    character: 'Grocery Store',
+    emoji: '🛒',
+    title: 'Lemons Cost More',
+    line: 'Lemon prices went up this week. Sorry, kid.',
+    weight: 8,
+    concept: 'Variable cost changes',
+    choices: [
+      { id: 'absorb', label: 'Pay the extra', unitCostMod: 1.35, result: 'Your cups cost more to make this week.' },
+      { id: 'cheap', label: 'Use less lemon', unitCostMod: 1.05, demandMod: 0.85, reputation: -0.15, result: 'Cheaper cups. Weaker taste.' },
+    ],
+  },
+  {
+    id: 'permit-fee',
+    pool: 'universal',
+    character: 'Town Inspector',
+    emoji: '📋',
+    title: 'Permit Please',
+    line: 'Selling here needs a $10 permit. Rules are rules.',
+    weight: 6,
+    concept: 'Regulatory and fixed costs',
+    choices: [
+      { id: 'pay', label: 'Pay the $10', cash: -10, reputation: 0.1, result: 'Stamped and legal. The inspector smiles.' },
+      { id: 'move', label: 'Move down the block', demandMod: 0.7, result: 'No fee, but way fewer people find you.' },
+    ],
+  },
+  {
+    id: 'rival-opens',
+    pool: 'universal',
+    character: 'Rival Kid',
+    emoji: '😼',
+    title: 'A Rival Opens Up',
+    line: 'New stand across the street. Same drink, lower price.',
+    weight: 8,
+    concept: 'Competition',
+    choices: [
+      { id: 'cut', label: 'Drop my price', cash: 0, demandMod: 1.15, result: 'You match them. More cups, less money each.' },
+      { id: 'cookies', label: 'Add free cookies', cash: -9, demandMod: 1.25, reputation: 0.2, result: 'Cookies win. Your line is longer.' },
+      { id: 'ignore', label: 'Ignore them', demandMod: 0.78, result: 'Some regulars wander across the street.' },
+    ],
+  },
+  {
+    id: 'rival-closes',
+    pool: 'universal',
+    character: 'Rival Kid',
+    emoji: '🫠',
+    title: 'The Rival Quit',
+    line: 'Too much work. I am going back to video games.',
+    weight: 5,
+    concept: 'Windfalls',
+    choices: [
+      { id: 'take', label: 'Take their customers', demandMod: 1.4, result: 'Their whole crowd walks over to you.' },
+      { id: 'buy', label: 'Buy their table', cash: -12, demandMod: 1.4, result: 'A second table. More room to serve.' },
+    ],
+  },
+  {
+    id: 'big-order',
+    pool: 'universal',
+    character: 'Team Coach',
+    emoji: '📣',
+    title: 'Big Team Order',
+    line: 'I need 40 cups for Saturday. Can you handle it?',
+    weight: 8,
+    concept: 'Capacity and promises',
+    choices: [
+      { id: 'yes', label: 'Yes, I can do it', cash: 34, inventory: -40, reputation: 0.25, result: 'Delivered! The whole team knows your name.' },
+      { id: 'no', label: 'Too big for me', reputation: -0.05, result: 'You pass. Safer, but no boost.' },
+    ],
+  },
+  {
+    id: 'bulk-discount',
+    pool: 'universal',
+    character: 'Grocery Store',
+    emoji: '📦',
+    title: 'Bulk Deal',
+    line: 'Buy a big box of supplies today and save.',
+    weight: 7,
+    concept: 'Economies of scale',
+    choices: [
+      { id: 'buy', label: 'Buy the big box', cash: -14, inventory: 90, result: '90 cups of supplies, way under normal price.' },
+      { id: 'skip', label: 'Not this week', result: 'You keep your cash. Fair enough.' },
+    ],
+  },
+  {
+    id: 'glowing-review',
+    pool: 'universal',
+    character: 'Neighbor',
+    emoji: '⭐',
+    title: 'Nice Review!',
+    line: 'I told the whole street about your lemonade!',
+    weight: 8,
+    concept: 'Word of mouth',
+    choices: [
+      { id: 'thanks', label: 'Say thank you', reputation: 0.3, demandMod: 1.15, result: 'Word spreads. New faces show up.' },
+      { id: 'free', label: 'Give them a free cup', cash: -1, inventory: -1, reputation: 0.45, demandMod: 1.2, result: 'They tell even more people. Worth it.' },
+    ],
+  },
+  {
+    id: 'harsh-review',
+    pool: 'universal',
+    character: 'Grumpy Customer',
+    emoji: '😠',
+    title: 'Bad Review',
+    line: 'My cup was warm and the line was too long!',
+    weight: 7,
+    concept: 'Service recovery',
+    choices: [
+      { id: 'apologize', label: 'Apologize, refund it', cash: -3, reputation: 0.15, result: 'Handled well. They came back later.' },
+      { id: 'argue', label: 'Argue back', reputation: -0.4, demandMod: 0.9, result: 'They tell everyone. That stings.' },
+    ],
+  },
+  {
+    id: 'road-work',
+    pool: 'universal',
+    character: 'Road Crew',
+    emoji: '🚧',
+    title: 'Road Work',
+    line: 'We are digging up your street all week.',
+    weight: 6,
+    concept: 'Location risk',
+    choices: [
+      { id: 'stay', label: 'Stay put', demandMod: 0.55, result: 'Cones everywhere. Hardly anyone gets through.' },
+      { id: 'cart', label: 'Wheel the stand away', cash: -5, demandMod: 0.9, result: 'You move a block over. Mostly fine.' },
+    ],
+  },
+  {
+    id: 'charity-ask',
+    pool: 'universal',
+    character: 'Animal Shelter',
+    emoji: '🐶',
+    title: 'Charity Day',
+    line: 'Donate a day of sales to the puppy shelter?',
+    weight: 6,
+    concept: 'Reputation vs revenue',
+    choices: [
+      { id: 'donate', label: 'Donate a day', cash: -12, reputation: 0.5, result: 'The photo goes on the shelter wall. People notice.' },
+      { id: 'later', label: 'Maybe next time', result: 'You keep the cash this week.' },
+    ],
+  },
+  {
+    id: 'employee-sick',
+    pool: 'universal',
+    character: 'Your Helper',
+    emoji: '🤒',
+    title: 'Helper Is Sick',
+    line: 'I feel awful. Can I take the week off?',
+    weight: 7,
+    minStage: 2,
+    requires: 'hasEmployee',
+    concept: 'Payroll and coverage',
+    choices: [
+      { id: 'paid', label: 'Rest up, still paid', reputation: 0.15, capacityMod: 0.35, result: 'They rest. You run it alone this week.' },
+      { id: 'unpaid', label: 'No work, no pay', cash: 20, reputation: -0.2, capacityMod: 0.35, result: 'You save the wage. They are quiet about it.' },
+    ],
+  },
+];
+
+export const LEMONADE_EVENTS: GameEvent[] = [
+  {
+    id: 'lem-price-war',
+    pool: 'lemonade',
+    character: 'Rival Kid',
+    emoji: '💸',
+    title: 'Price War',
+    line: 'I just dropped my lemonade to fifty cents!',
+    weight: 9,
+    concept: 'Price competition',
+    choices: [
+      { id: 'match', label: 'Match fifty cents', demandMod: 1.3, cash: -4, result: 'You match. Busy week, thin margins.' },
+      { id: 'quality', label: 'Sell a better cup', unitCostMod: 1.4, demandMod: 1.1, reputation: 0.25, result: 'You compete on taste, not price.' },
+      { id: 'hold', label: 'Hold my price', demandMod: 0.82, reputation: 0.05, result: 'Some walk away. Your regulars stay.' },
+    ],
+  },
+  {
+    id: 'lem-tournament',
+    pool: 'lemonade',
+    character: 'Little League',
+    emoji: '⚾',
+    title: 'Tournament Weekend',
+    line: 'Six teams are playing here Saturday. Thirsty ones.',
+    weight: 9,
+    concept: 'Demand spikes and stock planning',
+    choices: [
+      { id: 'stock', label: 'Stock up big', cash: -10, inventory: 60, demandMod: 1.55, result: 'You are ready. The crowd empties your cooler.' },
+      { id: 'wing', label: 'Wing it', demandMod: 1.55, result: 'Huge crowd. Hope you have enough cups.' },
+    ],
+  },
+  {
+    id: 'lem-sugar-free',
+    pool: 'lemonade',
+    character: 'Health Mom',
+    emoji: '🥗',
+    title: 'Sugar Free?',
+    line: 'Do you have anything without all that sugar?',
+    weight: 7,
+    concept: 'Product line extension',
+    choices: [
+      { id: 'add', label: 'Add a sugar-free jug', cash: -7, demandMod: 1.18, reputation: 0.2, result: 'A whole new group of customers shows up.' },
+      { id: 'no', label: 'Sorry, just classic', reputation: -0.05, result: 'She shrugs and walks on.' },
+    ],
+  },
+  {
+    id: 'lem-ice-out',
+    pool: 'lemonade',
+    character: 'Freezer',
+    emoji: '🧊',
+    title: 'Out Of Ice',
+    line: 'The freezer is empty and it is ninety degrees.',
+    weight: 7,
+    concept: 'Supply chain hiccups',
+    choices: [
+      { id: 'buy', label: 'Buy bags of ice', cash: -8, result: 'Cold cups all week. Small cost, no drama.' },
+      { id: 'skip', label: 'Serve it warm', demandMod: 0.7, reputation: -0.2, result: 'Warm lemonade in a heat wave. Ouch.' },
+    ],
+  },
+  {
+    id: 'lem-dog',
+    pool: 'lemonade',
+    character: 'Loose Dog',
+    emoji: '🐕',
+    title: 'Dog At The Stand',
+    line: 'A big happy dog just knocked your table over.',
+    weight: 6,
+    concept: 'Shrinkage and mishaps',
+    choices: [
+      { id: 'clean', label: 'Clean up fast', cash: -2, inventory: -12, result: 'You lose some stock but reopen quickly.' },
+      { id: 'photo', label: 'Post the photo', cash: -2, inventory: -12, demandMod: 1.2, reputation: 0.15, result: 'The photo goes around school. Free advertising.' },
+    ],
+  },
+  {
+    id: 'lem-recipe',
+    pool: 'lemonade',
+    character: 'Grandma',
+    emoji: '👵',
+    title: 'Secret Recipe',
+    line: 'Try my old recipe. A pinch of mint changes everything.',
+    weight: 6,
+    concept: 'Product improvement',
+    choices: [
+      { id: 'try', label: 'Try the recipe', unitCostMod: 1.15, reputation: 0.35, demandMod: 1.12, result: 'People taste the difference right away.' },
+      { id: 'keep', label: 'Keep mine', result: 'You stick with what you know.' },
+    ],
+  },
+];
+
+export const ALL_EVENTS: GameEvent[] = [...UNIVERSAL_EVENTS, ...LEMONADE_EVENTS];
+
+export function eventsForBusiness(businessId: string): GameEvent[] {
+  return ALL_EVENTS.filter((e) => e.pool === 'universal' || e.pool === businessId);
+}
