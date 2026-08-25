@@ -367,6 +367,22 @@ advance.
 
 ---
 
+## 2026-08-24 (late) — Setup asked for the spot twice
+
+Jeff: "In the beginning it asks on two back to back screens where I will set up."
+Correct, and my fault: when the spot became a weekly card I left the old setup
+step in place, so the last screen of setup and the first card of week 1 asked the
+same question one after the other.
+
+Setup is now tier → financing → play. "Open for business" moved onto the
+financing screen, and week 1 opens on the spot card like every other week.
+`newGame` still takes a `locationId`; it is now only the starting default for
+that first card.
+
+Opening flow: name → level → financing → where will you sell → price → supplies.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

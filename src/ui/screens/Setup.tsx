@@ -8,7 +8,7 @@ import { totalInterestFor, weeklyPaymentFor } from '../../engine/loans';
 import { Choice, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
-type Step = 'tier' | 'money' | 'spot';
+type Step = 'tier' | 'money';
 
 export function Setup({
   playerName,
@@ -22,7 +22,6 @@ export function Setup({
   const [step, setStep] = useState<Step>('tier');
   const [tier, setTier] = useState<Tier>('pro');
   const [loanIds, setLoanIds] = useState<string[]>([]);
-  const [locationId, setLocationId] = useState('front-yard');
 
   const biz = LEMONADE;
   const savings = biz.savings[tier];
@@ -72,94 +71,71 @@ export function Setup({
     );
   }
 
-  if (step === 'money') {
-    return (
-      <Panel title="How will you pay for it?">
-        <div className="card">
-          <div className="ledger">
-            <span>🧰 Your stand costs</span>
-            <span className="out">{dollars(startup)}</span>
-          </div>
-          <div className="ledger">
-            <span>🐷 Your savings</span>
-            <span className="in">{dollars(savings)}</span>
-          </div>
-          <div className="ledger">
-            <span>🏦 Borrowed</span>
-            <span className="in">{dollars(borrowed)}</span>
-          </div>
-          <div className="ledger total">
-            <span>Left for supplies</span>
-            <span className={cushion >= 0 ? 'in' : 'out'}>{dollars(cushion)}</span>
-          </div>
-        </div>
-
-        <p className="muted center">Tap a loan to add it. Or use only your savings.</p>
-
-        {offers.map((o) => {
-          const selected = loanIds.includes(o.id);
-          const total = o.principal + totalInterestFor(o);
-          return (
-            <Choice
-              key={o.id}
-              emoji={o.emoji}
-              title={`${o.lender} · borrow ${dollars(o.principal)}`}
-              sub={`${dollars(weeklyPaymentFor(o), true)}/week for ${o.termWeeks} weeks · pay back ${dollars(total)} total`}
-              selected={selected}
-              onClick={() =>
-                setLoanIds((ids) => (selected ? ids.filter((i) => i !== o.id) : [...ids, o.id]))
-              }
-            />
-          );
-        })}
-
-        {loanIds.length > 0 && (
-          <div className="card card-tight">
-            <p style={{ margin: 0 }}>
-              🗓️ You will pay <b>{dollars(weeklyDebt, true)}</b> every week.
-            </p>
-          </div>
-        )}
-
-        <button
-          className="btn btn-go"
-          disabled={cushion < 0}
-          onClick={() => {
-            sfx.tap();
-            setStep('spot');
-          }}
-        >
-          {cushion < 0 ? 'Not enough money yet' : 'Next ➡️'}
-        </button>
-        <button className="btn btn-ghost" onClick={() => setStep('tier')}>
-          Back
-        </button>
-      </Panel>
-    );
-  }
-
   return (
-    <Panel title="Where will you set up?">
-      {biz.locations.map((l) => (
-        <Choice
-          key={l.id}
-          emoji={l.emoji}
-          title={l.name}
-          sub={l.blurb}
-          selected={locationId === l.id}
-          onClick={() => setLocationId(l.id)}
-        />
-      ))}
+    <Panel title="How will you pay for it?">
+      <div className="card">
+        <div className="ledger">
+          <span>🧰 Your stand costs</span>
+          <span className="out">{dollars(startup)}</span>
+        </div>
+        <div className="ledger">
+          <span>🐷 Your savings</span>
+          <span className="in">{dollars(savings)}</span>
+        </div>
+        <div className="ledger">
+          <span>🏦 Borrowed</span>
+          <span className="in">{dollars(borrowed)}</span>
+        </div>
+        <div className="ledger total">
+          <span>Left for supplies</span>
+          <span className={cushion >= 0 ? 'in' : 'out'}>{dollars(cushion)}</span>
+        </div>
+      </div>
+
+      <p className="muted center">Tap a loan to add it. Or use only your savings.</p>
+
+      {offers.map((o) => {
+        const selected = loanIds.includes(o.id);
+        const total = o.principal + totalInterestFor(o);
+        return (
+          <Choice
+            key={o.id}
+            emoji={o.emoji}
+            title={`${o.lender} · borrow ${dollars(o.principal)}`}
+            sub={`${dollars(weeklyPaymentFor(o), true)}/week for ${o.termWeeks} weeks · pay back ${dollars(total)} total`}
+            selected={selected}
+            onClick={() =>
+              setLoanIds((ids) => (selected ? ids.filter((i) => i !== o.id) : [...ids, o.id]))
+            }
+          />
+        );
+      })}
+
+      {loanIds.length > 0 && (
+        <div className="card card-tight">
+          <p style={{ margin: 0 }}>
+            🗓️ You will pay <b>{dollars(weeklyDebt, true)}</b> every week.
+          </p>
+        </div>
+      )}
+
       <button
         className="btn btn-go"
+        disabled={cushion < 0}
         onClick={() => {
           sfx.cheer();
-          onStart(tier, { loanIds, savingsUsed: savings, locationId });
+          // Where to set up is the first card of week 1 and every week after,
+          // so setup does not ask it too. This is only the starting default.
+          onStart(tier, {
+            loanIds,
+            savingsUsed: savings,
+            locationId: biz.locations[0].id,
+          });
         }}
       >
-        Open for business
+        {cushion < 0 ? 'Not enough money yet' : 'Open for business'}
       </button>
-      <button className="btn btn-ghost" onClick={() => setStep('money')}>
+      <button className="btn btn-ghost" onClick={() => setStep('tier')}>
         Back
       </button>
     </Panel>
