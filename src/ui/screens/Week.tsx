@@ -592,21 +592,43 @@ function EventCard({
       <div className="stack" style={{ padding: '0 14px 14px' }}>
         {event.choices.map((c) => {
           // Say what a choice costs. Whether it works is the gamble; what it
-          // costs is not something the player should have to find out after.
+          // costs is not.
+          //
+          // The line runs between the player's own economics and the market's
+          // reaction. Money, stock, what a cup costs to make and how many hands
+          // are on the table are all things the player is giving up or gaining,
+          // and all get said out loud. How many customers turn up and what they
+          // think of you is the part being bet on, and stays hidden.
+          //
+          // "Pay the extra" on the lemon-price card used to read "costs
+          // nothing" while raising the cost of every cup by 35% — the one thing
+          // that card exists to teach.
           const cash = Math.round((c.cash ?? 0) * scale * 100) / 100;
           const stock = Math.round((c.inventory ?? 0) * scale);
+          const gear = Math.round((c.equipment ?? 0) * scale * 100) / 100;
+          const seats = Math.round((c.capacity ?? 0) * scale);
+          const shift = (mod: number | undefined) =>
+            mod && mod !== 1 ? Math.round(Math.abs(mod - 1) * 100) : 0;
+          const dearer = shift(c.unitCostMod);
+          const hands = shift(c.capacityMod);
           const tags = [
             cash < 0 ? `costs ${dollars(-cash)}` : '',
             cash > 0 ? `pays ${dollars(cash)}` : '',
             stock > 0 ? `+${stock} cups` : '',
             stock < 0 ? `${stock} cups` : '',
+            dearer ? `cups cost ${dearer}% ${(c.unitCostMod ?? 1) > 1 ? 'more' : 'less'}` : '',
+            hands ? `serve ${hands}% ${(c.capacityMod ?? 1) > 1 ? 'more' : 'fewer'}` : '',
+            gear ? `${gear > 0 ? '+' : '-'}${dollars(Math.abs(gear))} of gear` : '',
+            seats ? `serve ${seats} more from now on` : '',
           ].filter(Boolean);
           return (
             <Choice
               key={c.id}
               emoji="👉"
               title={c.label}
-              sub={tags.length ? tags.join(' · ') : 'costs nothing'}
+              // Scoped to money on purpose: a free choice can still cost you
+              // customers or your good name, and those stay hidden.
+              sub={tags.length ? tags.join(' · ') : 'costs no money'}
               selected={chosen[event.id] === c.id}
               onClick={() => onChoose(event.id, c.id)}
             />

@@ -78,9 +78,9 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     concept: 'Gross profit',
   },
   fixedCosts: {
-    term: 'Running costs (ice, cups, permit)',
+    term: 'What your spot costs',
     plain:
-      'Costs that show up every week whether you sell a hundred drinks or none. Cheaper spots have smaller ones.',
+      'Rent, the permit, ice and cups for the spot you picked — the whole weekly figure shown on the card when you chose it. It arrives whether you sell a hundred drinks or none. Cheaper spots cost less but fewer people walk past.',
     concept: 'Fixed costs',
   },
   rent: {
@@ -133,8 +133,9 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     concept: 'Inventory as an asset',
   },
   overheadCash: {
-    term: 'Spot rent & running costs',
-    plain: 'Rent, permit, ice, cups and any wages, all leaving the bank this week.',
+    term: 'Bills paid this week',
+    plain:
+      'Everything that left the bank besides stock: your spot, any helper you paid, any advertising you bought and any late fee.',
     concept: 'Operating expenses',
   },
   loanPayment: {

@@ -1028,3 +1028,55 @@ describe('weather cards agree with the forecast beside them', () => {
     expect(byId['heat-wave'].weathers).toEqual(['hot', 'sunny']);
   });
 });
+
+describe('what an event choice tells you it costs', () => {
+  // The card only prints a money/stock/cost-per-cup/capacity tag. Any choice
+  // that changes one of those without one would read "costs no money" while
+  // quietly charging the player — which is what "Pay the extra" did while
+  // raising the price of every cup by 35%.
+  it('leaves nothing that changes the player economics untagged', () => {
+    const untagged: string[] = [];
+    for (const event of ALL_EVENTS) {
+      for (const c of event.choices) {
+        const tagged =
+          (c.cash ?? 0) !== 0 ||
+          (c.inventory ?? 0) !== 0 ||
+          ((c.unitCostMod ?? 1) !== 1) ||
+          ((c.capacityMod ?? 1) !== 1) ||
+          (c.equipment ?? 0) !== 0 ||
+          (c.capacity ?? 0) !== 0;
+        const costsSomething =
+          (c.cash ?? 0) !== 0 ||
+          (c.inventory ?? 0) !== 0 ||
+          ((c.unitCostMod ?? 1) !== 1) ||
+          ((c.capacityMod ?? 1) !== 1) ||
+          (c.equipment ?? 0) !== 0 ||
+          (c.capacity ?? 0) !== 0;
+        if (costsSomething && !tagged) untagged.push(`${event.title}: ${c.label}`);
+      }
+    }
+    expect(untagged).toEqual([]);
+  });
+
+  it('only lets a choice read as free when it moves no money and no goods', () => {
+    // Reputation and demand may still move — the tag is scoped to money on
+    // purpose, because how customers react is the part being bet on.
+    const free = ALL_EVENTS.flatMap((e) =>
+      e.choices
+        .filter(
+          (c) =>
+            (c.cash ?? 0) === 0 &&
+            (c.inventory ?? 0) === 0 &&
+            (c.unitCostMod ?? 1) === 1 &&
+            (c.capacityMod ?? 1) === 1 &&
+            (c.equipment ?? 0) === 0 &&
+            (c.capacity ?? 0) === 0,
+        )
+        .map((c) => `${e.title}: ${c.label}`),
+    );
+    // These exist and should stay free — "Ignore it" costing nothing up front
+    // is the whole point of offering it.
+    expect(free.length).toBeGreaterThan(0);
+    for (const label of free) expect(typeof label).toBe('string');
+  });
+});

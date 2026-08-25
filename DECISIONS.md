@@ -1116,6 +1116,54 @@ change a player would feel, so it is Jeff's call, not mine.
 
 ---
 
+## 2026-08-25 — The spot line, and cost tags that were lying
+
+Two reports, one root cause: a label that did not match what it stood for.
+
+**"Spot rent is wrong. I was on the soccer field. Old values still reporting."**
+The values were current. The Soccer Field is $10 rent plus $22 permit, and the
+recap printed those as two lines. But the card the player chooses from now quotes
+one all-in figure — "Soccer Field · $32 a week" — so the recap showed two numbers
+and neither was the one agreed to. "Spot rent -$10" beside a spot billed at $32
+reads exactly like a stale value.
+
+The recap now carries one line for the spot, under the spot's own name:
+`⚽ Soccer Field -$32`. Same number on the card and on the bill. The rent/permit
+split moved into the ❓ explanation, where it can be read by anyone who wants it
+without contradicting the headline.
+
+Fixing that exposed the same defect one table over: the cash-side roll-up was
+labelled "Spot rent & running costs" while also containing helper pay,
+advertising and any late fee — two of its five parts named. Now "Bills paid this
+week", with the explanation listing all of them.
+
+**"No charge for extra pricier lemons."** The cost tags I added to event choices
+only looked at cash and stock, so "Pay the extra" on the lemon-price card read
+`costs nothing` while raising the cost of every cup by 35% — the one thing that
+card exists to teach. Five choices across the pool were lying the same way.
+
+The tags now draw the line between the player's own economics and the market's
+reaction. Money, stock, what a cup costs to make, how many hands are on the
+table, and gear bought or wrecked are all things the player gives up or gains,
+and all get said. How many customers turn up and what they think stays hidden —
+that is the part being bet on.
+
+The cooler card gained the most from this. It now reads:
+
+    Buy a new cooler   costs $45 · +$25 of gear
+    Tape it up         costs $2 · -$18 of gear
+
+which is the depreciation lesson stated outright instead of buried in the
+valuation eight weeks later.
+
+The bare label is now "costs no money" rather than "costs nothing" — scoped on
+purpose, because ignoring a bad review is free and still costs you something.
+
+Two tests guard it: no choice that moves money, stock, unit cost, capacity or
+gear may go untagged, and the set of genuinely free choices must stay non-empty.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { TIERS } from '../../config/difficulty';
+import { getBusiness } from '../../config/businesses/lemonade';
 import { badgeById } from '../../config/milestones';
 import { WEATHER_INFO } from '../../engine/calendar';
 import { Confetti, ExplainToggle, LedgerRow, Stars, dollars } from '../components/bits';
@@ -18,6 +19,13 @@ export function Recap({
 }) {
   const r = state.lastResult!;
   const tier = TIERS[state.tier];
+  // What the spot cost, as one number under the spot's own name. The card the
+  // player chose from quotes an all-in weekly figure; splitting it back into
+  // rent and permit on the recap meant neither line matched the number they
+  // agreed to, and "Spot rent -$10" read as a stale value after picking a spot
+  // billed at $32.
+  const spot = getBusiness(state.businessId).locations.find((l) => l.id === state.locationId);
+  const spotCost = Math.round((r.rent + r.fixedCosts) * 100) / 100;
   const celebrate = r.newBadges.length > 0 || r.stagedUp;
   const [showCelebration, setShowCelebration] = useState(celebrate);
   // Off by default so the screen stays short. One tap explains every line.
@@ -175,21 +183,12 @@ export function Recap({
                 explainId="grossProfit"
                 showExplain={ex}
               />
-              {r.fixedCosts > 0 && (
+              {spotCost > 0 && (
                 <LedgerRow
-                  label="🧊 Running costs (ice, cups, permit)"
-                  amount={`-${dollars(r.fixedCosts)}`}
+                  label={`${spot?.emoji ?? '🏠'} ${spot?.name ?? 'Your spot'}`}
+                  amount={`-${dollars(spotCost)}`}
                   tone="out"
                   explainId="fixedCosts"
-                  showExplain={ex}
-                />
-              )}
-              {r.rent > 0 && (
-                <LedgerRow
-                  label="🏷️ Spot rent"
-                  amount={`-${dollars(r.rent)}`}
-                  tone="out"
-                  explainId="rent"
                   showExplain={ex}
                 />
               )}
@@ -290,7 +289,7 @@ export function Recap({
           )}
           {overheadCash > 0 && (
             <LedgerRow
-              label="🏠 Spot rent & running costs"
+              label="🏠 Bills paid this week"
               amount={`-${dollars(overheadCash)}`}
               tone="out"
               explainId="overheadCash"
