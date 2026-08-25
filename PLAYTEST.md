@@ -10,16 +10,22 @@ Hosted on **Cloudflare Pages**. Its free tier permits commercial use and has no
 bandwidth cap, which matters for district pilots. *(Not Vercel — its free tier
 prohibits commercial use. Netlify is the fallback.)*
 
-Everything is configured. From the `bizkids` folder:
+Everything is configured. From the `bizkids` folder, once:
+
+```bash
+npx wrangler login
+```
+
+That opens a browser to authorise your Cloudflare account — a free account is
+enough, and it is the only step that needs you. Then, now and every time after:
 
 ```bash
 npm run deploy
 ```
 
-That builds the School Edition and pushes it with Wrangler. The first run opens a
-browser to authorise your Cloudflare account and creates the project; it then
-prints a URL like `https://bizkids.pages.dev`. That URL is what you send people.
-Every later deploy is the same one command.
+That builds the School Edition and pushes it. The first run creates the project
+and prints a URL like `https://bizkids.pages.dev`. That URL is what you send
+people; it stays the same across redeploys.
 
 If you would rather it deploy on every push, put the repo on GitHub:
 
