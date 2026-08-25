@@ -6,40 +6,34 @@ browser.
 
 ## Putting it online
 
-Hosted on **Cloudflare Pages**. Its free tier permits commercial use and has no
-bandwidth cap, which matters for district pilots. *(Not Vercel — its free tier
-prohibits commercial use. Netlify is the fallback.)*
+Deployed from **GitHub to Vercel**: push a commit, Vercel builds and publishes it
+automatically. `vercel.json` already sets the build command, output directory and
+cache headers, so there is nothing to configure in the dashboard.
 
-Everything is configured. From the `bizkids` folder, once:
+**One-time setup.** The repo is already on GitHub. In your browser:
 
-```bash
-npx wrangler login
-```
+1. Go to https://vercel.com/new and sign in **with GitHub**.
+2. Pick the `bizkids` repository and press **Import**.
+3. Leave every setting alone — `vercel.json` supplies them — and press **Deploy**.
 
-That opens a browser to authorise your Cloudflare account — a free account is
-enough, and it is the only step that needs you. Then, now and every time after:
+A minute later you get a URL like `https://bizkids.vercel.app`. That is the link
+you send people, and it stays the same forever.
 
-```bash
-npm run deploy
-```
-
-That builds the School Edition and pushes it. The first run creates the project
-and prints a URL like `https://bizkids.pages.dev`. That URL is what you send
-people; it stays the same across redeploys.
-
-If you would rather it deploy on every push, put the repo on GitHub:
+**Every change after that** is just:
 
 ```bash
-git remote add origin https://github.com/<you>/bizkids.git && git push -u origin master
+git add -A && git commit -m "what changed" && git push
 ```
 
-then in the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect
-to Git**, with build command `npm run build:school` and output directory `dist`.
-Cache headers come from `public/_headers`, so there is nothing else to set.
+Vercel rebuilds within a minute or two. Testers get the new version on their next
+reload, because `vercel.json` marks the page itself `no-cache`.
 
-**No-account alternative.** Run `npm run build` and drag the `dist` folder onto
-https://app.netlify.com/drop. You get a link in about ten seconds. Fine for a
-weekend of testing; use Cloudflare for a stable URL you can redeploy to.
+**A licensing note for later, not now.** Vercel's free Hobby plan is for
+non-commercial use. A private playtest is fine. Before the game is sold, or runs
+a paid district pilot, that needs to become a paid Vercel plan or move to
+Cloudflare Pages, whose free tier does permit commercial use. The spec
+(Section 15) currently specifies Cloudflare for that reason — worth reconciling
+before launch.
 
 ## What testers need to know
 
