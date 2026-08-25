@@ -38,6 +38,7 @@ export function Week({
   const [buyMarketing, setBuyMarketing] = useState<string[]>([]);
   const [hireId, setHireId] = useState<string | undefined>();
   const [fireStaff, setFireStaff] = useState(false);
+  const [sideProductId, setSideProductId] = useState<string | null>(state.sideProductId);
   const [index, setIndex] = useState(0);
 
   const quality = biz.qualities.find((q) => q.id === qualityId) ?? biz.qualities[0];
@@ -47,6 +48,7 @@ export function Week({
   const forTier = <T extends { tiers?: typeof state.tier[] }>(items: T[]) =>
     items.filter((i) => !i.tiers || i.tiers.includes(state.tier));
   const marketingOptions = forTier(biz.marketing);
+  const sideOptions = forTier(biz.sideProducts);
   const employeeOptions = forTier(biz.employees);
   const facesRival = biz.rival.tiers.includes(state.tier);
 
@@ -80,6 +82,7 @@ export function Week({
     // a losing week that a wage might be the reason for.
     if (stage2 && (state.employees.length === 0 || lostMoneyLastWeek)) extras.push('staff');
     if (stage2) extras.push('marketing');
+    if (stage2) extras.push('treats');
     if (stage2 && week % 2 === 0) extras.push('quality');
 
     const room = Math.max(0, tier.maxCards - 3);
@@ -168,6 +171,7 @@ export function Week({
       buyMarketing,
       hireEmployeeId: hireId,
       fireEmployee: fireStaff,
+      sideProductId,
     });
   }
 
@@ -357,6 +361,38 @@ export function Week({
           </div>
         )}
 
+        {card === 'treats' && (
+          <div className="card stack">
+            <h2 className="center">Sell a treat too?</h2>
+            <p className="muted center">
+              Some people buying a drink will add one. No new customers needed.
+            </p>
+            {sideOptions.map((sp) => {
+              const margin = (sp.price - sp.unitCost * tier.unitCostScale).toFixed(2);
+              return (
+                <Choice
+                  key={sp.id}
+                  emoji={sp.emoji}
+                  title={`${sp.name} · sell at ${dollars(sp.price, true)}`}
+                  sub={`Costs ${dollars(sp.unitCost * tier.unitCostScale, true)}, so you keep $${margin}. About ${Math.round(sp.attachRate * 100)} in 100 add one.`}
+                  selected={sideProductId === sp.id}
+                  onClick={() => setSideProductId(sp.id)}
+                />
+              );
+            })}
+            <Choice
+              emoji="🚫"
+              title="Just drinks"
+              sub="Keep it simple."
+              selected={!sideProductId}
+              onClick={() => setSideProductId(null)}
+            />
+            <button className="btn btn-go" onClick={next}>
+              Next ➡️
+            </button>
+          </div>
+        )}
+
         {card === 'marketing' && (
           <div className="card stack">
             <h2 className="center">Tell people about it?</h2>
@@ -398,7 +434,9 @@ export function Week({
         )}
       </motion.div>
 
-      {index > 0 && !card.startsWith('event:') && (
+      {/* Back on every card, event cards included — a player should always be
+          able to reconsider the answer they just gave. */}
+      {index > 0 && (
         <button className="btn btn-ghost" onClick={back}>
           ⬅️ Back
         </button>

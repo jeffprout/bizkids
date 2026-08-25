@@ -269,6 +269,61 @@ Full 50-week run after the change: no dead ends, 12 losing weeks, worst -$46.
 
 ---
 
+## 2026-08-24 (night) — Second playtest pass
+
+Seven items from Jeff playing it. Three were bugs.
+
+**Weather ran in long streaks.** Each week drew independently from a seasonal
+table, and at 45% odds "sunny" repeating five weeks running is entirely likely —
+which reads as broken even though it is not. Repeating last week's condition is
+now discounted to 30% of its weight, and after three weeks it cannot repeat at
+all. Verified over a 50-week run: longest streak 3, all five conditions used.
+
+**Event choices cost money invisibly.** *(bug)* Buying the rival's table did
+debit the cash — `eventCash` was folded into profit — but no line in the recap
+ever named it, so choices felt free. The P&L now carries a "⚡ What happened"
+line (or "Lucky break" when an event pays). This is why the week Jeff bought the
+table looked like nothing happened.
+
+**Buying the rival's table bought nothing lasting.** *(bug)* The card said "A
+second table. More room to serve" and granted a one-week demand bump. Event
+choices can now carry permanent `equipment` and `capacity`, so the table is
++40 cups a week forever and adds to the sale price at exit.
+
+**Back on every card.** It was suppressed on event cards. Now every card has it
+except the very first of a week, where there is nothing to go back to — the
+previous week is already simulated and saved.
+
+**"You need another pair of hands" with a helper already hired.** *(bug)* The
+coach line never checked the payroll. With a helper it now reads "Even with help
+the line was too long. A quieter spot or a higher price would thin it."
+
+**A cold snap in sunny midsummer.** Event cards had no seasonal awareness. They
+now take optional `seasons` and `weathers` gates: heat wave is summer-only and
+needs hot or sunny weather, cold snap is barred from summer, rain-all-week only
+deals when it is actually wet, and the spoiled-batch and out-of-ice cards are
+warm-season only.
+
+**Side treats.** A new `sideProducts` config: cookies, lollipops, gummy bags and
+brownies (Pro+). A share of the customers already buying a drink add one, so
+these raise revenue per customer without needing new customers — the "would you
+like fries with that" lesson. The card shows cost, price, the margin kept and the
+attach rate, so picking between a 45%-attach 42¢-margin lollipop and a 22%-attach
+$1.45-margin brownie is a real calculation. Over a 50-week run treats added $638
+of revenue and did not flatten the difficulty (11 losing weeks, unchanged).
+
+**Bad reviews were always the same complaint.** There is now one review card per
+failure mode — warm and slow, watery, overpriced, a rude helper (needs staff),
+and a dirty table — and **every one has an "Ignore it" option costing a flat
+-0.12 reputation**. Doing nothing should be available and should cost a little,
+which is what a real ignored review does. A test enforces that every card
+titled "Bad Review" has an ignore option in that range.
+
+`SAVE_VERSION` 3 — `GameState` gained `weatherStreak`, `bonusCapacity` and
+`sideProductId`. 53 tests pass.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

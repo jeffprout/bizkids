@@ -290,6 +290,128 @@ describe('what makes a week losable', () => {
   });
 });
 
+describe('playtest fixes', () => {
+  it('will not run the same weather more than four weeks running', () => {
+    let s = start();
+    let longest = 0;
+    let run = 1;
+    let prev = s.weather;
+    for (let i = 0; i < 120; i++) {
+      s = simulateWeek(s, decide(s));
+      run = s.weather === prev ? run + 1 : 1;
+      prev = s.weather;
+      longest = Math.max(longest, run);
+    }
+    expect(longest).toBeLessThanOrEqual(4);
+  });
+
+  it('still varies the weather rather than alternating mechanically', () => {
+    let s = start();
+    const seen = new Set<string>();
+    for (let i = 0; i < 60; i++) {
+      s = simulateWeek(s, decide(s));
+      seen.add(s.weather);
+    }
+    expect(seen.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('never deals a cold snap in summer', () => {
+    const coldSnap = ALL_EVENTS.find((e) => e.id === 'cold-snap')!;
+    expect(coldSnap.seasons).toBeDefined();
+    expect(coldSnap.seasons).not.toContain('summer');
+    const heatWave = ALL_EVENTS.find((e) => e.id === 'heat-wave')!;
+    expect(heatWave.seasons).toEqual(['summer']);
+  });
+
+  it('only deals season-gated cards in their season', () => {
+    let s = start();
+    for (let i = 0; i < 50; i++) {
+      for (const e of s.pendingEvents) {
+        if (e.seasons) expect(e.seasons).toContain(s.season);
+        if (e.weathers) expect(e.weathers).toContain(s.weather);
+      }
+      s = simulateWeek(s, decide(s));
+    }
+  });
+
+  it('keeps the gear an event card sold you', () => {
+    const base = {
+      ...start(),
+      cash: 300,
+      pendingEvents: [ALL_EVENTS.find((e) => e.id === 'rival-closes')!],
+    };
+    const next = simulateWeek(base, {
+      ...decide(base, { restockUnits: 40 }),
+      eventChoices: { 'rival-closes': 'buy' },
+    });
+    expect(next.bonusCapacity).toBe(40);
+    expect(next.equipmentValue).toBeGreaterThan(base.equipmentValue);
+    // And it is still there next week, not just for the week it was bought.
+    const after = simulateWeek(next, decide(next, { restockUnits: 40 }));
+    expect(after.bonusCapacity).toBe(40);
+  });
+
+  it('reports what an event card cost so it is not invisible', () => {
+    const base = {
+      ...start(),
+      cash: 300,
+      pendingEvents: [ALL_EVENTS.find((e) => e.id === 'rival-closes')!],
+    };
+    const next = simulateWeek(base, {
+      ...decide(base, { restockUnits: 40 }),
+      eventChoices: { 'rival-closes': 'buy' },
+    });
+    expect(next.lastResult!.eventCash).toBe(-12);
+    // The free option and the paid one differ by exactly the price of the table.
+    const free = simulateWeek(base, {
+      ...decide(base, { restockUnits: 40 }),
+      eventChoices: { 'rival-closes': 'take' },
+    });
+    expect(free.lastResult!.eventCash).toBe(0);
+    expect(free.cash - next.cash).toBeCloseTo(12, 2);
+  });
+
+  it('gives every bad review an ignore option that only stings a little', () => {
+    const reviews = ALL_EVENTS.filter((e) => e.title === 'Bad Review');
+    expect(reviews.length).toBeGreaterThanOrEqual(4);
+    for (const review of reviews) {
+      const ignore = review.choices.find((c) => c.id === 'ignore');
+      expect(ignore, `${review.id} needs an ignore option`).toBeDefined();
+      expect(ignore!.reputation).toBeLessThan(0);
+      expect(ignore!.reputation).toBeGreaterThan(-0.2);
+    }
+  });
+
+  it('sells a side treat to a share of the people already buying', () => {
+    const base = { ...start(), cash: 400, stage: 2 as const };
+    const plain = simulateWeek(base, decide(base, { restockUnits: 120 }));
+    const withTreats = simulateWeek(base, decide(base, { restockUnits: 120, sideProductId: 'lollipops' }));
+    const r = withTreats.lastResult!;
+    expect(r.sideUnits).toBeGreaterThan(0);
+    expect(r.sideUnits).toBeLessThanOrEqual(r.served);
+    expect(r.sideRevenue).toBeGreaterThan(r.sideCogs);
+    // Same customers, more money from each of them.
+    expect(r.served).toBe(plain.lastResult!.served);
+    expect(r.profit).toBeGreaterThan(plain.lastResult!.profit);
+  });
+
+  it('does not blame the player for missing a helper they already have', () => {
+    const base = {
+      ...start(),
+      cash: 900,
+      locationId: 'soccer',
+      reputation: 5,
+      stage: 2 as const,
+      employees: [LEMONADE.employees[0]],
+    };
+    const next = simulateWeek(base, decide(base, { restockUnits: 600, price: 0.25 }));
+    const r = next.lastResult!;
+    if (r.lostToCapacity > r.served * 0.2) {
+      expect(r.coachLine).not.toContain('another pair of hands');
+    }
+  });
+});
+
 describe('valuation', () => {
   it('pays a multiple of yearly profit plus assets, minus debt', () => {
     const state: GameState = {

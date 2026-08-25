@@ -35,9 +35,27 @@ const WEATHER_ODDS: Record<Season, [Weather, number][]> = {
   winter: [['hot', 0], ['sunny', 20], ['cloudy', 30], ['rain', 20], ['cold', 30]],
 };
 
-export function rollWeather(season: Season, roll: number): Weather {
+/**
+ * Next week's weather.
+ *
+ * Independent draws from a seasonal table produce long dull runs — five sunny
+ * weeks in a row is entirely likely at 45% odds, and it makes the game feel
+ * static. So repeating last week's weather is heavily discounted, and after it
+ * has already run three weeks it cannot repeat at all.
+ */
+export function rollWeather(
+  season: Season,
+  roll: number,
+  previous?: Weather,
+  streak = 0,
+): Weather {
   const table = WEATHER_ODDS[season];
-  return weightedPick(table, (t) => t[1], roll)?.[0] ?? 'sunny';
+  const weightOf = ([w, weight]: [Weather, number]): number => {
+    if (w !== previous) return weight;
+    if (streak >= 3) return 0;
+    return weight * 0.3;
+  };
+  return weightedPick(table, weightOf, roll)?.[0] ?? 'sunny';
 }
 
 /** Conditions ordered from best to worst for selling a cold drink. */

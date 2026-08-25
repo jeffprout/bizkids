@@ -106,15 +106,25 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const lostToRival = Math.max(0, demandBeforeRival - demand);
 
   const employeeCapacity = employees.reduce((s, e) => s + e.capacityBonus, 0);
-  const capacity = Math.round((biz.soloCapacity + employeeCapacity) * ev.capacityMod);
+  const bonusCapacity = Math.max(0, state.bonusCapacity + ev.capacity);
+  const capacity = Math.round(
+    (biz.soloCapacity + employeeCapacity + bonusCapacity) * ev.capacityMod,
+  );
 
   const afterCapacity = Math.min(demand, capacity);
   const lostToCapacity = demand - afterCapacity;
   const served = Math.min(afterCapacity, inventory);
   const lostToStockout = afterCapacity - served;
 
-  const revenue = money(served * price);
-  const cogs = money(served * unitCost);
+  // Side item: a share of the people already buying a drink add one. It needs
+  // no extra customers, which is the whole point of an add-on.
+  const side = biz.sideProducts.find((sp) => sp.id === decisions.sideProductId);
+  const sideUnits = side ? Math.round(served * side.attachRate) : 0;
+  const sideRevenue = money(sideUnits * (side?.price ?? 0));
+  const sideCogs = money(sideUnits * (side?.unitCost ?? 0) * tier.unitCostScale);
+
+  const revenue = money(served * price + sideRevenue);
+  const cogs = money(served * unitCost + sideCogs);
   inventory -= served;
   cash = money(cash + revenue);
 
@@ -182,6 +192,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
 
   // --- 9. Reputation ------------------------------------------------------
   reputation += quality.reputationDrift;
+  if (side && sideUnits > 0) reputation += side.reputationBonus ?? 0;
   if (served > 0 && lostToStockout === 0 && lostToCapacity === 0) reputation += 0.04;
   if (demand > 0) {
     // Selling out annoys people, but not as much as bad service does. These are
@@ -311,7 +322,12 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const nextSeason = seasonForWeek(nextWeek);
   const seedAfterSim = nextSeed(state.rngSeed);
   const forecastRng = makeRng(seedAfterSim);
-  const nextWeather = rollWeather(nextSeason, forecastRng());
+  const nextWeather = rollWeather(
+    nextSeason,
+    forecastRng(),
+    state.weather,
+    nextSeason === state.season ? state.weatherStreak : 0,
+  );
   const nextForecast = forecastFor(nextWeather, forecastRng());
 
   // The rival rethinks their price every few weeks, drifting toward undercutting
@@ -334,6 +350,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     inventory,
     locationId: location.id,
     qualityId: quality.id,
+    sideProductId: decisions.sideProductId ?? null,
+    bonusCapacity,
+    equipmentValue: money(Math.max(0, state.equipmentValue + ev.equipment)),
     price,
     loans,
     marketing: nextMarketing,
@@ -344,6 +363,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     season: nextSeason,
     weather: nextWeather,
     forecast: nextForecast,
+    weatherStreak: nextWeather === state.weather ? state.weatherStreak + 1 : 1,
     rivalPrice,
     rivalCooldown,
     miniGoalStreak,
@@ -386,6 +406,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     reputationStart,
     reputationEnd: reputation,
     grossProfit,
+    sideUnits,
+    sideRevenue,
+    sideCogs,
     forecast: state.forecast,
     forecastWasWrong: state.forecast !== state.weather,
     rivalPrice: state.rivalPrice,
@@ -406,6 +429,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
       profit,
       spoiled,
       missedPayment,
+      hasHelper: employees.length > 0,
       forecastWasWrong: state.forecast !== state.weather,
       lostToRival,
       grossProfit,
@@ -450,6 +474,7 @@ function coachFor(x: {
   profit: number;
   spoiled: number;
   missedPayment: boolean;
+  hasHelper: boolean;
   forecastWasWrong: boolean;
   lostToRival: number;
   grossProfit: number;
@@ -462,7 +487,11 @@ function coachFor(x: {
   if (x.missedPayment) return 'You missed a loan payment. The banker is watching.';
   if (x.stagedUp) return 'Your stand just levelled up!';
   if (x.lostToStockout > x.served * 0.2) return 'You sold out early. Buy more supplies next week.';
-  if (x.lostToCapacity > x.served * 0.2) return 'The line was too long. You need another pair of hands.';
+  if (x.lostToCapacity > x.served * 0.2) {
+    return x.hasHelper
+      ? 'Even with help the line was too long. A quieter spot or a higher price would thin it.'
+      : 'The line was too long. You need another pair of hands.';
+  }
   if (x.spoiled > x.served * 0.35) return 'You threw out a lot. Buy a little less next week.';
   if (x.forecastWasWrong && x.profit <= 0) return 'The forecast was wrong and it cost you. That happens.';
   if (x.lostToRival > x.served * 0.25) return 'The stand across the street is cheaper. People noticed.';

@@ -1,5 +1,6 @@
 import type {
   EmployeeDef,
+  SideProduct,
   LoanOffer,
   LocationDef,
   MarketingChannel,
@@ -29,6 +30,8 @@ export interface BusinessDef {
   startingEquipmentValue: Record<Tier, number>;
   locations: LocationDef[];
   qualities: QualityDef[];
+  /** Small add-on items sold alongside the main product. */
+  sideProducts: SideProduct[];
   loanOffers: Record<Tier, LoanOffer[]>;
   marketing: MarketingChannel[];
   employees: EmployeeDef[];
@@ -173,6 +176,55 @@ const MARKETING: MarketingChannel[] = [
   },
 ];
 
+
+/**
+ * Side items. A share of the people already buying a drink will add one, so
+ * these raise revenue per customer without needing new customers — the classic
+ * "would you like fries with that" lesson. Attach rates are deliberately modest.
+ */
+const SIDE_PRODUCTS: SideProduct[] = [
+  {
+    id: 'cookies',
+    name: 'Cookies',
+    emoji: '🍪',
+    unitCost: 0.3,
+    price: 1,
+    attachRate: 0.35,
+    reputationBonus: 0.03,
+    blurb: 'Baked at home. Most people take one.',
+  },
+  {
+    id: 'lollipops',
+    name: 'Lollipops',
+    emoji: '🍭',
+    unitCost: 0.08,
+    price: 0.5,
+    attachRate: 0.45,
+    reputationBonus: 0.02,
+    blurb: 'Cheap, cheerful, and kids always say yes.',
+  },
+  {
+    id: 'gummies',
+    name: 'Gummy Bags',
+    emoji: '🐻',
+    unitCost: 0.22,
+    price: 1,
+    attachRate: 0.3,
+    blurb: 'Small bags of gummy bears.',
+  },
+  {
+    id: 'brownies',
+    name: 'Brownies',
+    emoji: '🍫',
+    unitCost: 0.55,
+    price: 2,
+    attachRate: 0.22,
+    reputationBonus: 0.05,
+    tiers: ['pro', 'tycoon'],
+    blurb: 'Pricey to make, but the best margin per sale.',
+  },
+];
+
 const EMPLOYEES: EmployeeDef[] = [
   {
     id: 'maya',
@@ -270,6 +322,7 @@ export const LEMONADE: BusinessDef = {
   startingEquipmentValue: { rookie: 20, pro: 38, tycoon: 150 },
   locations: LOCATIONS,
   qualities: QUALITIES,
+  sideProducts: SIDE_PRODUCTS,
   loanOffers: LOAN_OFFERS,
   marketing: MARKETING,
   employees: EMPLOYEES,

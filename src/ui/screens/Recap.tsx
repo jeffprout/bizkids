@@ -60,10 +60,23 @@ export function Recap({
           <span>🥤 Cups sold</span>
           <span>{r.served}</span>
         </div>
-        <div className="ledger">
-          <span>💰 Sales</span>
-          <span className="in">{dollars(r.revenue)}</span>
-        </div>
+        {r.sideUnits > 0 && tier.showFullPnL ? (
+          <>
+            <div className="ledger">
+              <span>💰 Drink sales</span>
+              <span className="in">{dollars(r.revenue - r.sideRevenue)}</span>
+            </div>
+            <div className="ledger">
+              <span>🍭 Treats ({r.sideUnits})</span>
+              <span className="in">{dollars(r.sideRevenue)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="ledger">
+            <span>💰 Sales</span>
+            <span className="in">{dollars(r.revenue)}</span>
+          </div>
+        )}
 
         {tier.showFullPnL ? (
           <>
@@ -117,11 +130,24 @@ export function Recap({
                 <span className="out">-{dollars(r.lateFees)}</span>
               </div>
             )}
+            {/* What this week's event cards actually cost or paid. It was being
+                folded silently into profit, so choices felt free. */}
+            {r.eventCash !== 0 && (
+              <div className="ledger">
+                <span>{r.eventCash < 0 ? '⚡ What happened' : '⚡ Lucky break'}</span>
+                <span className={r.eventCash < 0 ? 'out' : 'in'}>
+                  {r.eventCash < 0 ? '-' : ''}
+                  {dollars(Math.abs(r.eventCash))}
+                </span>
+              </div>
+            )}
           </>
         ) : (
           <div className="ledger">
             <span>💸 Money out</span>
-            <span className="out">-{dollars(r.cogs + r.spoilageCost + overheads)}</span>
+            <span className="out">
+              -{dollars(r.cogs + r.spoilageCost + overheads + Math.max(0, -r.eventCash))}
+            </span>
           </div>
         )}
 

@@ -45,6 +45,20 @@ export interface QualityDef {
   blurb: string;
 }
 
+/** A small add-on item sold to people already buying the main product. */
+export interface SideProduct {
+  id: string;
+  name: string;
+  emoji: string;
+  unitCost: number;
+  price: number;
+  /** Share of served customers who add one. */
+  attachRate: number;
+  reputationBonus?: number;
+  tiers?: Tier[];
+  blurb: string;
+}
+
 export interface LoanOffer {
   id: string;
   lender: string;
@@ -135,6 +149,10 @@ export type EventEffectKey =
 export interface EventChoice {
   id: string;
   label: string;
+  /** Permanent gear bought or lost. Adds to the sale price at exit. */
+  equipment?: number;
+  /** Permanent change to how many cups a week you can serve. */
+  capacity?: number;
   /** Instant one-off effects applied when the choice is made. */
   cash?: number;
   reputation?: number;
@@ -159,6 +177,10 @@ export interface GameEvent {
   choices: EventChoice[];
   /** Only draw at or above this stage. */
   minStage?: Stage;
+  /** Only draw in these seasons. A cold snap in July is not a thing. */
+  seasons?: Season[];
+  /** Only draw when the week's actual weather is one of these. */
+  weathers?: Weather[];
   /** Only draw when this is true of the state. Named predicates live in events.ts. */
   requires?: 'hasEmployee' | 'hasLoan' | 'hasInventory' | 'hasMarketing';
   weight: number;
@@ -171,6 +193,8 @@ export interface WeekDecisions {
   qualityId: string;
   /** Units of stock bought this week. */
   restockUnits: number;
+  /** Side item to sell alongside the main product. null means none. */
+  sideProductId?: string | null;
   locationId: string;
   /** Event id -> chosen choice id. */
   eventChoices: Record<string, string>;
@@ -227,6 +251,10 @@ export interface WeekResult {
   reputationEnd: number;
   /** Revenue minus the cost of what you sold, before any overheads. */
   grossProfit: number;
+  /** Side-item sales, and what they cost. */
+  sideUnits: number;
+  sideRevenue: number;
+  sideCogs: number;
   /** What the forecast said versus what actually happened. */
   forecast: Weather;
   forecastWasWrong: boolean;
@@ -288,6 +316,8 @@ export interface GameState {
   weather: Weather;
   /** The forecast the player decides against. Right about two thirds of the time. */
   forecast: Weather;
+  /** How many weeks the current weather has already run. Caps dull streaks. */
+  weatherStreak: number;
   season: Season;
   /** What the stand across the street is charging. */
   rivalPrice: number;
@@ -302,6 +332,10 @@ export interface GameState {
   badges: string[];
   /** Assets owned, added to the sale price at exit. */
   equipmentValue: number;
+  /** Extra cups a week you can serve from gear, not people. */
+  bonusCapacity: number;
+  /** The side item on sale, if any. */
+  sideProductId: string | null;
   lastResult: WeekResult | null;
   history: WeekResult[];
   rngSeed: number;

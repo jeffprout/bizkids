@@ -9,7 +9,7 @@ import { makeRng, nextSeed } from './rng';
 
 // Bumped when the shape of GameState changes. loadRun drops saves that do not
 // match, which is the right call: a half-migrated save is worse than a fresh one.
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface FinancingChoice {
   /** Offer ids the player accepted. */
@@ -66,6 +66,7 @@ export function newGame(opts: {
     revenueHistory: [],
     weather,
     forecast,
+    weatherStreak: 1,
     season,
     rivalPrice: biz.rival.startPrice[opts.tier],
     rivalCooldown: biz.rival.changeEvery,
@@ -75,6 +76,8 @@ export function newGame(opts: {
     miniGoalStreak: 0,
     badges: [],
     equipmentValue: biz.startingEquipmentValue[opts.tier],
+    bonusCapacity: 0,
+    sideProductId: null,
     lastResult: null,
     history: [],
     rngSeed: nextSeed(seed),

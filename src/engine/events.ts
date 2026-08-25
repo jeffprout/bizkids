@@ -5,6 +5,9 @@ const NO_REPEAT_WEEKS = 8;
 
 function meetsRequirement(event: GameEvent, state: GameState): boolean {
   if (event.minStage && state.stage < event.minStage) return false;
+  // A cold snap in the middle of a sunny July is not a thing.
+  if (event.seasons && !event.seasons.includes(state.season)) return false;
+  if (event.weathers && !event.weathers.includes(state.weather)) return false;
   switch (event.requires) {
     case 'hasEmployee':
       return state.employees.length > 0;
@@ -52,6 +55,9 @@ export interface EventEffects {
   demandMod: number;
   unitCostMod: number;
   capacityMod: number;
+  /** Permanent, unlike the Mod fields: gear kept and capacity gained. */
+  equipment: number;
+  capacity: number;
   lines: { emoji: string; text: string }[];
 }
 
@@ -69,6 +75,8 @@ export function resolveEventChoices(
     demandMod: 1,
     unitCostMod: 1,
     capacityMod: 1,
+    equipment: 0,
+    capacity: 0,
     lines: [],
   };
 
@@ -81,6 +89,8 @@ export function resolveEventChoices(
     out.demandMod *= choice.demandMod ?? 1;
     out.unitCostMod *= choice.unitCostMod ?? 1;
     out.capacityMod *= choice.capacityMod ?? 1;
+    out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
+    out.capacity += Math.round((choice.capacity ?? 0) * scale);
     out.lines.push({ emoji: event.emoji, text: choice.result });
   }
 
