@@ -383,6 +383,48 @@ Opening flow: name → level → financing → where will you sell → price →
 
 ---
 
+## 2026-08-24 (late) — Fit a week on one screen
+
+Jeff: "fit it so that I don't have to scroll." Measured first: at a 720px-tall
+window the week screen ran 883px, so 163px over. The two hogs were the header
+stack (164px: HUD, a pill row, the net worth bar, and the goal pill each on their
+own line) and the supplies card (383px, mostly four stacked explanatory
+sentences).
+
+Changes:
+- Header collapsed from four rows to two — every context pill, the weekly goal
+  included, now shares one wrapping row, and the net worth bar dropped 14px to 7.
+- The stand art is `clamp(96px, 17vh, 150px)` instead of a fixed 190px, so it
+  gives back height on short screens rather than pushing the card down.
+- The supplies card's four sentences became one row of chips (left over, can
+  serve, last week's buy/sell/turned away, plus whatever was decided earlier).
+- Global trim: card padding 14→10, ledger rows 8→5, gaps 12→8, page bottom
+  padding 40→14, tap target 56→52.
+- The results screen puts the P&L and the bank reconciliation side by side
+  (`.recap-cols`), stacking again under 560px.
+- A `max-height: 780px` block gives back more from the art and the padding for
+  laptops with a lot of browser chrome. Touch targets bottom out at 46px, still
+  above the 44px floor the wrap rules require.
+
+Verified by walking every screen of a run and measuring `scrollHeight` against
+the viewport:
+
+| Window | Screens checked | Screens that scroll |
+|---|---|---|
+| 760 x 890 (Jeff's) | 36 | none |
+| 768 x 1024 (iPad) | 18 | none |
+| 1280 x 660 (short laptop) | 30 | results by 86px, treats by 78px |
+| 375 x 812 (phone) | — | results by ~110px, treats by ~47px |
+
+**Not fully solved at the extremes, and worth saying plainly:** a card with five
+options plus the header, art and button cannot fit a 660px-tall window without
+shrinking text past what a kid should have to read. The decision cards fit
+everywhere that matters; what still scrolls is the results screen and the
+five-option treats card, on unusually short or narrow windows. If that bites,
+the lever is dropping one treat option or moving the art off the decision cards.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

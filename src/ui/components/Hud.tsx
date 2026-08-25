@@ -20,7 +20,7 @@ export function Hud({
   const barPct = Math.max(2, Math.min(100, (netWorth / 400) * 100));
 
   return (
-    <div className="stack" style={{ gap: 8 }}>
+    <div className="stack" style={{ gap: 6 }}>
       <div className="hud">
         <div className="hud-cell">
           <div className="hud-label">Money</div>
@@ -50,7 +50,9 @@ export function Hud({
         </div>
       </div>
 
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+      {/* One wrapping row of context instead of three stacked ones, so the
+          decision card stays above the fold. */}
+      <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
         {/* The FORECAST, not the truth. Ordering against it is the bet. */}
         <span className="pill">
           {WEATHER_INFO[state.forecast].emoji} {WEATHER_INFO[state.forecast].label}?
@@ -60,15 +62,14 @@ export function Hud({
         </span>
         {debt > 0 && <span className="pill">🏦 owe ${Math.round(debt)}</span>}
         {showRival && <span className="pill">😼 rival ${state.rivalPrice.toFixed(2)}</span>}
+        <span className="pill">
+          🎯 {miniGoalText(state.miniGoal)}
+          {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak}`}
+        </span>
       </div>
 
       <div className="bar" aria-label="Net worth">
         <div className="bar-fill" style={{ width: `${barPct}%` }} />
-      </div>
-
-      <div className="pill" style={{ alignSelf: 'flex-start' }}>
-        🎯 {miniGoalText(state.miniGoal)}
-        {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak}`}
       </div>
     </div>
   );

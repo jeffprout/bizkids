@@ -249,32 +249,30 @@ export function Week({
             <p>
               {restockUnits} cups costs <b>{dollars(supplyCost, true)}</b>
             </p>
+            {/* Everything needed to size the order — last week's numbers, the
+                capacity, and anything decided earlier this week — as chips
+                rather than a stack of sentences, so the card clears the fold. */}
+            <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
+              <span className="pill">🥤 {state.inventory} left over</span>
+              <span className="pill">🙌 can serve {capacityAfter}</span>
+              {state.lastResult && (
+                <span className="pill">
+                  ⏮️ bought {state.lastResult.suppliesUnits}, sold {state.lastResult.served}
+                  {state.lastResult.lostToStockout > 0
+                    ? `, ${state.lastResult.lostToStockout} away`
+                    : ''}
+                </span>
+              )}
+              {buyMarketing.length > 0 && <span className="pill">📣 ads bring more</span>}
+              {hireId && <span className="pill">🤝 helper serves more</span>}
+              {fireStaff && <span className="pill">👋 no helper, serve fewer</span>}
+              {restockUnits >= restockMax && restockMax > 0 && (
+                <span className="pill">💳 all you can afford</span>
+              )}
+            </div>
             <p className="muted">
-              You have {state.inventory} cups left over. You can serve {capacityAfter} this week.
+              ⚠️ {WEATHER_INFO[state.forecast].label} forecast — often wrong. Leftovers go bad.
             </p>
-            {/* What last week actually looked like, so this is not a blind guess. */}
-            {state.lastResult && (
-              <p className="muted">
-                Last week you bought {state.lastResult.suppliesUnits} and sold{' '}
-                {state.lastResult.served}
-                {state.lastResult.lostToStockout > 0
-                  ? `, and turned ${state.lastResult.lostToStockout} away.`
-                  : '.'}
-              </p>
-            )}
-            {/* Everything decided earlier in the week that changes this number. */}
-            {buyMarketing.length > 0 && (
-              <p className="muted">📣 Advertising should bring extra customers.</p>
-            )}
-            {hireId && <p className="muted">🤝 Your new helper raises how many you can serve.</p>}
-            {fireStaff && <p className="muted">👋 Without a helper you can serve fewer.</p>}
-            <p className="muted">
-              ⚠️ Forecast says {WEATHER_INFO[state.forecast].label.toLowerCase()} — forecasts are
-              often wrong. Leftovers go bad.
-            </p>
-            {restockUnits >= restockMax && restockMax > 0 && (
-              <p className="muted">That is all you can afford this week.</p>
-            )}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
@@ -374,17 +372,16 @@ export function Week({
         {card === 'treats' && (
           <div className="card stack">
             <h2 className="center">Sell a treat too?</h2>
-            <p className="muted center">
-              Some people buying a drink will add one. No new customers needed.
-            </p>
+            <p className="muted center">Sold to people already buying a drink.</p>
             {sideOptions.map((sp) => {
               const margin = (sp.price - sp.unitCost * tier.unitCostScale).toFixed(2);
               return (
                 <Choice
                   key={sp.id}
                   emoji={sp.emoji}
-                  title={`${sp.name} · sell at ${dollars(sp.price, true)}`}
-                  sub={`Costs ${dollars(sp.unitCost * tier.unitCostScale, true)}, so you keep $${margin}. About ${Math.round(sp.attachRate * 100)} in 100 add one.`}
+                  title={`${sp.name} · ${dollars(sp.price, true)}`}
+                  // Kept to one line so four options still fit a phone screen.
+                  sub={`keep $${margin} each · ${Math.round(sp.attachRate * 100)}% take one`}
                   selected={sideProductId === sp.id}
                   onClick={() => setSideProductId(sp.id)}
                 />
@@ -393,7 +390,6 @@ export function Week({
             <Choice
               emoji="🚫"
               title="Just drinks"
-              sub="Keep it simple."
               selected={!sideProductId}
               onClick={() => setSideProductId(null)}
             />
