@@ -6,7 +6,7 @@ import { seasonForWeek } from '../calendar';
 import { valueBusiness } from '../valuation';
 import { sanitizeRun } from '../sanitize';
 import type { GameState, WeekDecisions } from '../types';
-import { LEMONADE } from '../../config/businesses/lemonade';
+import { LEMONADE } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { ALL_EVENTS } from '../../config/events';
 import { dollars } from '../../ui/components/bits';

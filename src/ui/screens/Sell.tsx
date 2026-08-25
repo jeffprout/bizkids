@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { Confetti, ExplainToggle, LedgerRow, dollars } from '../components/bits';

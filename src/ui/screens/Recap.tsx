@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { TIERS } from '../../config/difficulty';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { badgeById } from '../../config/milestones';
 import { WEATHER_INFO } from '../../engine/calendar';
 import { Confetti, ExplainToggle, LedgerRow, Stars, dollars } from '../components/bits';

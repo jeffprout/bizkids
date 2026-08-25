@@ -1,6 +1,6 @@
 import type { GameState } from '../../engine/types';
 import { SEASON_INFO, WEATHER_INFO } from '../../engine/calendar';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { miniGoalText } from '../../config/milestones';

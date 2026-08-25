@@ -1284,6 +1284,53 @@ points `--prefix bizkids` at it.
 
 ---
 
+## 2026-08-25 — Live on bossmodegame.com, and the register moved out of the lemonade stand
+
+Jeff's son played it and loved it, which clears the Phase 1 playtest gate. The
+game is live at **www.bossmodegame.com** (the apex redirects to www).
+
+### Work on v2 happens on a branch
+
+`master` deploys straight to the live domain. Vercel builds every branch to its
+own preview URL, so `v2` gets somewhere to be tried on a real phone without
+anyone mid-run seeing half-finished work.
+
+The sharp edge is `SAVE_VERSION`: v2 will almost certainly change the shape of a
+save, and in-progress runs cannot cross that — a tester thirty weeks in loses the
+stand and keeps only trophies. On a branch that costs nothing; on the live domain
+it happens to everyone at once with no warning.
+
+### The business register is no longer inside the lemonade stand
+
+This was the open item blocking Phase 2b, and it needed doing before four
+businesses depend on the current shape rather than after.
+
+`BusinessDef` — the contract the engine requires of a business — lived inside
+`businesses/lemonade.ts`, along with the register of all businesses. So adding
+the food truck would have meant editing the lemonade stand, and the second
+business would have had to import the first to learn its own shape. Twelve files
+across the engine, the screens and the state layer imported the lemonade stand by
+name purely to look up whichever business was actually being played.
+
+Now:
+
+- `BusinessDef` sits in `engine/types.ts` with the engine's other contracts.
+- `config/businesses/index.ts` holds the register and `getBusiness`. It is the
+  one file a new business is wired into.
+- `lemonade.ts` contains the lemonade stand and nothing else.
+- `Setup` takes a `businessId` instead of naming one, and reads the emoji and
+  title from the business. A picker screen is the only thing still to write when
+  business #2 lands.
+
+Six tests guard it, and they read the source text rather than the runtime,
+because the coupling being prevented is an import — invisible when the code runs,
+obvious in the file. Two of them fail if anything under `/src/engine`,
+`/src/ui` or `/src/state` ever names a specific business file again.
+
+No behaviour changed. 116 tests, and a full week still plays through identically.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
@@ -1295,7 +1342,5 @@ points `--prefix bizkids` at it.
    sell-the-business screen as Pro. Simplify to a piggy-bank total?
 5. **Winter** is a long slow stretch (weeks 36–48) for a drinks business.
    Largely answered by the hot chocolate pivot, but still worth watching.
-6. **Before Phase 2:** move the business registry out of `businesses/lemonade.ts`
-   and `BusinessDef` into `engine/types.ts`, so adding a business is genuinely a
-   config-only change as Phase 2b requires. Small, mechanical, and much easier
-   before four businesses depend on it.
+6. ~~**Before Phase 2:** move the business registry out of
+   `businesses/lemonade.ts`.~~ **Done 2026-08-25.**

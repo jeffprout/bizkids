@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState, WeekDecisions } from '../../engine/types';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { Hud } from '../components/Hud';
 import { StandArt } from '../components/StandArt';

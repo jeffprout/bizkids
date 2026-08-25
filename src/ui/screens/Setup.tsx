@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { Tier } from '../../engine/types';
 import type { FinancingChoice } from '../../engine/newGame';
-import { LEMONADE } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { totalInterestFor, weeklyPaymentFor } from '../../engine/loans';
 import { Choice, dollars } from '../components/bits';
@@ -11,11 +11,14 @@ import { sfx } from '../sfx';
 type Step = 'tier' | 'money';
 
 export function Setup({
+  businessId,
   playerName,
   runOutdated,
   onStart,
   onBack,
 }: {
+  /** Which business is being set up. When a picker exists, it sets this. */
+  businessId: string;
   playerName: string;
   runOutdated?: boolean;
   onStart: (tier: Tier, financing: FinancingChoice) => void;
@@ -25,7 +28,7 @@ export function Setup({
   const [tier, setTier] = useState<Tier>('pro');
   const [loanIds, setLoanIds] = useState<string[]>([]);
 
-  const biz = LEMONADE;
+  const biz = getBusiness(businessId);
   const savings = biz.savings[tier];
   const startup = biz.startupCost[tier];
   const offers = biz.loanOffers[tier];
@@ -61,8 +64,8 @@ export function Setup({
           />
         ))}
         <div className="card card-tight center">
-          <div style={{ fontSize: 44 }}>🍋</div>
-          <h3>Lemonade Stand</h3>
+          <div style={{ fontSize: 44 }}>{biz.emoji}</div>
+          <h3>{biz.name}</h3>
           <p className="muted">
             Build it up over 50 weeks, then sell it for as much as you can.
           </p>

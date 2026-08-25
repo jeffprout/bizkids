@@ -389,3 +389,60 @@ export interface GameState {
   offerAvailable: boolean;
   discussionLog: { week: number; note: string }[];
 }
+
+/**
+ * Everything the engine needs to run one business. Adding business #11 means
+ * adding one config file — no engine changes.
+ *
+ * This lives here, with the engine's other contracts, rather than inside any
+ * one business. A business file should import the shape it has to satisfy; it
+ * should not be the place the shape is defined, or the second business would
+ * have to import the first.
+ */
+export interface BusinessDef {
+  id: string;
+  name: string;
+  emoji: string;
+  tagline: string;
+  /** What one unit of product is called. */
+  unitName: string;
+  unitNamePlural: string;
+  /** Money the player already has, per tier. */
+  savings: Record<Tier, number>;
+  /** Cost to open the doors, per tier. */
+  startupCost: Record<Tier, number>;
+  /** What the startup cost buys, shown on the financing screen. */
+  startupBuys: string;
+  /** Value of the gear you own — added to the sale price at exit. */
+  startingEquipmentValue: Record<Tier, number>;
+  locations: LocationDef[];
+  qualities: QualityDef[];
+  /** Small add-on items sold alongside the main product. */
+  sideProducts: SideProduct[];
+  loanOffers: Record<Tier, LoanOffer[]>;
+  marketing: MarketingChannel[];
+  employees: EmployeeDef[];
+  /** Price customers think is normal. The price curve pivots here. */
+  referencePrice: Record<Tier, number>;
+  defaultPrice: Record<Tier, number>;
+  /** Units one pair of hands can serve in a week. */
+  soloCapacity: number;
+  /** Share of the people who walk past who actually buy something. */
+  conversionRate: number;
+  /** Share of unsold stock thrown out each week. */
+  spoilRate: number;
+  /** The stand across the street. Omitted tiers do not face one. */
+  rival: {
+    tiers: Tier[];
+    startPrice: Record<Tier, number>;
+    /** How hard customers react to the price gap. */
+    sensitivity: number;
+    /** Weeks between the rival rethinking their price. */
+    changeEvery: number;
+  };
+  /** Multiple of yearly profit a buyer will pay at exit. */
+  valuationMultiple: { low: number; high: number };
+  stageUps: { stage: 2 | 3; minTotalRevenue: number; minReputation: number; minWeek: number }[];
+  /** Curriculum concepts this business teaches, for the School Edition doc. */
+  concepts: string[];
+}

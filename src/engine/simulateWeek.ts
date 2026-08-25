@@ -1,5 +1,5 @@
 import type { GameEvent, GameState, WeekDecisions, WeekResult } from './types';
-import { getBusiness } from '../config/businesses/lemonade';
+import { getBusiness } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { eventsForBusiness } from '../config/events';
 import { BADGES, rollMiniGoal } from '../config/milestones';

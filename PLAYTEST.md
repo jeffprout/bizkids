@@ -4,25 +4,37 @@ The game is a static web page. No server, no accounts, no database — so sharin
 it is just hosting a folder and sending a link. Saves live in each tester's own
 browser.
 
-## Putting it online
+## Where it lives
 
-Deployed from **GitHub to Vercel**: push a commit, Vercel builds and publishes it
-automatically. `vercel.json` already sets the build command, output directory and
+**https://www.bossmodegame.com** — that is the link you send. The bare
+`bossmode game.com` redirects to it.
+
+Deployed from **GitHub to Vercel**: `master` builds and publishes to the live
+domain automatically. `vercel.json` sets the build command, output directory and
 cache headers, so there is nothing to configure in the dashboard.
 
-**One-time setup.** The repo is already on GitHub. In your browser:
+## Working on the next version without disturbing anyone
 
-1. Go to https://vercel.com/new and sign in **with GitHub**.
-2. Pick the `bizkids` repository and press **Import**.
-3. Leave every setting alone — `vercel.json` supplies them — and press **Deploy**.
-
-A minute later you get a URL like `https://bizkids.vercel.app`. That is the link
-you send people, and it stays the same forever.
-
-**Every change after that** is just:
+Every push to `master` goes straight to the live domain, in front of whoever is
+mid-run. So new work happens on a branch:
 
 ```bash
-git add -A && git commit -m "what changed" && git push
+git checkout v2
+```
+
+Vercel builds every branch to its own preview URL, which nobody but you has. Test
+there, and merge to `master` only when it is ready to be seen.
+
+This matters more than it sounds. A change to the shape of a save bumps
+`SAVE_VERSION`, and in-progress runs cannot be carried across it — a tester who
+is thirty weeks in loses the stand and keeps only their trophies. On a preview
+branch that costs nothing. On the live domain it happens to everyone at once,
+without warning.
+
+**Shipping to the live site**, once a branch is ready:
+
+```bash
+git checkout master && git merge v2 && git push
 ```
 
 Vercel rebuilds within a minute or two. Testers get the new version on their next

@@ -1,5 +1,5 @@
 import type { GameState } from './types';
-import { getBusiness } from '../config/businesses/lemonade';
+import { getBusiness } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { money } from './loans';
 

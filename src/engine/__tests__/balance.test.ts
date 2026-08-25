@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { newGame } from '../newGame';
 import { simulateWeek, FINAL_WEEK } from '../simulateWeek';
 import { valueBusiness } from '../valuation';
-import { LEMONADE } from '../../config/businesses/lemonade';
+import { LEMONADE } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import type { GameState, Tier } from '../types';
 
