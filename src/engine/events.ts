@@ -59,6 +59,8 @@ export interface EventEffects {
 export function resolveEventChoices(
   events: GameEvent[],
   choices: Record<string, string>,
+  /** Tier scaling for cash and stock swings. Multipliers are never scaled. */
+  scale = 1,
 ): EventEffects {
   const out: EventEffects = {
     cash: 0,
@@ -73,9 +75,9 @@ export function resolveEventChoices(
   for (const event of events) {
     const chosenId = choices[event.id];
     const choice = event.choices.find((c) => c.id === chosenId) ?? event.choices[0];
-    out.cash += choice.cash ?? 0;
+    out.cash += Math.round((choice.cash ?? 0) * scale * 100) / 100;
     out.reputation += choice.reputation ?? 0;
-    out.inventory += choice.inventory ?? 0;
+    out.inventory += Math.round((choice.inventory ?? 0) * scale);
     out.demandMod *= choice.demandMod ?? 1;
     out.unitCostMod *= choice.unitCostMod ?? 1;
     out.capacityMod *= choice.capacityMod ?? 1;

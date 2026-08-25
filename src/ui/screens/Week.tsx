@@ -5,6 +5,7 @@ import { getBusiness } from '../../config/businesses/lemonade';
 import { TIERS } from '../../config/difficulty';
 import { Hud } from '../components/Hud';
 import { StandArt } from '../components/StandArt';
+import { WEATHER_INFO } from '../../engine/calendar';
 import { Choice, Stepper, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
@@ -28,7 +29,7 @@ export function Week({
 
   const [price, setPrice] = useState(state.price);
   const [qualityId, setQualityId] = useState(state.qualityId);
-  const [restock, setRestock] = useState(() => suggestRestock(state, biz, tier.restockStep));
+  const [restock, setRestock] = useState(() => suggestRestock(state, biz, tier.restockStep, tier.unitCostScale));
   const [locationId, setLocationId] = useState(state.locationId);
   const [eventChoices, setEventChoices] = useState<Record<string, string>>({});
   const [buyMarketing, setBuyMarketing] = useState<string[]>([]);
@@ -43,13 +44,15 @@ export function Week({
     items.filter((i) => !i.tiers || i.tiers.includes(state.tier));
   const marketingOptions = forTier(biz.marketing);
   const employeeOptions = forTier(biz.employees);
+  const facesRival = biz.rival.tiers.includes(state.tier);
 
-  const supplyCost = Math.round(restock * quality.unitCost * 100) / 100;
+  const unitCost = quality.unitCost * tier.unitCostScale;
+  const supplyCost = Math.round(restock * unitCost * 100) / 100;
   // The stepper can never past what the player can pay for, so there is no way
   // to land on a disabled button with no obvious way out.
   const maxAffordable =
-    quality.unitCost > 0
-      ? Math.floor(Math.floor(state.cash / quality.unitCost) / tier.restockStep) * tier.restockStep
+    unitCost > 0
+      ? Math.floor(Math.floor(state.cash / unitCost) / tier.restockStep) * tier.restockStep
       : 600;
   const restockMax = Math.max(0, Math.min(600, maxAffordable));
 
@@ -100,10 +103,10 @@ export function Week({
 
   return (
     <div className="stack">
-      <Hud state={state} onMenu={onMenu} />
+      <Hud state={state} showRival={facesRival} onMenu={onMenu} />
       <StandArt
         stage={state.stage}
-        weather={state.weather}
+        weather={state.forecast}
         reputation={state.reputation}
         hasEmployee={state.employees.length > 0}
         hasSign={state.marketing.some((m) => m.channelId === 'sign')}
@@ -144,6 +147,11 @@ export function Week({
               onChange={setPrice}
             />
             <p className="muted">{priceHint(price, biz.referencePrice[state.tier])}</p>
+            {facesRival && (
+              <p className="muted">
+                😼 The stand across the street charges ${state.rivalPrice.toFixed(2)}.
+              </p>
+            )}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
@@ -168,6 +176,10 @@ export function Week({
               You already have {state.inventory} cups ready.
               {state.lastResult ? ` Last week you sold ${state.lastResult.served}.` : ''}
             </p>
+            <p className="muted">
+              ⚠️ Forecast says {WEATHER_INFO[state.forecast].label.toLowerCase()} — forecasts are
+              often wrong. Leftovers go bad.
+            </p>
             {restock >= restockMax && restockMax > 0 && (
               <p className="muted">That is all you can buy this week.</p>
             )}
@@ -184,7 +196,7 @@ export function Week({
               <Choice
                 key={q.id}
                 emoji={q.emoji}
-                title={`${q.name} · ${dollars(q.unitCost, true)} a cup`}
+                title={`${q.name} · ${dollars(q.unitCost * tier.unitCostScale, true)} a cup`}
                 sub={q.blurb}
                 selected={qualityId === q.id}
                 onClick={() => setQualityId(q.id)}
@@ -377,11 +389,17 @@ function suggestRestock(
   state: GameState,
   biz: ReturnType<typeof getBusiness>,
   step: number,
+  unitCostScale: number,
 ): number {
-  const last = state.lastResult;
-  const wanted = last ? last.served + last.lostToStockout : 60;
+  // Look at the best of the last three weeks, not just the last one. A single
+  // rained-out week would otherwise suggest ordering nothing, and a stand that
+  // orders nothing sells nothing forever.
+  const recent = state.history.slice(-3);
+  const wanted = recent.length
+    ? Math.max(20, ...recent.map((h) => h.served + h.lostToStockout))
+    : 60;
   const want = Math.round((wanted * 1.15 - state.inventory) / step) * step;
   const quality = biz.qualities.find((q) => q.id === state.qualityId) ?? biz.qualities[0];
-  const affordable = Math.floor(Math.floor(state.cash / quality.unitCost) / step) * step;
+  const affordable = Math.floor(Math.floor(state.cash / (quality.unitCost * unitCostScale)) / step) * step;
   return Math.max(0, Math.min(400, want, affordable));
 }

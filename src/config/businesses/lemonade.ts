@@ -41,6 +41,15 @@ export interface BusinessDef {
   conversionRate: number;
   /** Share of unsold stock thrown out each week. */
   spoilRate: number;
+  /** The stand across the street. Omitted tiers do not face one. */
+  rival: {
+    tiers: Tier[];
+    startPrice: Record<Tier, number>;
+    /** How hard customers react to the price gap. */
+    sensitivity: number;
+    /** Weeks between the rival rethinking their price. */
+    changeEvery: number;
+  };
   /** Multiple of yearly profit a buyer will pay at exit. */
   valuationMultiple: { low: number; high: number };
   stageUps: { stage: 2 | 3; minTotalRevenue: number; minReputation: number; minWeek: number }[];
@@ -55,7 +64,8 @@ const LOCATIONS: LocationDef[] = [
     emoji: '🏡',
     baseTraffic: 70,
     weeklyRent: 0,
-    blurb: 'Free. About 10 people walk by a day.',
+    weeklyFixedCosts: 2,
+    blurb: 'Free, and almost no costs. About 10 people a day.',
     volatility: 0.1,
   },
   {
@@ -64,7 +74,8 @@ const LOCATIONS: LocationDef[] = [
     emoji: '🌳',
     baseTraffic: 210,
     weeklyRent: 5,
-    blurb: '$5 a week. Three times the people.',
+    weeklyFixedCosts: 14,
+    blurb: '$5 rent plus permit and ice. Three times the people.',
     volatility: 0.15,
   },
   {
@@ -73,7 +84,8 @@ const LOCATIONS: LocationDef[] = [
     emoji: '⚽',
     baseTraffic: 350,
     weeklyRent: 10,
-    blurb: '$10 a week. Huge Saturdays, dead Tuesdays.',
+    weeklyFixedCosts: 22,
+    blurb: '$10 rent, pricey permit. Huge Saturdays, dead Tuesdays.',
     volatility: 0.35,
   },
 ];
@@ -83,7 +95,7 @@ const QUALITIES: QualityDef[] = [
     id: 'mix',
     name: 'Powder Mix',
     emoji: '🥄',
-    unitCost: 0.12,
+    unitCost: 0.22,
     demandMod: 0.88,
     reputationDrift: -0.06,
     blurb: 'Cheapest cup. People can taste it.',
@@ -92,7 +104,7 @@ const QUALITIES: QualityDef[] = [
     id: 'fresh',
     name: 'Fresh Squeezed',
     emoji: '🍋',
-    unitCost: 0.24,
+    unitCost: 0.42,
     demandMod: 1.0,
     reputationDrift: 0.02,
     blurb: 'Real lemons. The normal cup.',
@@ -101,7 +113,7 @@ const QUALITIES: QualityDef[] = [
     id: 'fancy',
     name: 'Fancy Fizz',
     emoji: '🫐',
-    unitCost: 0.42,
+    unitCost: 0.68,
     demandMod: 1.18,
     reputationDrift: 0.06,
     blurb: 'Lemons, berries and bubbles.',
@@ -261,14 +273,20 @@ export const LEMONADE: BusinessDef = {
   loanOffers: LOAN_OFFERS,
   marketing: MARKETING,
   employees: EMPLOYEES,
-  referencePrice: { rookie: 1, pro: 1, tycoon: 1.25 },
-  defaultPrice: { rookie: 1, pro: 1, tycoon: 1.5 },
+  referencePrice: { rookie: 1, pro: 1.5, tycoon: 1.75 },
+  defaultPrice: { rookie: 1, pro: 1.5, tycoon: 2 },
   soloCapacity: 190,
   // About a third of the people who walk past a lemonade stand buy a cup. This
   // keeps demand in the same league as what one kid can physically serve, which
   // is what makes price, spot and hiring real tradeoffs instead of noise.
   conversionRate: 0.35,
-  spoilRate: 0.25,
+  spoilRate: 0.4,
+  rival: {
+    tiers: ['pro', 'tycoon'],
+    startPrice: { rookie: 1, pro: 1.5, tycoon: 1.75 },
+    sensitivity: 0.9,
+    changeEvery: 3,
+  },
   valuationMultiple: { low: 0.6, high: 2.4 },
   // Stage 3 lands in Phase 2 along with the decisions that make it mean
   // something. Shipping the celebration without the content would be a lie.

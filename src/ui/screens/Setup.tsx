@@ -40,7 +40,7 @@ export function Setup({
 
   if (step === 'tier') {
     return (
-      <Panel title={`Hi ${playerName}! Pick your level.`}>
+      <Panel title={`${playerName} — pick your level`}>
         {(['rookie', 'pro'] as Tier[]).map((t) => (
           <Choice
             key={t}
@@ -157,7 +157,7 @@ export function Setup({
           onStart(tier, { loanIds, savingsUsed: savings, locationId });
         }}
       >
-        Open for business! 🎉
+        Open for business
       </button>
       <button className="btn btn-ghost" onClick={() => setStep('money')}>
         Back

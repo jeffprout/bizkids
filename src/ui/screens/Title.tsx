@@ -5,7 +5,7 @@ import { exportAll, importAll } from '../../storage/saves';
 import { sfx } from '../sfx';
 import { Choice } from '../components/bits';
 
-const AVATARS = ['🦊', '🐼', '🐸', '🦄', '🐨', '🐙', '🦁', '🐝'];
+const AVATARS = ['⚡', '🔥', '🌊', '🎯', '🚀', '👑', '💎', '🐺'];
 
 export function Title({
   profiles,
@@ -68,7 +68,7 @@ export function Title({
                 <Choice
                   emoji={p.emoji}
                   title={p.name}
-                  sub={p.lastRecap || 'New player — tap to begin'}
+                  sub={p.lastRecap || 'No run yet — tap to start one'}
                   onClick={() => onPick(p)}
                 />
               </div>
@@ -129,7 +129,7 @@ export function Title({
               onCreate(name.trim(), emoji);
             }}
           >
-            Let's go!
+            Start
           </button>
           {profiles.length > 0 && (
             <button className="btn btn-ghost" onClick={() => setAdding(false)}>

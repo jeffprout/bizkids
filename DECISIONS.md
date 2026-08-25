@@ -123,6 +123,99 @@ four and two. Driven by a `tiers` field in config, not by engine logic.
 
 ---
 
+## 2026-08-24 (later) — Harder, and aimed at middle school
+
+Jeff's feedback: too easy (it made money almost every week), too young in tone,
+and the weekly summary needed to show money in the bank.
+
+### Why it could not lose money
+
+A cup cost $0.24 and sold for $1.00 — a 76% margin — against $0–10 of weekly
+rent and no other fixed cost. There was no combination of bad decisions that
+arithmetic would let you lose on. Worse, **the player could see next week's
+weather before ordering stock**, so the one genuinely risky decision in the game
+had no risk in it at all.
+
+### What now makes a week losable
+
+**The forecast is a forecast.** `state.weather` is what happens; `state.forecast`
+is what the player sees while deciding, and it is right about 65% of the time,
+otherwise off by one step. Ordering stock is now a bet. The results screen shows
+what was promised versus what arrived.
+
+**Overhead belongs to the location, not the business.** Every spot charges a
+weekly cost that arrives whether or not you sell anything — front yard $2, park
+$14, soccer field $22 at Pro scale. This is the spec's "overhead is a choice"
+lesson (Section 6) made literal, and it puts a floor under every week that sales
+have to clear. *First attempt put this on the business, which made the free front
+yard unplayable — the safe option must stay a real option.*
+
+**Margins are thin enough to matter.** A cup now costs $0.42 against a $1.50
+expected price. Combined with the overhead floor, price and volume both matter.
+
+**A rival stand across the street.** They start at your expected price and
+re-price every three weeks, drifting toward undercutting you. Charge well over
+them and customers walk. Pro and Tycoon only — Rookie faces no rival.
+
+**Spoilage doubled to 40%.** Combined with the uncertain forecast this is the
+classic newsvendor problem: order too much and you throw it out, order too little
+and you turn people away.
+
+**Five new downside events** — stolen cash box, liability insurance, a health
+inspection, a spoiled batch, a week of rain — where every option costs something.
+Existing event costs roughly doubled.
+
+Result across a full 50-week run at Pro, taking the first option on every event
+card: **10 losing weeks, worst week −$64, 21 weeks losing customers to the rival,
+14 wrong forecasts.** Greedy pricing ($2.50) now ends at a $4,812 offer against
+$7,757 for sensible pricing — price is a real decision instead of free money.
+
+### Tier scaling
+
+Raising costs broke Rookie completely: 42 losing weeks out of 50. Two causes,
+both real bugs rather than tuning:
+
+1. **Event costs were absolute.** A $30 hit is a rounding error at Tycoon and
+   fatal at Rookie, where a week grosses $16. Cash and stock swings on event
+   cards now scale with the tier (Rookie 0.3×, Pro 1×, Tycoon 2.5×), and event
+   copy no longer quotes dollar figures, since the figure moves.
+2. **The restock suggestion collapsed to zero.** It was based on last week alone,
+   so one rained-out week suggested ordering nothing — and a stand that orders
+   nothing sells nothing, forever. It now uses the best of the last three weeks
+   with a floor.
+
+`TierConfig` gained `fixedCostScale`, `unitCostScale`, `spoilScale` and
+`eventScale`, which is the spec's model: same loop, different numbers.
+Rookie now sits at 4 losing weeks out of 50, which is right for ages 6–9.
+
+### The weekly summary
+
+Pro now gets a real P&L using real words — Sales, Cost of cups sold, **Gross
+profit**, then each overhead line, then **Net profit** — followed by a separate
+bank block: opening balance, loan payment, and **money in the bank**. Keeping
+profit and cash visibly separate is the point; they are different numbers and a
+middle schooler can handle being told so. Rookie still collapses to money in,
+money out, profit, plus the bank line.
+
+### Tone
+
+Pro is the default tier and is now described as "Overhead, a price war, and weeks
+you lose money." Ages relabelled (Rookie 6–9, Pro 10–14, Tycoon 14+). Avatars
+went from animals to ⚡🔥🌊🎯🚀👑💎🐺. "Let's go!" → "Start", "How did I do?" →
+"See the numbers", "Awesome!" → "Got it".
+
+**FOR JEFF:** this is a tone nudge, not a redesign. If Pro still reads young,
+the next lever is dropping Rookie from the tier picker entirely and making Pro
+the floor — say the word.
+
+### Save compatibility
+
+`SAVE_VERSION` 1 → 2. `GameState` gained `forecast`, `rivalPrice` and
+`rivalCooldown`, so old saves are dropped on load rather than half-migrated.
+Any run in progress starts over.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

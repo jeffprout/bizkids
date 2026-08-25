@@ -56,7 +56,10 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
         <h2>
           Week {r.week} {WEATHER_INFO[r.weather].emoji}
         </h2>
-        <p className="muted">{WEATHER_INFO[r.weather].label}</p>
+        <p className="muted">
+          {WEATHER_INFO[r.weather].label}
+          {r.forecastWasWrong && ` — not the ${WEATHER_INFO[r.forecast].label.toLowerCase()} they promised`}
+        </p>
       </div>
 
       <StandArt
@@ -105,7 +108,7 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
             onDone();
           }}
         >
-          How did I do? ➡️
+          See the numbers ➡️
         </motion.button>
       )}
       {phase < 3 && (

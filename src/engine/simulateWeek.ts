@@ -3,8 +3,8 @@ import { getBusiness } from '../config/businesses/lemonade';
 import { TIERS } from '../config/difficulty';
 import { eventsForBusiness } from '../config/events';
 import { BADGES, rollMiniGoal } from '../config/milestones';
-import { rollWeather, seasonForWeek } from './calendar';
-import { applySpoilage, computeDemand } from './demand';
+import { forecastFor, rollWeather, seasonForWeek } from './calendar';
+import { applySpoilage, computeDemand, rivalShare } from './demand';
 import { drawEvents, resolveEventChoices } from './events';
 import { chargeWeek, money } from './loans';
 import { makeRng, nextSeed } from './rng';
@@ -30,7 +30,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const cashStart = state.cash;
   const reputationStart = state.reputation;
 
-  const ev = resolveEventChoices(state.pendingEvents, decisions.eventChoices);
+  const ev = resolveEventChoices(state.pendingEvents, decisions.eventChoices, tier.eventScale);
 
   let cash = cashStart;
   let inventory = state.inventory;
@@ -38,7 +38,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const discussionFlags: string[] = [];
 
   // --- 1. Buy stock -------------------------------------------------------
-  const unitCost = money(quality.unitCost * ev.unitCostMod);
+  const unitCost = money(quality.unitCost * tier.unitCostScale * ev.unitCostMod);
   const wantUnits = Math.max(0, Math.round(decisions.restockUnits));
   const affordableUnits = unitCost > 0 ? Math.floor(Math.max(0, cash) / unitCost) : wantUnits;
   const boughtUnits = Math.min(wantUnits, affordableUnits);
@@ -95,7 +95,15 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     eventDemandMod: ev.demandMod,
     noiseRoll: rng(),
   });
-  const demand = breakdown.demand;
+  // The stand across the street. Undercut them and you take share; charge well
+  // over them and customers walk.
+  const facesRival = biz.rival.tiers.includes(state.tier);
+  const rivalMod = facesRival
+    ? rivalShare(price, state.rivalPrice, biz.rival.sensitivity)
+    : 1;
+  const demandBeforeRival = breakdown.demand;
+  const demand = Math.max(0, Math.round(demandBeforeRival * rivalMod));
+  const lostToRival = Math.max(0, demandBeforeRival - demand);
 
   const employeeCapacity = employees.reduce((s, e) => s + e.capacityBonus, 0);
   const capacity = Math.round((biz.soloCapacity + employeeCapacity) * ev.capacityMod);
@@ -121,8 +129,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
 
   // --- 6. Rent and wages --------------------------------------------------
   const rent = money(location.weeklyRent);
+  const fixedCosts = money(location.weeklyFixedCosts * tier.fixedCostScale);
   const wages = money(employees.reduce((s, e) => s + e.weeklyWage, 0));
-  cash = money(cash - rent - wages);
+  cash = money(cash - rent - fixedCosts - wages);
 
   // --- 7. Pay the bank ----------------------------------------------------
   let loanPayment = 0;
@@ -167,7 +176,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 8. Spoilage --------------------------------------------------------
-  const { kept, spoiled } = applySpoilage(inventory, biz.spoilRate);
+  const { kept, spoiled } = applySpoilage(inventory, biz.spoilRate * tier.spoilScale);
   inventory = kept;
   const spoilageCost = money(spoiled * unitCost);
 
@@ -233,7 +242,10 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 11. Score the week -------------------------------------------------
-  const profit = money(revenue - cogs - spoilageCost - rent - wages - marketingSpend - interestPaid - lateFees + eventCash);
+  const grossProfit = money(revenue - cogs - spoilageCost);
+  const profit = money(
+    grossProfit - rent - fixedCosts - wages - marketingSpend - interestPaid - lateFees + eventCash,
+  );
   const cashChange = money(cash - cashStart);
 
   const roughWeeks = emergencyAdvance > 0 || missedPayment ? state.roughWeeks + 1 : 0;
@@ -298,7 +310,20 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const nextWeek = week + 1;
   const nextSeason = seasonForWeek(nextWeek);
   const seedAfterSim = nextSeed(state.rngSeed);
-  const nextWeather = rollWeather(nextSeason, makeRng(seedAfterSim)());
+  const forecastRng = makeRng(seedAfterSim);
+  const nextWeather = rollWeather(nextSeason, forecastRng());
+  const nextForecast = forecastFor(nextWeather, forecastRng());
+
+  // The rival rethinks their price every few weeks, drifting toward undercutting
+  // whoever is winning.
+  let rivalPrice = state.rivalPrice;
+  let rivalCooldown = state.rivalCooldown - 1;
+  if (facesRival && rivalCooldown <= 0) {
+    const roll = forecastRng();
+    const target = price * (0.82 + roll * 0.3);
+    rivalPrice = Math.max(0.5, Math.round(target * 4) / 4);
+    rivalCooldown = biz.rival.changeEvery;
+  }
 
   const interim: GameState = {
     ...state,
@@ -318,6 +343,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     revenueHistory: [...state.revenueHistory, revenue],
     season: nextSeason,
     weather: nextWeather,
+    forecast: nextForecast,
+    rivalPrice,
+    rivalCooldown,
     miniGoalStreak,
     rngSeed: seedAfterSim,
     roughWeeks: bankerTalk ? 0 : roughWeeks,
@@ -343,6 +371,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     suppliesBought,
     cogs,
     rent,
+    fixedCosts,
     wages,
     marketingSpend,
     eventCash,
@@ -356,6 +385,11 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     cashEnd: cash,
     reputationStart,
     reputationEnd: reputation,
+    grossProfit,
+    forecast: state.forecast,
+    forecastWasWrong: state.forecast !== state.weather,
+    rivalPrice: state.rivalPrice,
+    lostToRival,
     inventoryEnd: inventory,
     spoilage: spoiled,
     spoilageCost,
@@ -372,6 +406,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
       profit,
       spoiled,
       missedPayment,
+      forecastWasWrong: state.forecast !== state.weather,
+      lostToRival,
+      grossProfit,
       emergencyAdvance,
       stagedUp,
       price,
@@ -413,6 +450,9 @@ function coachFor(x: {
   profit: number;
   spoiled: number;
   missedPayment: boolean;
+  forecastWasWrong: boolean;
+  lostToRival: number;
+  grossProfit: number;
   emergencyAdvance: number;
   stagedUp: boolean;
   price: number;
@@ -424,6 +464,9 @@ function coachFor(x: {
   if (x.lostToStockout > x.served * 0.2) return 'You sold out early. Buy more supplies next week.';
   if (x.lostToCapacity > x.served * 0.2) return 'The line was too long. You need another pair of hands.';
   if (x.spoiled > x.served * 0.35) return 'You threw out a lot. Buy a little less next week.';
+  if (x.forecastWasWrong && x.profit <= 0) return 'The forecast was wrong and it cost you. That happens.';
+  if (x.lostToRival > x.served * 0.25) return 'The stand across the street is cheaper. People noticed.';
+  if (x.grossProfit > 0 && x.profit <= 0) return 'You sold plenty but costs ate all of it.';
   if (x.price > x.ref * 1.8) return 'High price, fewer customers. Is it worth it?';
   if (x.profit <= 0) return 'You lost money this week. Check your costs.';
   if (x.profit > 0 && x.served > 0) return 'Solid week. Money in the bank.';

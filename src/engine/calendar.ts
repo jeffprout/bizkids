@@ -39,3 +39,19 @@ export function rollWeather(season: Season, roll: number): Weather {
   const table = WEATHER_ODDS[season];
   return weightedPick(table, (t) => t[1], roll)?.[0] ?? 'sunny';
 }
+
+/** Conditions ordered from best to worst for selling a cold drink. */
+const WEATHER_SCALE: Weather[] = ['hot', 'sunny', 'cloudy', 'rain', 'cold'];
+
+/**
+ * The forecast the player orders against. It is right about two thirds of the
+ * time and otherwise off by one step — which is what makes deciding how much to
+ * buy an actual bet instead of arithmetic.
+ */
+export function forecastFor(actual: Weather, roll: number): Weather {
+  if (roll < 0.65) return actual;
+  const i = WEATHER_SCALE.indexOf(actual);
+  const drift = roll < 0.825 ? -1 : 1;
+  const j = Math.max(0, Math.min(WEATHER_SCALE.length - 1, i + drift));
+  return WEATHER_SCALE[j];
+}

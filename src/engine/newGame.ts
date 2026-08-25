@@ -2,12 +2,14 @@ import type { GameState, Tier } from './types';
 import { getBusiness } from '../config/businesses/lemonade';
 import { eventsForBusiness } from '../config/events';
 import { rollMiniGoal } from '../config/milestones';
-import { rollWeather, seasonForWeek } from './calendar';
+import { forecastFor, rollWeather, seasonForWeek } from './calendar';
 import { drawEvents } from './events';
 import { money, takeLoan } from './loans';
 import { makeRng, nextSeed } from './rng';
 
-export const SAVE_VERSION = 1;
+// Bumped when the shape of GameState changes. loadRun drops saves that do not
+// match, which is the right call: a half-migrated save is worse than a fresh one.
+export const SAVE_VERSION = 2;
 
 export interface FinancingChoice {
   /** Offer ids the player accepted. */
@@ -39,7 +41,9 @@ export function newGame(opts: {
   const week = 1;
   const season = seasonForWeek(week);
   const seed = opts.seed || 1;
-  const weather = rollWeather(season, makeRng(seed)());
+  const rng = makeRng(seed);
+  const weather = rollWeather(season, rng());
+  const forecast = forecastFor(weather, rng());
 
   const state: GameState = {
     version: SAVE_VERSION,
@@ -61,7 +65,10 @@ export function newGame(opts: {
     profitHistory: [],
     revenueHistory: [],
     weather,
+    forecast,
     season,
+    rivalPrice: biz.rival.startPrice[opts.tier],
+    rivalCooldown: biz.rival.changeEvery,
     pendingEvents: [],
     recentEventIds: [],
     miniGoal: { id: 'customers', kind: 'customers', target: 25, label: '', reward: 5 },

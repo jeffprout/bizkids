@@ -5,7 +5,15 @@ import { CashCounter, Stars } from './bits';
 import { FINAL_WEEK } from '../../engine/simulateWeek';
 
 /** Always on screen, always moving: money, stars, week, weather. */
-export function Hud({ state, onMenu }: { state: GameState; onMenu: () => void }) {
+export function Hud({
+  state,
+  showRival,
+  onMenu,
+}: {
+  state: GameState;
+  showRival: boolean;
+  onMenu: () => void;
+}) {
   const debt = state.loans.filter((l) => !l.paidOff).reduce((s, l) => s + l.balance, 0);
   const netWorth = state.cash + state.equipmentValue - debt;
   // The bar is a feel-good progress meter, not an accounting figure.
@@ -42,14 +50,16 @@ export function Hud({ state, onMenu }: { state: GameState; onMenu: () => void })
         </div>
       </div>
 
-      <div className="row" style={{ gap: 8 }}>
+      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+        {/* The FORECAST, not the truth. Ordering against it is the bet. */}
         <span className="pill">
-          {WEATHER_INFO[state.weather].emoji} {WEATHER_INFO[state.weather].label}
+          {WEATHER_INFO[state.forecast].emoji} {WEATHER_INFO[state.forecast].label}?
         </span>
         <span className="pill">
           {SEASON_INFO[state.season].emoji} {SEASON_INFO[state.season].label}
         </span>
         {debt > 0 && <span className="pill">🏦 owe ${Math.round(debt)}</span>}
+        {showRival && <span className="pill">😼 rival ${state.rivalPrice.toFixed(2)}</span>}
       </div>
 
       <div className="bar" aria-label="Net worth">

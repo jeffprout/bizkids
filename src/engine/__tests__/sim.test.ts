@@ -6,13 +6,14 @@ import { seasonForWeek } from '../calendar';
 import { valueBusiness } from '../valuation';
 import type { GameState, WeekDecisions } from '../types';
 import { LEMONADE } from '../../config/businesses/lemonade';
+import { ALL_EVENTS } from '../../config/events';
 
 function start(overrides: Partial<Parameters<typeof newGame>[0]> = {}): GameState {
   return newGame({
     profileId: 'test',
     businessId: 'lemonade',
     tier: 'pro',
-    financing: { loanIds: [], savingsUsed: 35, locationId: 'park' },
+    financing: { loanIds: [], savingsUsed: 55, locationId: 'park' },
     seed: 12345,
     ...overrides,
   });
@@ -125,6 +126,7 @@ describe('simulateWeek', () => {
       r.cogs -
       r.spoilageCost -
       r.rent -
+      r.fixedCosts -
       r.wages -
       r.marketingSpend -
       r.interestPaid -
@@ -211,6 +213,80 @@ describe('simulateWeek', () => {
       }
       s = simulateWeek(s, decide(s));
     }
+  });
+});
+
+describe('what makes a week losable', () => {
+  it('charges the spot overhead whether or not anything sells', () => {
+    const state = { ...start(), inventory: 0, locationId: 'park' };
+    const next = simulateWeek(state, decide(state, { restockUnits: 0 }));
+    const r = next.lastResult!;
+    expect(r.served).toBe(0);
+    expect(r.revenue).toBe(0);
+    // Park is $5 rent plus $14 of permit and ice at Pro scale.
+    expect(r.rent).toBe(5);
+    expect(r.fixedCosts).toBe(14);
+    expect(r.profit).toBeLessThan(0);
+  });
+
+  it('scales overhead down for Rookie and up for Tycoon', () => {
+    const mk = (tier: 'rookie' | 'pro' | 'tycoon') =>
+      simulateWeek(
+        { ...start({ tier }), inventory: 0, locationId: 'park' },
+        decide(start({ tier }), { restockUnits: 0, locationId: 'park' }),
+      ).lastResult!.fixedCosts;
+    expect(mk('rookie')).toBeLessThan(mk('pro'));
+    expect(mk('pro')).toBeLessThan(mk('tycoon'));
+  });
+
+  it('separates gross profit from net profit', () => {
+    const state = { ...start(), cash: 300, locationId: 'park' };
+    const next = simulateWeek(state, decide(state, { restockUnits: 80 }));
+    const r = next.lastResult!;
+    expect(r.grossProfit).toBeCloseTo(r.revenue - r.cogs - r.spoilageCost, 2);
+    expect(r.profit).toBeLessThan(r.grossProfit);
+  });
+
+  it('scales an event hit with the tier, so one card cannot wipe out Rookie', () => {
+    const hit = (tier: 'rookie' | 'pro') => {
+      const base = start({ tier });
+      const withEvent = {
+        ...base,
+        cash: 400,
+        pendingEvents: [ALL_EVENTS.find((e) => e.id === 'health-inspector')!],
+      };
+      return simulateWeek(withEvent, {
+        ...decide(withEvent, { restockUnits: 0 }),
+        eventChoices: { 'health-inspector': 'fix' },
+      }).lastResult!.eventCash;
+    };
+    expect(hit('rookie')).toBeGreaterThan(hit('pro'));
+    expect(hit('pro')).toBe(-26);
+  });
+
+  it('gives the player a forecast that is sometimes wrong', () => {
+    let s = start();
+    let wrong = 0;
+    for (let i = 0; i < 40; i++) {
+      if (s.forecast !== s.weather) wrong++;
+      s = simulateWeek(s, decide(s));
+    }
+    // Right about two thirds of the time, so ordering stock is a real bet.
+    expect(wrong).toBeGreaterThan(3);
+    expect(wrong).toBeLessThan(30);
+  });
+
+  it('loses customers to the rival when you charge well over them', () => {
+    const base = { ...start(), cash: 400, rivalPrice: 1.5 };
+    const cheap = simulateWeek(base, decide(base, { price: 1.25, restockUnits: 200 }));
+    const dear = simulateWeek(base, decide(base, { price: 3, restockUnits: 200 }));
+    expect(dear.lastResult!.lostToRival).toBeGreaterThan(cheap.lastResult!.lostToRival);
+  });
+
+  it('leaves Rookie with no rival to fight', () => {
+    const s = start({ tier: 'rookie' });
+    const next = simulateWeek(s, decide(s, { restockUnits: 60 }));
+    expect(next.lastResult!.lostToRival).toBe(0);
   });
 });
 

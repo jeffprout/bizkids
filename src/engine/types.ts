@@ -17,6 +17,12 @@ export interface LocationDef {
   baseTraffic: number;
   /** Rent charged every week. */
   weeklyRent: number;
+  /**
+   * Overhead this spot costs every week whether or not you sell anything —
+   * permit, ice, cups. A front yard barely has any; a park pitch does. Stated at
+   * Pro scale and multiplied by the tier's fixedCostScale.
+   */
+  weeklyFixedCosts: number;
   /** Reputation the location can never drag you below (credibility floor). */
   reputationFloor?: number;
   /** One short line shown on the choice card. */
@@ -200,6 +206,8 @@ export interface WeekResult {
   /** Cost of the units actually sold (accrual). */
   cogs: number;
   rent: number;
+  /** Costs that arrive whether or not you sell a thing. */
+  fixedCosts: number;
   wages: number;
   marketingSpend: number;
   eventCash: number;
@@ -217,6 +225,14 @@ export interface WeekResult {
   cashEnd: number;
   reputationStart: number;
   reputationEnd: number;
+  /** Revenue minus the cost of what you sold, before any overheads. */
+  grossProfit: number;
+  /** What the forecast said versus what actually happened. */
+  forecast: Weather;
+  forecastWasWrong: boolean;
+  rivalPrice: number;
+  /** Share of customers lost to the stand across the street. */
+  lostToRival: number;
   inventoryEnd: number;
   /** Units thrown out. */
   spoilage: number;
@@ -267,8 +283,16 @@ export interface GameState {
   profitHistory: number[];
   /** Revenue for each completed week, newest last. */
   revenueHistory: number[];
+  /** What actually happens this week. The player does NOT see this while
+   *  deciding — they see `forecast`, which is often wrong. */
   weather: Weather;
+  /** The forecast the player decides against. Right about two thirds of the time. */
+  forecast: Weather;
   season: Season;
+  /** What the stand across the street is charging. */
+  rivalPrice: number;
+  /** Weeks until the rival changes their price again. */
+  rivalCooldown: number;
   /** Events drawn for the CURRENT week, awaiting player choices. */
   pendingEvents: GameEvent[];
   /** Event ids drawn recently — no repeats within 8 weeks. */

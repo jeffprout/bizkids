@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { getBusiness } from '../../config/businesses/lemonade';
+import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { Confetti, dollars } from '../components/bits';
 import { sfx } from '../sfx';
@@ -24,7 +25,7 @@ export function Sell({
   const v = valueBusiness(state, {
     multipleLow: biz.valuationMultiple.low,
     multipleHigh: biz.valuationMultiple.high,
-    inventoryUnitCost: quality.unitCost,
+    inventoryUnitCost: quality.unitCost * TIERS[state.tier].unitCostScale,
   });
   const [sold, setSold] = useState(false);
 

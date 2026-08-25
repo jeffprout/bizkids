@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { TIERS } from '../../config/difficulty';
 import { badgeById } from '../../config/milestones';
+import { WEATHER_INFO } from '../../engine/calendar';
 import { Confetti, Stars, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
@@ -23,7 +24,11 @@ export function Recap({
   useEffect(() => {
     if (celebrate) sfx.levelUp();
     else if (r.profit > 0) sfx.coin();
+    else sfx.ouch();
   }, [celebrate, r.profit]);
+
+  const overheads =
+    r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.interestPaid + r.lateFees;
 
   // A gentle nudge to stop, never a nag and never a timer.
   const goodStoppingPoint = state.week % 4 === 1 && state.week > 1;
@@ -39,7 +44,16 @@ export function Recap({
         />
       )}
 
-      <h2 className="center">Week {r.week} done!</h2>
+      <h2 className="center">Week {r.week} results</h2>
+
+      {r.forecastWasWrong && (
+        <div className="card card-tight center" style={{ background: '#fff6e5' }}>
+          <p style={{ margin: 0 }}>
+            🌦️ Forecast said {WEATHER_INFO[r.forecast].label.toLowerCase()}. You got{' '}
+            {WEATHER_INFO[r.weather].label.toLowerCase()}.
+          </p>
+        </div>
+      )}
 
       <div className="card">
         <div className="ledger">
@@ -47,20 +61,30 @@ export function Recap({
           <span>{r.served}</span>
         </div>
         <div className="ledger">
-          <span>💰 Money in</span>
+          <span>💰 Sales</span>
           <span className="in">{dollars(r.revenue)}</span>
         </div>
 
         {tier.showFullPnL ? (
           <>
             <div className="ledger">
-              <span>🍋 Cups you made</span>
+              <span>🍋 Cost of cups sold</span>
               <span className="out">-{dollars(r.cogs)}</span>
             </div>
             {r.spoilageCost > 0 && (
               <div className="ledger">
                 <span>🗑️ Thrown out ({r.spoilage})</span>
                 <span className="out">-{dollars(r.spoilageCost)}</span>
+              </div>
+            )}
+            <div className="ledger" style={{ fontWeight: 800 }}>
+              <span>Gross profit</span>
+              <span className={r.grossProfit >= 0 ? 'in' : 'out'}>{dollars(r.grossProfit)}</span>
+            </div>
+            {r.fixedCosts > 0 && (
+              <div className="ledger">
+                <span>🧊 Ice, cups &amp; permit</span>
+                <span className="out">-{dollars(r.fixedCosts)}</span>
               </div>
             )}
             {r.rent > 0 && (
@@ -97,32 +121,52 @@ export function Recap({
         ) : (
           <div className="ledger">
             <span>💸 Money out</span>
-            <span className="out">
-              -{dollars(r.cogs + r.spoilageCost + r.rent + r.wages + r.marketingSpend + r.interestPaid + r.lateFees)}
-            </span>
+            <span className="out">-{dollars(r.cogs + r.spoilageCost + overheads)}</span>
           </div>
         )}
 
         <div className="ledger total">
-          <span>{r.profit >= 0 ? '🎉 Profit' : '😬 Loss'}</span>
+          <span>{r.profit >= 0 ? '🎉 Net profit' : '😬 Net loss'}</span>
           <span className={r.profit >= 0 ? 'in' : 'out'}>{dollars(r.profit)}</span>
         </div>
       </div>
 
-      {tier.showFullPnL && r.loanPayment > 0 && (
-        <p className="muted center">
-          You paid the bank {dollars(r.loanPayment)} — {dollars(r.interestPaid)} of that was
-          interest.
-        </p>
-      )}
+      {/* What is actually in the bank, which is not the same as profit. */}
+      <div className="card">
+        <div className="ledger">
+          <span>🏦 Bank at week start</span>
+          <span>{dollars(r.cashStart)}</span>
+        </div>
+        {tier.showFullPnL && r.loanPayment > 0 && (
+          <div className="ledger">
+            <span>💳 Loan payment</span>
+            <span className="out">-{dollars(r.loanPayment)}</span>
+          </div>
+        )}
+        {r.emergencyAdvance > 0 && (
+          <div className="ledger">
+            <span>🚨 Emergency advance</span>
+            <span className="in">{dollars(r.emergencyAdvance)}</span>
+          </div>
+        )}
+        <div className="ledger total">
+          <span>💵 Money in the bank</span>
+          <span className={r.cashEnd > 0 ? 'in' : 'out'}>{dollars(r.cashEnd)}</span>
+        </div>
+      </div>
 
-      <div className="row" style={{ justifyContent: 'space-around' }}>
+      <div className="row" style={{ justifyContent: 'space-around', flexWrap: 'wrap' }}>
         <span className="pill">
           <Stars value={r.reputationEnd} />
-          {r.reputationEnd > r.reputationStart ? ' ⬆️' : r.reputationEnd < r.reputationStart ? ' ⬇️' : ''}
+          {r.reputationEnd > r.reputationStart
+            ? ' ⬆️'
+            : r.reputationEnd < r.reputationStart
+              ? ' ⬇️'
+              : ''}
         </span>
         <span className="pill">🥤 {r.inventoryEnd} left</span>
-        <span className="pill">🏦 {dollars(r.cashEnd)}</span>
+        {r.lostToStockout > 0 && <span className="pill">🚫 {r.lostToStockout} turned away</span>}
+        {r.lostToRival > 0 && <span className="pill">😼 {r.lostToRival} went to the rival</span>}
       </div>
 
       {r.miniGoalMet && (
@@ -132,7 +176,7 @@ export function Recap({
           animate={{ scale: 1 }}
           style={{ background: '#eafbe7' }}
         >
-          <b>🎯 Goal smashed! +{dollars(r.miniGoalReward)}</b>
+          <b>🎯 Goal hit! +{dollars(r.miniGoalReward)}</b>
         </motion.div>
       )}
 
@@ -158,9 +202,7 @@ export function Recap({
         </button>
       )}
 
-      {goodStoppingPoint && (
-        <p className="center muted">Nice week to pause — your save is safe.</p>
-      )}
+      {goodStoppingPoint && <p className="center muted">Good place to pause — your save is safe.</p>}
     </div>
   );
 }
@@ -190,8 +232,8 @@ function Celebration({
           {stagedUp && (
             <>
               <div style={{ fontSize: 64 }}>🚀</div>
-              <h2>Stage {stage}!</h2>
-              <p>Your stand got bigger. New choices unlocked.</p>
+              <h2>Stage {stage}</h2>
+              <p>Your stand grew. New decisions unlocked.</p>
             </>
           )}
           {badges.map((id) => {
@@ -206,7 +248,7 @@ function Celebration({
             );
           })}
           <button className="btn btn-primary" onClick={onClose}>
-            Awesome!
+            Got it
           </button>
         </motion.div>
       </div>

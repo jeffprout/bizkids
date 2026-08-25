@@ -95,3 +95,16 @@ export function applySpoilage(leftover: number, spoilRate: number): { kept: numb
   const spoiled = Math.floor(leftover * spoilRate);
   return { kept: leftover - spoiled, spoiled };
 }
+
+/**
+ * The stand across the street. If they undercut you, some of your customers
+ * walk over there; if you are the cheaper one, you take some of theirs. Kept
+ * gentle enough that price is a lever, not a cliff.
+ */
+export function rivalShare(myPrice: number, rivalPrice: number, sensitivity: number): number {
+  if (rivalPrice <= 0) return 1;
+  const ratio = myPrice / rivalPrice;
+  // ratio 1.0 -> no effect. 1.5 -> you lose share. 0.75 -> you gain some.
+  const effect = 1 - (ratio - 1) * sensitivity;
+  return Math.max(0.35, Math.min(1.4, effect));
+}

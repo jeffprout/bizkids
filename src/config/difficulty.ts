@@ -25,15 +25,27 @@ export interface TierConfig {
   restockStep: number;
   /** Rough cap on words per screen, per the engagement rules. */
   maxWords: number;
+  /** Scales every location's weekly overhead. */
+  fixedCostScale: number;
+  /** Scales what a unit costs to make. Rookie keeps margins forgiving. */
+  unitCostScale: number;
+  /** Scales how much unsold stock goes bad. */
+  spoilScale: number;
+  /**
+   * Scales the cash and stock swings an event card causes. Event costs are
+   * written at Pro scale; a $30 hit is a rounding error at Tycoon and fatal at
+   * Rookie, so it has to move with the tier.
+   */
+  eventScale: number;
 }
 
 export const TIERS: Record<Tier, TierConfig> = {
   rookie: {
     id: 'rookie',
     name: 'Rookie',
-    ages: 'Ages 6-8',
+    ages: 'Ages 6-9',
     emoji: '🐣',
-    blurb: 'Small money. Two choices. Big fun.',
+    blurb: 'Small money, gentle weeks, no rivals.',
     maxCards: 3,
     priceStep: 0.25,
     minPrice: 0.25,
@@ -44,13 +56,17 @@ export const TIERS: Record<Tier, TierConfig> = {
     showCAC: false,
     restockStep: 10,
     maxWords: 12,
+    fixedCostScale: 0.3,
+    unitCostScale: 0.5,
+    spoilScale: 0.5,
+    eventScale: 0.3,
   },
   pro: {
     id: 'pro',
     name: 'Pro',
-    ages: 'Ages 9-12',
+    ages: 'Ages 10-14',
     emoji: '🚀',
-    blurb: 'Real costs, real loans, real profit.',
+    blurb: 'Overhead, a price war, and weeks you lose money.',
     maxCards: 4,
     priceStep: 0.25,
     minPrice: 0.25,
@@ -61,13 +77,17 @@ export const TIERS: Record<Tier, TierConfig> = {
     showCAC: true,
     restockStep: 10,
     maxWords: 25,
+    fixedCostScale: 1,
+    unitCostScale: 1,
+    spoilScale: 1,
+    eventScale: 1,
   },
   tycoon: {
     id: 'tycoon',
     name: 'Tycoon',
-    ages: 'Ages 13+',
+    ages: 'Ages 14+',
     emoji: '🏦',
-    blurb: 'Amortized loans, NNN leases, CAC. Phase 2.',
+    blurb: 'Amortized debt, NNN leases, CAC. Coming in Phase 2.',
     maxCards: 6,
     priceStep: 0.05,
     minPrice: 0.25,
@@ -78,5 +98,9 @@ export const TIERS: Record<Tier, TierConfig> = {
     showCAC: true,
     restockStep: 25,
     maxWords: 60,
+    fixedCostScale: 3,
+    unitCostScale: 1.6,
+    spoilScale: 1.1,
+    eventScale: 2.5,
   },
 };

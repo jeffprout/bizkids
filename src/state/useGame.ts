@@ -4,6 +4,7 @@ import type { FinancingChoice } from '../engine/newGame';
 import { newGame } from '../engine/newGame';
 import { simulateWeek } from '../engine/simulateWeek';
 import { getBusiness } from '../config/businesses/lemonade';
+import { TIERS } from '../config/difficulty';
 import { valueBusiness } from '../engine/valuation';
 import {
   clearRun,
@@ -124,7 +125,7 @@ export function useGame() {
     const v = valueBusiness(state, {
       multipleLow: biz.valuationMultiple.low,
       multipleHigh: biz.valuationMultiple.high,
-      inventoryUnitCost: quality.unitCost,
+      inventoryUnitCost: quality.unitCost * TIERS[state.tier].unitCostScale,
     });
     const sold: GameState = { ...state, soldFor: v.offer, gameOver: true };
     const updated: Profile = {
