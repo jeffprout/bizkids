@@ -487,6 +487,35 @@ describe('the books have to balance', () => {
     }
   });
 
+  it('bridges profit to cash exactly, every week', () => {
+    // bank moved = profit + (cost of stock used - stock bought)
+    //                     - loan principal repaid + any advance
+    // The recap prints this bridge, so it has to hold to the cent or the screen
+    // shows rows that do not add up.
+    let s = start({ financing: { loanIds: ['credit-union-150'], savingsUsed: 55, locationId: 'park' } });
+    for (let i = 0; i < 50; i++) {
+      // Alternate big buys and pure sell-downs so the swing goes both ways.
+      s = simulateWeek(s, decide(s, { restockUnits: i % 3 === 0 ? 200 : 0 }));
+      const r = s.lastResult!;
+      const inventorySwing = r.cogs + r.spoilageCost + r.stockLostCost - r.suppliesBought;
+      const principalPaid = r.loanPayment - r.interestPaid;
+      expect(r.profit + inventorySwing - principalPaid + r.emergencyAdvance).toBeCloseTo(
+        r.cashChange,
+        2,
+      );
+    }
+  });
+
+  it('cash beats profit when the stand is selling down old stock', () => {
+    const base = { ...start(), cash: 300, inventory: 400 };
+    const next = simulateWeek(base, decide(base, { restockUnits: 0 }));
+    const r = next.lastResult!;
+    expect(r.served).toBeGreaterThan(0);
+    expect(r.suppliesBought).toBe(0);
+    // Nothing was paid for stock this week, but its cost still hits profit.
+    expect(r.cashChange).toBeGreaterThan(r.profit);
+  });
+
   it('keeps profit and cash change as separate, explainable numbers', () => {
     const base = { ...start(), cash: 300, inventory: 0 };
     // Buy far more than can sell: profit should beat the cash movement, because

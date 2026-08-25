@@ -425,6 +425,48 @@ the lever is dropping one treat option or moving the art off the decision cards.
 
 ---
 
+## 2026-08-24 (late) — Profit-to-cash bridge
+
+Jeff: "why does profit say $52 but the bank moves $54?" Fair question, and the
+answer line I had written was guessing.
+
+The exact identity, verified to the cent over 50 weeks:
+
+```
+bank moved = profit
+           + (cost of stock used - stock bought)   <- inventory swing
+           - loan principal repaid
+           + any emergency advance
+```
+
+Two things move cash without touching profit, in opposite directions. Selling
+stock that was paid for in an earlier week charges profit but not this week's
+cash, so **cash comes in above profit**. Buying stock you have not sold yet does
+the reverse. Loan principal always leaves the bank without being an expense.
+
+**The old explainer was wrong.** It picked one of two canned sentences based on
+whether more units were bought than sold, and blamed "loan principal" for every
+case that was not overbuying — which names the wrong cause whenever the stand is
+drawing down stock, exactly the case Jeff was looking at. Loan principal pushes
+cash *below* profit; his gap was cash *above* profit.
+
+Replaced with a real bridge on the results screen, printing only the rows that
+apply:
+
+```
+🧮 Profit                     -$29.58
+🥤 Sold stock bought earlier  +$75.18
+🏦 Loan principal repaid       -$5.77
+💵 Bank moved                 +$39.83
+```
+
+Shown to the cent, because a bridge whose rows do not visibly add up is worse
+than no bridge. A test asserts the identity holds every week of a 50-week run
+with the inventory swing deliberately driven both ways, and a second test
+asserts cash beats profit when the stand sells with no restock.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

@@ -32,6 +32,12 @@ export function Recap({
   // Cash overheads exclude interest and fees, which leave with the loan payment.
   const overheadCash = r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.lateFees;
 
+  // The two reasons profit and cash ever differ. Stock consumed but paid for in
+  // an earlier week pushes cash above profit; stock bought and not yet sold
+  // pushes it below. Loan principal leaves the bank without being an expense.
+  const inventorySwing = r.cogs + r.spoilageCost + r.stockLostCost - r.suppliesBought;
+  const principalPaid = r.loanPayment - r.interestPaid;
+
   // A gentle nudge to stop, never a nag and never a timer.
   const goodStoppingPoint = state.week % 4 === 1 && state.week > 1;
 
@@ -224,15 +230,53 @@ export function Recap({
         </div>
       </div>
 
-      {/* Why profit and the bank balance disagree, in one line. */}
-      {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 1 && (
+      {/*
+        Why profit and the bank disagree, as an actual bridge rather than a
+        guess. The identity is exact:
+          bank moved = profit + (cost of stock used - stock bought)
+                              - loan principal repaid + any advance
+        An earlier version picked one of two canned reasons from whether more
+        units were bought than sold, which named the wrong cause whenever the
+        stand was drawing down stock it had bought in an earlier week.
+      */}
+      {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 0.5 && (
         <div className="card card-tight">
-          <p style={{ margin: 0 }}>
-            🧮 Profit says {dollars(r.profit)}, the bank moved {dollars(r.cashChange)}
-            {r.suppliesUnits > r.served
-              ? ' — you paid for stock you have not sold yet.'
-              : ' — loan principal moves cash without being a cost.'}
-          </p>
+          <div className="ledger">
+            <span>🧮 Profit</span>
+            <span className={r.profit >= 0 ? 'in' : 'out'}>{dollars(r.profit, true)}</span>
+          </div>
+          {Math.abs(inventorySwing) >= 0.005 && (
+            <div className="ledger">
+              <span>
+                {inventorySwing > 0
+                  ? '🥤 Sold stock bought earlier'
+                  : '🥤 Bought stock not sold yet'}
+              </span>
+              <span className={inventorySwing > 0 ? 'in' : 'out'}>
+                {inventorySwing > 0 ? '+' : '-'}
+                {dollars(Math.abs(inventorySwing), true)}
+              </span>
+            </div>
+          )}
+          {principalPaid >= 0.005 && (
+            <div className="ledger">
+              <span>🏦 Loan principal repaid</span>
+              <span className="out">-{dollars(principalPaid, true)}</span>
+            </div>
+          )}
+          {r.emergencyAdvance > 0 && (
+            <div className="ledger">
+              <span>🚨 Emergency advance</span>
+              <span className="in">+{dollars(r.emergencyAdvance, true)}</span>
+            </div>
+          )}
+          <div className="ledger total">
+            <span>💵 Bank moved</span>
+            <span className={r.cashChange >= 0 ? 'in' : 'out'}>
+              {r.cashChange >= 0 ? '+' : '-'}
+              {dollars(Math.abs(r.cashChange), true)}
+            </span>
+          </div>
         </div>
       )}
 
