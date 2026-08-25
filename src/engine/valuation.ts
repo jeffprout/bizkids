@@ -87,13 +87,14 @@ export function valueBusiness(
     state.loans.filter((l) => !l.paidOff).reduce((s, l) => s + l.principalBalance, 0),
   );
 
-  const offer = money(
-    goodwill + state.equipmentValue + inventoryValue + state.cash - debtPayoff,
-  );
+  const raw = goodwill + state.equipmentValue + inventoryValue + state.cash - debtPayoff;
+  // A price is never "NaN" on screen. If anything upstream is broken, show what
+  // is certain rather than nonsense.
+  const offer = money(Number.isFinite(raw) ? raw : 0);
 
   return {
-    avgWeeklyProfit: money(avgWeeklyProfit),
-    annualProfit,
+    avgWeeklyProfit: money(Number.isFinite(avgWeeklyProfit) ? avgWeeklyProfit : 0),
+    annualProfit: Number.isFinite(annualProfit) ? annualProfit : 0,
     weeksCounted: window.length,
     multiple,
     goodwill,

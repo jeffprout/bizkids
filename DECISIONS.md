@@ -843,6 +843,60 @@ if the bake shop makes it necessary in Phase 2.
 
 ---
 
+## 2026-08-24 (late) — "worth $NaN"
+
+Jeff's week-44 run showed `🎯 worth $NaN · goals` while money read a healthy
+$6,793. Reproduced immediately.
+
+**The version guard is not enough on its own.** `loadRun` rejects a save whose
+`version` does not match, which is the right check for a save written by an older
+build. But if the game updates *while a run is open*, the live state object is
+the old shape and the next autosave stamps the **new** version onto it. The save
+then passes the guard forever while missing a field.
+
+Here that field was `inventoryCost`, added an hour earlier. The chain:
+
+```
+inventoryCost undefined
+  -> avgUnitCost = undefined / 120   -> NaN
+  -> cogs                            -> NaN
+  -> profit                          -> NaN
+  -> profitHistory poisoned          -> valuation NaN
+```
+
+Cash was never touched by any of it, which is exactly why the display looked
+half-right: real money, nonsense valuation. That is the dangerous shape of this
+bug — it does not announce itself.
+
+**Three layers, because one was clearly not enough:**
+
+1. **`sanitizeRun`** checks every number on a loaded save, rebuilds what is
+   missing, and filters non-finite entries out of the histories. A missing
+   `inventoryCost` is rebuilt by pricing the stock on hand at today's cost — an
+   estimate, and vastly better than NaN. This repairs saves that are already
+   broken, including Jeff's.
+2. **`simulateWeek` sanitizes its input** rather than trusting the caller, so a
+   bad field cannot poison a run mid-flight even if it gets in some other way.
+3. **`valueBusiness` never returns a non-finite offer.** A price on screen is
+   always a number; if something upstream is broken, show what is certain.
+
+Verified against a reconstruction of the exact save — week 44, `inventoryCost`
+deleted, `null`s planted in the profit history. It now loads showing
+`🎯 worth $7,177`, and a full week played afterwards leaves no non-finite number
+anywhere in the save.
+
+Three tests cover it: a save missing `inventoryCost` stays finite; every result
+field stays finite with each of seven fields deleted in turn; and the valuation
+never returns NaN even when handed a poisoned history.
+
+**Worth remembering for the playtest.** This is exactly the failure mode that
+`PLAYTEST.md` warns about — shipping a save-shape change while people are
+mid-run. The difference is that a *rejected* save is visible and explained,
+while a *silently half-migrated* one is not. The sanitiser closes that gap, so
+adding a field mid-test is now merely untidy rather than corrupting.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

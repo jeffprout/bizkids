@@ -83,6 +83,11 @@ So if several people are mid-run, either hold non-urgent changes or warn them
 first. Changes to numbers, wording, events and layout are all safe; only changes
 to the save's structure force a reset.
 
+Saves are also repaired on load: a missing or nonsense number is rebuilt rather
+than allowed to spread through the arithmetic. That matters because a run that
+is open *while* you deploy gets the new version stamped onto the old shape at its
+next autosave, which no version check can catch.
+
 ## The build stamp
 
 The opening screen shows a short build id at the bottom, and it is written into

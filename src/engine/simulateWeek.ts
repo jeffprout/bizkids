@@ -8,6 +8,7 @@ import { applySpoilage, computeDemand, rivalShare } from './demand';
 import { drawEvents, resolveEventChoices } from './events';
 import { chargeWeek, money } from './loans';
 import { makeRng, nextSeed } from './rng';
+import { sanitizeRun } from './sanitize';
 
 export const FINAL_WEEK = 50;
 
@@ -18,7 +19,10 @@ export const FINAL_WEEK = 50;
  *   buy stock -> buy marketing -> hire/fire -> event effects -> sell ->
  *   pay rent and wages -> pay the bank -> throw out what spoiled -> score it.
  */
-export function simulateWeek(state: GameState, decisions: WeekDecisions): GameState {
+export function simulateWeek(input: GameState, decisions: WeekDecisions): GameState {
+  // Never trust the incoming shape. One undefined number becomes NaN and then
+  // spreads through profit, the history and the valuation without a whisper.
+  const state = sanitizeRun(input);
   const biz = getBusiness(state.businessId);
   const tier = TIERS[state.tier];
   const rng = makeRng(state.rngSeed);

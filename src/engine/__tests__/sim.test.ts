@@ -784,6 +784,59 @@ describe('the winter pivot', () => {
   });
 });
 
+describe('a save with a missing field cannot poison the run', () => {
+  // Jeff hit "worth $NaN" on a week-44 run. A save can carry the current
+  // version and still be missing a field, because updating mid-run stamps the
+  // new version onto the old shape at the next autosave.
+  const legacy = (drop: keyof GameState) => {
+    const s = { ...start(), cash: 500, inventory: 80, inventoryCost: 33.6 } as GameState;
+    delete (s as Record<string, unknown>)[drop];
+    return s;
+  };
+
+  it('survives a save written before inventoryCost existed', () => {
+    const next = simulateWeek(legacy('inventoryCost'), decide(start(), { restockUnits: 40 }));
+    const r = next.lastResult!;
+    expect(Number.isFinite(r.avgUnitCost)).toBe(true);
+    expect(Number.isFinite(r.cogs)).toBe(true);
+    expect(Number.isFinite(r.profit)).toBe(true);
+    expect(next.profitHistory.every(Number.isFinite)).toBe(true);
+  });
+
+  it('keeps every number finite whatever is missing', () => {
+    const fields: (keyof GameState)[] = [
+      'inventoryCost',
+      'bonusCapacity',
+      'weatherStreak',
+      'rivalPrice',
+      'equipmentValue',
+      'totals',
+      'profitHistory',
+    ];
+    for (const field of fields) {
+      const next = simulateWeek(legacy(field), decide(start(), { restockUnits: 40 }));
+      const r = next.lastResult!;
+      for (const [key, value] of Object.entries(r)) {
+        if (typeof value === 'number') {
+          expect(Number.isFinite(value), `${field} missing -> ${key} was ${value}`).toBe(true);
+        }
+      }
+      expect(Number.isFinite(next.cash)).toBe(true);
+    }
+  });
+
+  it('never shows a price that is not a number', () => {
+    const broken = { ...start(), profitHistory: [NaN, 20], revenueHistory: [NaN, 60] } as GameState;
+    const v = valueBusiness(broken, {
+      multipleLow: 0.6,
+      multipleHigh: 2.4,
+      inventoryUnitCost: 0.42,
+    });
+    expect(Number.isFinite(v.offer)).toBe(true);
+    expect(Number.isFinite(v.avgWeeklyProfit)).toBe(true);
+  });
+});
+
 describe('valuation', () => {
   it('pays a multiple of yearly profit plus assets, minus debt', () => {
     const state: GameState = {

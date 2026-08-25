@@ -1,5 +1,6 @@
 import type { GameState } from '../engine/types';
 import { SAVE_VERSION } from '../engine/newGame';
+import { sanitizeRun } from '../engine/sanitize';
 import { storage } from './adapter';
 
 const PROFILES_KEY = 'bizkids.profiles';
@@ -92,7 +93,8 @@ export async function loadRun(profileId: string): Promise<LoadOutcome> {
   try {
     const parsed = JSON.parse(raw) as GameState;
     if (parsed.version !== SAVE_VERSION) return { status: 'outdated' };
-    return { status: 'ok', state: parsed };
+    // The version alone is not proof the shape is right — see sanitizeRun.
+    return { status: 'ok', state: sanitizeRun(parsed) };
   } catch {
     return { status: 'outdated' };
   }
