@@ -54,6 +54,12 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'What the snacks themselves cost you. Keeping it apart from the drinks is how you tell whether the treats are actually worth selling.',
     concept: 'Cost of goods sold by product line',
   },
+  avgUnitCost: {
+    term: 'What a cup costs you',
+    plain:
+      'The average cost of the stock in your cooler. Buying a cheap batch pulls this down, and every cup you sell afterwards costs you less.',
+    concept: 'Weighted-average inventory cost',
+  },
   spoilage: {
     term: 'Thrown out',
     plain:

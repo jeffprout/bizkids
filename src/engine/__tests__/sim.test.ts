@@ -538,7 +538,9 @@ describe('the books have to balance', () => {
   });
 
   it('cash beats profit when the stand is selling down old stock', () => {
-    const base = { ...start(), cash: 300, inventory: 400 };
+    // Stock must carry a cost basis, or it is free and there is nothing to
+    // expense when it sells.
+    const base = { ...start(), cash: 300, inventory: 400, inventoryCost: 400 * 0.42 };
     const next = simulateWeek(base, decide(base, { restockUnits: 0 }));
     const r = next.lastResult!;
     expect(r.served).toBeGreaterThan(0);
@@ -661,6 +663,124 @@ describe('spend-or-skimp cards are real choices', () => {
     const shrug = run('stolen-cash', 'shrug');
     expect(shrug.cash).toBeGreaterThan(box.cash);
     expect(box.netWorth).toBeGreaterThanOrEqual(shrug.netWorth);
+  });
+});
+
+describe('stock is held at what it cost', () => {
+  const withBox = (choice: 'buy' | 'skip') => {
+    const base = {
+      ...start(),
+      cash: 300,
+      inventory: 60,
+      inventoryCost: 60 * 0.42,
+      pendingEvents: [ALL_EVENTS.find((e) => e.id === 'bulk-discount')!],
+    };
+    return simulateWeek(base, {
+      ...decide(base, { restockUnits: 0, price: 1.5 }),
+      eventChoices: { 'bulk-discount': choice },
+    });
+  };
+
+  it('books a box of stock as a purchase, not an expense', () => {
+    const next = withBox('buy');
+    const r = next.lastResult!;
+    // The old bug: the box was charged as an event expense AND again through
+    // cost of goods when those cups sold.
+    expect(r.eventCash).toBe(0);
+    expect(r.suppliesBought).toBe(25);
+    expect(r.suppliesUnits).toBe(90);
+  });
+
+  it('lowers what every cup costs after a cheap batch', () => {
+    const bought = withBox('buy').lastResult!;
+    const skipped = withBox('skip').lastResult!;
+    expect(skipped.avgUnitCost).toBeCloseTo(0.42, 2);
+    // 60 cups at $0.42 blended with 90 at $0.278 comes out near $0.33.
+    expect(bought.avgUnitCost).toBeLessThan(skipped.avgUnitCost);
+    expect(bought.avgUnitCost).toBeCloseTo(0.33, 2);
+  });
+
+  it('makes every cup sold cheaper after the discount', () => {
+    const bought = withBox('buy').lastResult!;
+    const skipped = withBox('skip').lastResult!;
+    const perCup = (r: typeof bought) => (r.cogs - r.sideCogs) / r.served;
+    expect(perCup(bought)).toBeLessThan(perCup(skipped));
+    // Note it is NOT automatically a win: a big box in a slow week spoils
+    // before it sells, which is the point of the card being a decision.
+  });
+
+  it('never lets stock value drift away from the stock on hand', () => {
+    let s = start({ financing: { loanIds: [], savingsUsed: 55, locationId: 'park' } });
+    for (let i = 0; i < 50; i++) {
+      s = simulateWeek(s, decide(s, { restockUnits: i % 4 === 0 ? 150 : 30 }));
+      expect(s.inventoryCost).toBeGreaterThanOrEqual(0);
+      if (s.inventory === 0) expect(s.inventoryCost).toBe(0);
+      if (s.inventory > 0) {
+        // Average cost must stay inside the range of prices stock can be had for.
+        const avg = s.inventoryCost / s.inventory;
+        expect(avg).toBeGreaterThan(0);
+        expect(avg).toBeLessThanOrEqual(0.7);
+      }
+    }
+  });
+});
+
+describe('the winter pivot', () => {
+  const sell = (
+    qualityId: string,
+    season: 'spring' | 'summer' | 'fall' | 'winter',
+    weather: 'hot' | 'sunny' | 'cloudy' | 'rain' | 'cold',
+  ) => {
+    const base = {
+      ...start(),
+      cash: 600,
+      season,
+      weather,
+      forecast: weather,
+      inventory: 600,
+      inventoryCost: 600 * 0.5,
+      locationId: 'park',
+    };
+    return simulateWeek(base, decide(base, { qualityId, restockUnits: 0, locationId: 'park' }))
+      .lastResult!;
+  };
+
+  it('sells hot chocolate when nobody wants lemonade', () => {
+    expect(sell('cocoa', 'winter', 'cold').demand).toBeGreaterThan(
+      sell('fresh', 'winter', 'cold').demand,
+    );
+  });
+
+  it('still wants lemonade on a warm day, even in cocoa season', () => {
+    // Compared on demand, not cups served — both would hit the same ceiling on
+    // what one person can hand over the counter. And it has to be a season
+    // cocoa is actually sold in, or the fallback makes both sides lemonade.
+    expect(sell('fresh', 'fall', 'sunny').demand).toBeGreaterThan(
+      sell('cocoa', 'fall', 'sunny').demand,
+    );
+  });
+
+  it('makes winter worth trading through instead of surviving', () => {
+    const cocoa = sell('cocoa', 'winter', 'cold');
+    expect(cocoa.profit).toBeGreaterThan(sell('fresh', 'winter', 'cold').profit);
+    expect(cocoa.served).toBeGreaterThan(0);
+  });
+
+  it('takes a seasonal product off the menu when its season ends', () => {
+    const cocoa = LEMONADE.qualities.find((q) => q.id === 'cocoa')!;
+    expect(cocoa.seasons).toEqual(['fall', 'winter']);
+    // Asking for it in July quietly puts you back on a year-round recipe rather
+    // than selling cocoa in a heat wave.
+    const base = {
+      ...start(),
+      cash: 600,
+      season: 'summer' as const,
+      weather: 'hot' as const,
+      inventory: 300,
+      inventoryCost: 150,
+    };
+    const next = simulateWeek(base, decide(base, { qualityId: 'cocoa', restockUnits: 0 }));
+    expect(next.qualityId).not.toBe('cocoa');
   });
 });
 

@@ -765,6 +765,84 @@ lands within 2px of the fold.
 
 ---
 
+## 2026-08-24 (late) — The bulk box charged you twice, and hot chocolate
+
+### "Where does it list that savings? Even the what happened is negative"
+
+Jeff was looking at a card that hands you 90 cups and wondering where the
+discount went. It went nowhere, because there wasn't one — and worse, **the same
+stock was charged to profit twice**:
+
+- $32 left the bank as an event expense ("⚡ What happened −$32"), and
+- when those 90 cups sold, cost of goods charged another 90 × $0.42 = $37.80.
+
+$69.80 of expense for one $32 box. The "way under normal price" copy was also a
+lie: $32 against a normal $37.80 is 15% off, not a bargain.
+
+**Root cause: stock had no cost basis.** Inventory was a unit count, and cost of
+goods was always `units × today's unit price`, so stock acquired any other way
+was invisible to the books.
+
+**Fix: inventory is now held at weighted-average cost.** `GameState` carries
+`inventoryCost` in dollars alongside the unit count. Buying stock moves cash to
+inventory rather than expensing it; cost of goods, spoilage and event write-offs
+all draw down at the running average. A card that hands you stock is now booked
+as a purchase — its cash joins supplies bought instead of hitting the event line.
+
+The saving now shows up exactly where it should: 60 cups at $0.42 blended with
+90 at $0.278 gives an average of **$0.33**, and the P&L line reads "Cost of cups
+sold ($0.33 each)" for weeks afterwards. The supplies card carries the same
+number as a chip, so you can see the effect before you commit.
+
+The box is $25 now, a real 34% discount. Note it is still **not** an automatic
+win — a big box in a slow week spoils before it sells, which is what makes it a
+decision. A test asserts that per-cup cost falls; deliberately none asserts that
+buying always pays.
+
+*(A test caught a related trap while I was at it: any test constructing
+`inventory` must also set `inventoryCost`, or the stock is free and costs nothing
+when sold.)*
+
+`SAVE_VERSION` 5. Done now rather than later precisely because nothing has been
+deployed to testers yet.
+
+### Hot chocolate
+
+Jeff: "winter months should add hot chocolate." Which also answers the winter
+dead zone flagged as an open question after the first playtest.
+
+`QualityDef` gained optional `seasons`, `seasonMods` and `weatherMods`, so a
+menu item can carry its own calendar and its own response to weather instead of
+inheriting lemonade's. Hot chocolate is on the menu in fall and winter only, at
+$0.55 a cup, and it likes exactly what lemonade hates:
+
+| | Hot | Sunny | Cloudy | Rain | Cold |
+|---|---|---|---|---|---|
+| Lemonade | 1.80 | 1.25 | 0.90 | 0.45 | 0.35 |
+| Hot chocolate | 0.15 | 0.65 | 1.10 | 1.30 | 1.70 |
+
+Over a full year at the park, winter profit goes from **$15 to $302**. And it is
+a real decision rather than a free upgrade — pivoting for *both* cold seasons is
+worse than not pivoting at all, because fall still belongs to lemonade:
+
+```
+lemonade all year      end cash $4,302
+cocoa fall + winter    end cash $4,268
+cocoa in winter only   end cash $4,619
+```
+
+The menu card is offered every week while a seasonal item is on the menu, and a
+product goes off the menu when its season ends — a player who stops paying
+attention is put back on a year-round recipe rather than quietly selling cocoa
+in July.
+
+**Simplification worth noting:** inventory is generic "cups of supplies", so
+switching to cocoa does not strand your lemonade stock. Modelling separate stock
+per product would be more truthful and considerably more fiddly; worth revisiting
+if the bake shop makes it necessary in Phase 2.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

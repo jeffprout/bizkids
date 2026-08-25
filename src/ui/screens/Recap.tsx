@@ -111,7 +111,7 @@ export function Recap({
                   "cost of cups sold" quietly contains the candy and neither
                   line's margin means anything. */}
               <LedgerRow
-                label="🍋 Cost of cups sold"
+                label={`🍋 Cost of cups sold (${dollars(r.avgUnitCost, true)} each)`}
                 amount={`-${dollars(r.cogs - r.sideCogs)}`}
                 tone="out"
                 explainId="cogs"

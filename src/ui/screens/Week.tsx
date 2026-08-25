@@ -43,7 +43,12 @@ export function Week({
   const [sideProductId, setSideProductId] = useState<string | null>(state.sideProductId);
   const [index, setIndex] = useState(0);
 
-  const quality = biz.qualities.find((q) => q.id === qualityId) ?? biz.qualities[0];
+  const quality =
+    biz.qualities.find(
+      (q) => q.id === qualityId && (!q.seasons || q.seasons.includes(state.season)),
+    ) ??
+    biz.qualities.find((q) => !q.seasons) ??
+    biz.qualities[0];
   const location = biz.locations.find((l) => l.id === locationId) ?? biz.locations[0];
 
   // Younger players get a shorter menu. Which options each tier sees is config.
@@ -54,6 +59,11 @@ export function Week({
   const employeeOptions = forTier(biz.employees);
   const facesRival = biz.rival.tiers.includes(state.tier);
   const current = state.employees[0];
+  // What is on the menu right now. Hot chocolate only exists in the cold months.
+  const menuOptions = biz.qualities.filter(
+    (q) => !q.seasons || q.seasons.includes(state.season),
+  );
+  const seasonalOnMenu = menuOptions.some((q) => q.seasons);
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 
@@ -82,7 +92,10 @@ export function Week({
     const extras: CardId[] = [];
     if (stage2) extras.push('marketing');
     if (stage2) extras.push('treats');
+    // The menu matters most when a seasonal product is on or coming off it, so
+    // it is offered every week then rather than every other week.
     if (stage2 && week % 2 === 0) extras.push('quality');
+    else if (seasonalOnMenu && !extras.includes('quality')) extras.push('quality');
 
     // Spot, price, staffing and supplies are asked EVERY week. Staffing used to
     // rotate, and only surfaced after a losing week, which left no way to swap
@@ -107,6 +120,7 @@ export function Week({
     state.employees.length,
     state.week,
     tier.maxCards,
+    seasonalOnMenu,
   ]);
 
   /**
@@ -167,7 +181,7 @@ export function Week({
     sfx.cheer();
     onEndWeek({
       price,
-      qualityId,
+      qualityId: quality.id,
       restockUnits,
       locationId,
       eventChoices,
@@ -257,6 +271,11 @@ export function Week({
                 rather than a stack of sentences, so the card clears the fold. */}
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
               <span className="pill">🥤 {state.inventory} left over</span>
+              {state.inventory > 0 && (
+                <span className="pill">
+                  🏷️ stock cost {dollars(state.inventoryCost / state.inventory, true)} a cup
+                </span>
+              )}
               <span className="pill">🙌 can serve {capacityAfter}</span>
               {state.lastResult && (
                 <span className="pill">
@@ -284,8 +303,13 @@ export function Week({
 
         {card === 'quality' && (
           <div className="card stack">
-            <h2 className="center">What goes in the cup?</h2>
-            {biz.qualities.map((q) => (
+            <h2 className="center">What are you selling?</h2>
+            {seasonalOnMenu && (
+              <p className="muted center">
+                Cold weather is here. A hot drink sells when lemonade will not.
+              </p>
+            )}
+            {menuOptions.map((q) => (
               <Choice
                 key={q.id}
                 emoji={q.emoji}

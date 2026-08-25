@@ -25,7 +25,16 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
 
   const location =
     biz.locations.find((l) => l.id === decisions.locationId) ?? biz.locations[0];
-  const quality = biz.qualities.find((q) => q.id === decisions.qualityId) ?? biz.qualities[0];
+  const picked = biz.qualities.find((q) => q.id === decisions.qualityId) ?? biz.qualities[0];
+  // A seasonal product comes off the menu when its season ends, so a player who
+  // stops paying attention is put back on the year-round recipe rather than
+  // quietly selling cocoa in July.
+  const inSeason = (q: typeof picked) => !q.seasons || q.seasons.includes(state.season);
+  const quality = inSeason(picked)
+    ? picked
+    : (biz.qualities.find((q) => q.id === state.qualityId && inSeason(q)) ??
+      biz.qualities.find(inSeason) ??
+      biz.qualities[0]);
 
   const cashStart = state.cash;
   const reputationStart = state.reputation;
@@ -34,6 +43,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
 
   let cash = cashStart;
   let inventory = state.inventory;
+  let inventoryCost = state.inventoryCost;
   let reputation = state.reputation;
   const discussionFlags: string[] = [];
 
@@ -42,9 +52,10 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const wantUnits = Math.max(0, Math.round(decisions.restockUnits));
   const affordableUnits = unitCost > 0 ? Math.floor(Math.max(0, cash) / unitCost) : wantUnits;
   const boughtUnits = Math.min(wantUnits, affordableUnits);
-  const suppliesBought = money(boughtUnits * unitCost);
+  let suppliesBought = money(boughtUnits * unitCost);
   cash = money(cash - suppliesBought);
   inventory += boughtUnits;
+  inventoryCost = money(inventoryCost + suppliesBought);
 
   // --- 2. Buy marketing ---------------------------------------------------
   let marketingSpend = 0;
@@ -79,13 +90,30 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   // --- 4. Instant event effects ------------------------------------------
   cash = money(cash + ev.cash);
   reputation += ev.reputation;
-  // Stock an event destroys is a real loss and has to be expensed. It never
-  // becomes revenue and it is not weekly spoilage, so without this line the
-  // cash left the bank and the profit figure never noticed.
-  const inventoryBeforeEvents = inventory;
-  inventory = Math.max(0, inventory + ev.inventory);
-  const stockLost = ev.inventory < 0 ? inventoryBeforeEvents - inventory : 0;
-  const eventCash = money(ev.cash);
+
+  let stockLost = 0;
+  let stockLostCost = 0;
+  let eventCash = money(ev.cash);
+
+  if (ev.inventory > 0) {
+    // A card that hands you stock is a purchase, not an expense. Its cash is
+    // what that stock cost, so it joins supplies bought and is recovered
+    // through cost of goods when the cups actually sell. Booking it as an
+    // event expense charged the player twice for the same box.
+    const stockSpend = money(Math.max(0, -ev.cash));
+    inventory += ev.inventory;
+    inventoryCost = money(inventoryCost + stockSpend);
+    suppliesBought = money(suppliesBought + stockSpend);
+    eventCash = money(ev.cash + stockSpend);
+  } else if (ev.inventory < 0) {
+    // Stock an event destroys is a real loss, written off at what it cost.
+    const before = inventory;
+    inventory = Math.max(0, inventory + ev.inventory);
+    stockLost = before - inventory;
+    const avg = before > 0 ? inventoryCost / before : 0;
+    stockLostCost = money(stockLost * avg);
+    inventoryCost = money(Math.max(0, inventoryCost - stockLostCost));
+  }
 
   // --- 5. Sell ------------------------------------------------------------
   const price = decisions.price;
@@ -128,9 +156,14 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const sideRevenue = money(sideUnits * (side?.price ?? 0));
   const sideCogs = money(sideUnits * (side?.unitCost ?? 0) * tier.unitCostScale);
 
+  // Stock is valued at weighted average, so a cheap box genuinely lowers what
+  // every cup cost and the saving lands in gross profit.
+  const avgUnitCost = inventory > 0 ? money(inventoryCost / inventory) : unitCost;
+  const drinkCogs = money(served * avgUnitCost);
   const revenue = money(served * price + sideRevenue);
-  const cogs = money(served * unitCost + sideCogs);
+  const cogs = money(drinkCogs + sideCogs);
   inventory -= served;
+  inventoryCost = money(Math.max(0, inventoryCost - drinkCogs));
   cash = money(cash + revenue);
 
   // Attribute new customers to live campaigns, so the CAC readout is honest.
@@ -192,9 +225,10 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
 
   // --- 8. Spoilage --------------------------------------------------------
   const { kept, spoiled } = applySpoilage(inventory, biz.spoilRate * tier.spoilScale);
+  const spoilageCost = money(spoiled * avgUnitCost);
   inventory = kept;
-  const spoilageCost = money(spoiled * unitCost);
-  const stockLostCost = money(stockLost * unitCost);
+  inventoryCost = money(Math.max(0, inventoryCost - spoilageCost));
+  if (inventory === 0) inventoryCost = 0;
 
   // --- 9. Reputation ------------------------------------------------------
   reputation += quality.reputationDrift;
@@ -352,6 +386,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     cash,
     reputation,
     inventory,
+    inventoryCost,
     locationId: location.id,
     qualityId: quality.id,
     sideProductId: decisions.sideProductId ?? null,
@@ -393,8 +428,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     lostToCapacity,
     revenue,
     suppliesBought,
-    suppliesUnits: boughtUnits,
+    suppliesUnits: boughtUnits + Math.max(0, ev.inventory),
     cogs,
+    avgUnitCost,
     rent,
     fixedCosts,
     wages,

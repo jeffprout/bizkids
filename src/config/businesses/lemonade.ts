@@ -129,6 +129,21 @@ const QUALITIES: QualityDef[] = [
     reputationDrift: 0.06,
     blurb: 'Lemons, berries and bubbles.',
   },
+  {
+    // The counter-seasonal pivot. Cold weather kills a lemonade stand; the same
+    // table selling something hot does fine. Costs more a cup, so it is not
+    // free money — it is a different business for a different season.
+    id: 'cocoa',
+    name: 'Hot Chocolate',
+    emoji: '☕',
+    seasons: ['fall', 'winter'],
+    seasonMods: { spring: 0.5, summer: 0.15, fall: 0.95, winter: 1.05 },
+    weatherMods: { hot: 0.15, sunny: 0.65, cloudy: 1.1, rain: 1.3, cold: 1.7 },
+    unitCost: 0.55,
+    demandMod: 1,
+    reputationDrift: 0.04,
+    blurb: 'Cocoa and milk. Sells when nobody wants a cold drink.',
+  },
 ];
 
 const MARKETING: MarketingChannel[] = [

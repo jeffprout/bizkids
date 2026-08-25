@@ -156,11 +156,20 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     character: 'Grocery Store',
     emoji: '📦',
     title: 'Bulk Deal',
-    line: 'Buy a big box of supplies today and save.',
+    line: 'A big box of supplies, cheap, if you take it today.',
     weight: 7,
     concept: 'Economies of scale',
     choices: [
-      { id: 'buy', label: 'Buy the big box', cash: -32, inventory: 90, result: '90 cups of supplies, way under normal price.' },
+      {
+        // 90 cups at the usual $0.42 would be $37.80, so this is a genuine
+        // discount. Because stock is valued at weighted-average cost, taking it
+        // shows up as a lower cost of goods for weeks afterwards.
+        id: 'buy',
+        label: 'Buy the big box',
+        cash: -25,
+        inventory: 90,
+        result: '90 cups of supplies for well under the usual price.',
+      },
       { id: 'skip', label: 'Not this week', result: 'You keep your cash. Fair enough.' },
     ],
   },

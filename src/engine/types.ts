@@ -38,11 +38,17 @@ export interface LocationDef {
   volatility: number;
 }
 
-/** A quality level for the product (recipe tier for lemonade). */
+/** What you are selling: a recipe tier, or a whole seasonal alternative. */
 export interface QualityDef {
   id: string;
   name: string;
   emoji: string;
+  /** Seasons this is on the menu. Omitted means all year. */
+  seasons?: Season[];
+  /** Replaces the season's effect on demand. A hot drink has its own calendar. */
+  seasonMods?: Record<Season, number>;
+  /** Replaces the weather's effect on demand. Cocoa likes what lemonade hates. */
+  weatherMods?: Record<Weather, number>;
   /** Cost to make one unit. */
   unitCost: number;
   /** Multiplies demand — better product, more customers. */
@@ -239,8 +245,10 @@ export interface WeekResult {
   /** Cash spent buying stock this week, and how many units that bought. */
   suppliesBought: number;
   suppliesUnits: number;
-  /** Cost of the units actually sold (accrual). */
+  /** Cost of the units actually sold, at weighted-average cost. */
   cogs: number;
+  /** What a cup of stock cost on average this week. */
+  avgUnitCost: number;
   rent: number;
   /** Costs that arrive whether or not you sell a thing. */
   fixedCosts: number;
@@ -307,6 +315,13 @@ export interface GameState {
   /** 1.0 - 5.0, shown as stars. */
   reputation: number;
   inventory: number;
+  /**
+   * What the stock on hand cost, in dollars. Held separately from the unit
+   * count so stock can be valued at weighted-average cost: a bulk deal really
+   * does lower what each cup cost you, and selling it shows the saving as a
+   * lower cost of goods rather than as nothing at all.
+   */
+  inventoryCost: number;
   locationId: string;
   qualityId: string;
   price: number;
