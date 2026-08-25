@@ -75,6 +75,9 @@ export function sanitizeRun(input: GameState): GameState {
     const lines = Array.isArray(s.lastResult.eventLines) ? s.lastResult.eventLines : [];
     s.lastResult = {
       ...s.lastResult,
+      // Added when the recap started valuing the sales a sell-out missed. A run
+      // open across that deploy has no price on its last result.
+      price: num(s.lastResult.price, s.price),
       eventLines: lines.map((l) => ({
         emoji: typeof l?.emoji === 'string' ? l.emoji : '⚡',
         text: typeof l?.text === 'string' ? l.text : '',

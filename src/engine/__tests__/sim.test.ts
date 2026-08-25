@@ -770,7 +770,10 @@ describe('the winter pivot', () => {
 
   it('takes a seasonal product off the menu when its season ends', () => {
     const cocoa = LEMONADE.qualities.find((q) => q.id === 'cocoa')!;
-    expect(cocoa.seasons).toEqual(['fall', 'winter']);
+    // On the menu from the first cold week of fall right through spring, so a
+    // cold or wet spring day is a real choice. Summer is the one season it is
+    // never offered in.
+    expect(cocoa.seasons).toEqual(['fall', 'winter', 'spring']);
     // Asking for it in July quietly puts you back on a year-round recipe rather
     // than selling cocoa in a heat wave.
     const base = {
@@ -1177,5 +1180,42 @@ describe('weather is counted once', () => {
     // Dearer per cup, and the demand curve answers with fewer of them.
     expect(raised.price).toBeCloseTo(base.price * 1.3, 2);
     expect(raised.lastResult!.served).toBeLessThan(held.lastResult!.served);
+  });
+});
+
+describe('hot chocolate in spring is a real choice, not a free win', () => {
+  const run = (qualityId: string, weather: 'sunny' | 'cloudy' | 'rain' | 'cold') => {
+    const base: GameState = {
+      ...start(),
+      cash: 600,
+      season: 'spring',
+      weather,
+      forecast: weather,
+      inventory: 400,
+      inventoryCost: 400 * 0.42,
+      pendingEvents: [],
+    };
+    return simulateWeek(base, decide(base, { qualityId, restockUnits: 0 })).lastResult!;
+  };
+
+  it('is on the menu in spring', () => {
+    const spring = LEMONADE.qualities.filter((q) => !q.seasons || q.seasons.includes('spring'));
+    expect(spring.map((q) => q.id)).toContain('cocoa');
+  });
+
+  it('loses to lemonade on a sunny spring day', () => {
+    expect(run('cocoa', 'sunny').served).toBeLessThan(run('fresh', 'sunny').served);
+  });
+
+  it('beats lemonade on a wet or cold spring day', () => {
+    expect(run('cocoa', 'rain').served).toBeGreaterThan(run('fresh', 'rain').served);
+    expect(run('cocoa', 'cold').served).toBeGreaterThan(run('fresh', 'cold').served);
+  });
+
+  it('is close enough on a grey spring day to be worth thinking about', () => {
+    const cocoa = run('cocoa', 'cloudy').served;
+    const lemonade = run('fresh', 'cloudy').served;
+    const gap = Math.abs(cocoa - lemonade) / Math.max(cocoa, lemonade);
+    expect(gap).toBeLessThan(0.25);
   });
 });

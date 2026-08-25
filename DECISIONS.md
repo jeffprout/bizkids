@@ -1331,6 +1331,100 @@ No behaviour changed. 116 tests, and a full week still plays through identically
 
 ---
 
+## 2026-08-25 — What a nine-year-old actually did with it
+
+Jeff watched his son play. Four observations, and they turned out to be one
+observation.
+
+> He kept asking "is that good?" when he saw he had leftover cups.
+> He didn't see the amount of customers he had turned away.
+> The throw away and the turned away is the core of the lemonade stand.
+
+He is right, and the game had it backwards. Ordering too much and ordering too
+little are the two ways a lemonade stand loses, and they were a pair of grey
+pills under a large and confident ledger. Worse, **neither loss appears in the
+profit line** — money you never took cannot show up in a profit and loss
+statement — so a child looking at "11 left" had no way at all to tell whether
+that was a win or a warning.
+
+So the recap now opens with it, above the ledger, in money:
+
+    🎯 How close was your order?
+    🗑️ Made too many — thrown away     205 cups · $45.10
+    🚫 Ran out — walked away empty      190 people · about $285 not taken
+    🙌 Line too long — gave up waiting  86 people
+
+When neither happened: *"Nothing wasted and nobody turned away. That is as close
+as it gets."* On a 375x667 phone the block sits between 30px and 107px — the
+first thing on the screen, above the fold, before any of the accounting. The
+ledger scrolls below it, which is the right way round: the lesson first, the
+evidence under it.
+
+### Hot chocolate through spring, and a thermometer
+
+Jeff's ask: keep cocoa on the menu from fall through spring so a cloudy day might
+tempt a player into it. Done — and it needed a rebalance to be a real choice
+rather than a trap. `seasonMods.spring` was 0.5, from when cocoa only existed in
+the cold half of the year. At 0.9, working at $1.50 a cup where lemonade keeps
+$1.08 and cocoa $0.95:
+
+| spring weather | cocoa | lemonade | |
+|---|---|---|---|
+| sunny | 0.56 | 1.35 | lemonade, clearly |
+| cloudy | 0.94 | 0.97 | **a coin flip — the interesting week** |
+| rain | 1.11 | 0.49 | cocoa |
+| cold | 1.45 | 0.38 | cocoa |
+
+He also asked whether to add a temperature gauge. **Yes — but as a label on the
+weather, never as a second variable.** A temperature rolled on its own would mean
+two things to forecast and two things to be wrong about, and the ordering bet is
+hard enough. Derived from weather *and season* it costs nothing and pays for
+itself immediately: "Cloudy" does not tell a child whether to sell cocoa;
+"Cloudy 52°" does. A sunny January and a sunny July stop looking alike.
+
+It shows on the forecast pill, on the menu card, and on the week's results.
+
+Two things fell out of that:
+
+- The menu card told players *"A hot drink sells when lemonade will not"* on an
+  88-degree day, because the line was unconditional. It now follows the
+  thermometer.
+- Cocoa on the menu for thirty-nine weeks of the year meant the menu card was
+  offered nearly every week, most of them with an obvious answer. It is now
+  offered when the forecast is 62 degrees or below — where the choice could
+  genuinely go either way — or whenever the player is already selling the
+  seasonal drink, so nobody is stuck on cocoa with no way back.
+
+Also stopped printing a "-$0" cost of goods row on a week that sold nothing, and
+"Ran out" now reads "Nothing to sell" when there was never any stock to run out
+of.
+
+### Still open: treats have no downside
+
+Jeff: *"He used the treats, but there was never an instance where the treats
+actually lost him money."*
+
+Correct, and structural. `sideUnits = round(served x attachRate)` — treats are
+made to order, in exact proportion to drinks sold, with price above cost on every
+one of them:
+
+| treat | cost | price | margin | per 100 buyers |
+|---|---|---|---|---|
+| Cookies | $0.30 | $1.00 | $0.70 | $24.50 |
+| Lollipops | $0.08 | $0.50 | $0.42 | $18.90 |
+| Gummy Bags | $0.22 | $1.00 | $0.78 | $23.40 |
+| Brownies | $0.55 | $2.00 | $1.45 | $31.90 |
+
+No stock to buy ahead, nothing to throw away, no cash at risk. Picking a treat is
+strictly better than not picking one, in every week, forever — which means it is
+not a decision at all. It is also the exact opposite of the lesson the drinks
+teach, where you commit cash to stock before you know who is coming.
+
+Proposed but **not built** — this changes the balance of the game, so it is
+Jeff's call.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

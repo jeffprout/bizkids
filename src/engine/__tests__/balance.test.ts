@@ -3,6 +3,7 @@ import { newGame } from '../newGame';
 import { simulateWeek, FINAL_WEEK } from '../simulateWeek';
 import { valueBusiness } from '../valuation';
 import { LEMONADE } from '../../config/businesses';
+import { SEASON_INFO, WEATHER_INFO } from '../calendar';
 import { TIERS } from '../../config/difficulty';
 import type { GameState, Tier } from '../types';
 
@@ -28,10 +29,20 @@ function playRun(tier: Tier, seed: number, reserveBill: boolean) {
       [...LEMONADE.locations]
         .sort((a, b) => b.baseTraffic * b.seasonMods[s.season] - a.baseTraffic * a.seasonMods[s.season])
         .find((l) => costOf(l) <= s.cash * 0.2) ?? LEMONADE.locations[0];
-    const quality =
-      LEMONADE.qualities.find((q) => q.seasons?.includes(s.season)) ??
-      LEMONADE.qualities.find((q) => q.id === 'classic') ??
-      LEMONADE.qualities[0];
+    // Pick the drink by what the weather is actually doing, the way a player
+    // would. Blindly grabbing whatever seasonal item exists meant selling cocoa
+    // on a warm spring afternoon, which is the wrong call and not what this
+    // probe is here to measure.
+    const onMenu = LEMONADE.qualities.filter(
+      (q) => !q.seasons || q.seasons.includes(s.season),
+    );
+    const scoreOf = (q: (typeof onMenu)[number]) => {
+      const weatherMod = q.weatherMods ? q.weatherMods[s.weather] : WEATHER_INFO[s.weather].demandMod;
+      const seasonMod = q.seasonMods ? q.seasonMods[s.season] : SEASON_INFO[s.season].demandMod;
+      const margin = LEMONADE.defaultPrice[tier] - q.unitCost * t.unitCostScale;
+      return weatherMod * seasonMod * (q.demandMod ?? 1) * margin;
+    };
+    const quality = onMenu.reduce((best, q) => (scoreOf(q) > scoreOf(best) ? q : best));
     const unitCost = quality.unitCost * t.unitCostScale;
 
     const budget = reserveBill ? Math.max(0, s.cash - costOf(loc)) : s.cash;

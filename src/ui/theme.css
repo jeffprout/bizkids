@@ -608,3 +608,15 @@ button {
     padding: 5px 12px;
   }
 }
+
+/* Ordering too much or too little is the whole lemonade stand. This block says
+   which happened and what it cost, above the ledger, because money you never
+   took cannot appear in a profit line and a child cannot infer it from "11
+   left". */
+.judgement {
+  background: #fff6e5;
+  border-color: #f6b60b;
+}
+.judgement .ledger {
+  padding: 2px 0;
+}

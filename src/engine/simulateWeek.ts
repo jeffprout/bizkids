@@ -448,6 +448,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     suppliesUnits: boughtUnits + Math.max(0, ev.inventory),
     cogs,
     avgUnitCost,
+    price,
     rent,
     fixedCosts,
     wages,

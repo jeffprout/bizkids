@@ -263,6 +263,8 @@ export interface WeekResult {
   cogs: number;
   /** What a cup of stock cost on average this week. */
   avgUnitCost: number;
+  /** What a cup actually sold for, after any event that moved the price. */
+  price: number;
   rent: number;
   /** Costs that arrive whether or not you sell a thing. */
   fixedCosts: number;

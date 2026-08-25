@@ -86,8 +86,21 @@ const QUALITIES: QualityDef[] = [
     id: 'cocoa',
     name: 'Hot Chocolate',
     emoji: '☕',
-    seasons: ['fall', 'winter'],
-    seasonMods: { spring: 0.5, summer: 0.15, fall: 0.95, winter: 1.05 },
+    // On the menu from the first cold snap of fall right through to spring. It
+    // is a poor seller in a mild spring week — see seasonMods — but a cold or
+    // wet one flips it, and having it there to pick is what makes that a
+    // decision rather than a thing the game does to you.
+    seasons: ['fall', 'winter', 'spring'],
+    // Spring was 0.5, from when cocoa only existed in fall and winter. Now that
+    // it stays on the menu into spring it has to be a real choice there, and at
+    // 0.9 it is: sunny is clearly lemonade, rain and cold are clearly cocoa,
+    // and cloudy is a coin flip. Working at $1.50 a cup, where lemonade keeps
+    // $1.08 and cocoa $0.95:
+    //   sunny   cocoa 0.56  lemonade 1.35
+    //   cloudy  cocoa 0.94  lemonade 0.97   <- the interesting week
+    //   rain    cocoa 1.11  lemonade 0.49
+    //   cold    cocoa 1.45  lemonade 0.38
+    seasonMods: { spring: 0.9, summer: 0.15, fall: 0.95, winter: 1.05 },
     weatherMods: { hot: 0.15, sunny: 0.65, cloudy: 1.1, rain: 1.3, cold: 1.7 },
     unitCost: 0.55,
     demandMod: 1,
