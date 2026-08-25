@@ -155,9 +155,9 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     concept: 'Cash vs profit',
   },
   inventorySwing: {
-    term: 'Stock bought vs sold',
+    term: 'Money in stock',
     plain:
-      'Selling drinks you paid for in an earlier week brings in cash without costing cash now. Buying stock you have not sold yet does the opposite.',
+      'The bank pays for every cup you buy. Profit only counts the cups you sell. This line is the gap. Money that went into stock has left the bank but is still yours — it is sitting in the cooler waiting to be sold.',
     concept: 'Working capital',
   },
   principalRepaid: {

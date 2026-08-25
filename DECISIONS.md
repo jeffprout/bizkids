@@ -1031,6 +1031,39 @@ nothing.
 
 ---
 
+## 2026-08-25 — Renaming the inventory line in the profit-to-cash bridge
+
+Jeff read "Bought stock not sold yet -$4.62" sitting under the profit line and
+asked why it was subtracted when the cost of goods had already been charged.
+
+It was not double counting — the line is the reconciling item, and it exists
+precisely because cost of goods does *not* cover it. In that week the bank paid
+$8.40 for 20 cups; the P&L charged $1.26 for the 3 sold and $2.52 for the 6 that
+spoiled, leaving $4.62 of cups still in the cooler. Profit is right to ignore an
+asset the player still owns; the bank is right to feel the cash go. It is the
+`(increase)/decrease in inventory` line off a cash flow statement.
+
+The arithmetic was right, so nothing changed in the engine. But Jeff knows small
+business finance cold, and if the label misleads him it has no chance with a
+ten-year-old. Two things were wrong with it:
+
+- **It named an action, not a balance.** "Bought stock not sold yet" describes
+  the week-one case, where inventory starts at zero. What the line actually
+  measures is the *net change* in stock value: buy 110 while holding 23 and
+  selling 19, and it reports the $19.32 the stock went up by, not the $46.20
+  spent. Now "Money that went into stock", and "Stock that turned back into
+  cash" the other way — both true whichever direction stock moves.
+- **Nothing said the card was a reconciliation.** Three rows under a heading-less
+  card, directly below a column of costs, read as more costs. The card now says
+  "Why the bank moved by a different amount" across the top.
+
+Costs about 20px of height. On a 375x667 phone a busy bridge week now needs
+about 33px of scroll where it previously fit; every other viewport is unchanged.
+Worth it — the recap exists to be understood, and this was the one card that
+demonstrably was not.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

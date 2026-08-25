@@ -345,6 +345,12 @@ export function Recap({
         */}
         {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 0.5 && (
           <div className="card card-tight recap-bridge">
+            {/* Say what this little table is for. Without it the rows read as
+                more costs sitting under the profit line, which is how a reader
+                ends up asking why stock is being charged twice. */}
+            <p className="muted" style={{ margin: '0 0 2px' }}>
+              Why the bank moved by a different amount
+            </p>
             <LedgerRow
               label="🧮 Profit"
               amount={dollars(r.profit, true)}
@@ -355,7 +361,9 @@ export function Recap({
             {Math.abs(inventorySwing) >= 0.005 && (
               <LedgerRow
                 label={
-                  inventorySwing > 0 ? '🥤 Sold stock bought earlier' : '🥤 Bought stock not sold yet'
+                  inventorySwing > 0
+                    ? '🥤 Stock that turned back into cash'
+                    : '🥤 Money that went into stock'
                 }
                 amount={`${inventorySwing > 0 ? '+' : '-'}${dollars(Math.abs(inventorySwing), true)}`}
                 tone={inventorySwing > 0 ? 'in' : 'out'}
