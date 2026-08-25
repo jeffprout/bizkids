@@ -1,6 +1,6 @@
-# CLAUDE.md — BizKids Project Instructions
+# CLAUDE.md — Boss Mode Project Instructions
 
-You are building **BizKids**, a business-simulation game that teaches kids how to run a business. The complete design is in `biz-kids-game-spec.md` in this folder — **read it fully before writing any code.** This file tells you how to execute it.
+You are building **Boss Mode**, a business-simulation game that teaches kids how to run a business. The complete design is in `boss-mode-spec.md` in this folder — **read it fully before writing any code.** This file tells you how to execute it.
 
 ## Who you're working with
 

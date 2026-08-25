@@ -1,4 +1,4 @@
-# BizKids — Business Simulation Game for Kids
+# Boss Mode — Business Simulation Game for Kids
 ## Full Design Spec (handoff document for Claude Code)
 
 **One-line pitch:** Kids pick one of 10 businesses, finance it (loan vs. savings), then run it week by week through growth stages, real tradeoffs, and curveball events — ending with a chance to sell the business they built.
@@ -224,6 +224,6 @@ The long-term goal is adoption by school systems. v1 must be built so this door 
 1. Mascot/coach character — one guide for the whole game, or a different mentor per business?
 2. Should Rookie tier hide the sell-the-business endgame or use a simplified "piggy bank total" score?
 3. Multiplayer-lite: siblings' businesses appear as friendly rivals on each other's map?
-4. Name — working title "BizKids" (placeholder).
+4. Name — **settled: Boss Mode** (was the working title "BizKids").
 5. Which entrepreneurship curriculum/standards to map against for the school pitch (research before building the pitch deck).
 6. Find 1–2 pilot teachers to playtest the classroom flow before approaching a district.

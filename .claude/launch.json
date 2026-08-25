@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "bizkids",
+      "name": "boss-mode",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
@@ -11,7 +11,7 @@
       "port": 5173
     },
     {
-      "name": "bizkids-prod",
+      "name": "boss-mode-prod",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",

@@ -3,8 +3,27 @@ import { SAVE_VERSION } from '../engine/newGame';
 import { sanitizeRun } from '../engine/sanitize';
 import { storage } from './adapter';
 
-const PROFILES_KEY = 'bizkids.profiles';
-const RUN_KEY = (profileId: string) => `bizkids.run.${profileId}`;
+const PROFILES_KEY = 'bossmode.profiles';
+const RUN_KEY = (profileId: string) => `bossmode.run.${profileId}`;
+
+/**
+ * The game was called BizKids until it was renamed to Boss Mode. Anyone who has
+ * already played has their profiles, trophies and half-finished run sitting
+ * under the old keys, and a rename that quietly loses a tester's week-30 stand
+ * is not a rename, it is data loss.
+ *
+ * So reads fall back to the old key when the new one is empty, and every write
+ * goes to the new one. No migration step to run, nothing to remember, and the
+ * old data stays where it is as a backstop.
+ */
+const LEGACY_PROFILES_KEY = 'bizkids.profiles';
+const LEGACY_RUN_KEY = (profileId: string) => `bizkids.run.${profileId}`;
+
+async function readEither(key: string, legacyKey: string): Promise<string | null> {
+  const current = await storage.get(key);
+  if (current !== null && current !== undefined) return current;
+  return await storage.get(legacyKey);
+}
 
 export interface HighScore {
   businessId: string;
@@ -28,7 +47,7 @@ export interface Profile {
 }
 
 export async function listProfiles(): Promise<Profile[]> {
-  const raw = await storage.get(PROFILES_KEY);
+  const raw = await readEither(PROFILES_KEY, LEGACY_PROFILES_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Profile[];
@@ -55,6 +74,7 @@ export async function deleteProfile(id: string): Promise<Profile[]> {
   const profiles = (await listProfiles()).filter((p) => p.id !== id);
   await saveProfiles(profiles);
   await storage.remove(RUN_KEY(id));
+  await storage.remove(LEGACY_RUN_KEY(id));
   return profiles;
 }
 
@@ -88,7 +108,7 @@ export type LoadOutcome =
  * being dropped on the new-game screen wondering what happened.
  */
 export async function loadRun(profileId: string): Promise<LoadOutcome> {
-  const raw = await storage.get(RUN_KEY(profileId));
+  const raw = await readEither(RUN_KEY(profileId), LEGACY_RUN_KEY(profileId));
   if (!raw) return { status: 'none' };
   try {
     const parsed = JSON.parse(raw) as GameState;
@@ -102,10 +122,11 @@ export async function loadRun(profileId: string): Promise<LoadOutcome> {
 
 export async function clearRun(profileId: string): Promise<void> {
   await storage.remove(RUN_KEY(profileId));
+  await storage.remove(LEGACY_RUN_KEY(profileId));
 }
 
 export interface SaveBundle {
-  app: 'bizkids';
+  app: 'bossmode';
   version: number;
   /** Which build produced this save, so playtest reports are traceable. */
   buildId: string;
@@ -122,7 +143,7 @@ export async function exportAll(): Promise<SaveBundle> {
     if (run.status === 'ok') runs[p.id] = run.state;
   }
   return {
-    app: 'bizkids',
+    app: 'bossmode',
     version: SAVE_VERSION,
     buildId: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev',
     exportedAt: new Date().toISOString(),
@@ -133,8 +154,9 @@ export async function exportAll(): Promise<SaveBundle> {
 
 export async function importAll(bundle: unknown): Promise<{ ok: boolean; message: string }> {
   const b = bundle as SaveBundle;
-  if (!b || b.app !== 'bizkids' || !Array.isArray(b.profiles)) {
-    return { ok: false, message: 'That file is not a BizKids save.' };
+  // Files exported before the rename still say bizkids. They are the same save.
+  if (!b || (b.app !== 'bossmode' && b.app !== 'bizkids') || !Array.isArray(b.profiles)) {
+    return { ok: false, message: 'That file is not a Boss Mode save.' };
   }
   const existing = await listProfiles();
   const merged = [...existing];

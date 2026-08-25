@@ -1,10 +1,10 @@
-# BizKids
+# Boss Mode
 
 A business-simulation game for kids. Pick a business, finance it, run it week by
 week, and sell what you built.
 
 **Phase 1 is complete: the Lemonade Stand, full loop, Rookie and Pro tiers.**
-See `DECISIONS.md` for what was decided and why, and `biz-kids-game-spec.md` for
+See `DECISIONS.md` for what was decided and why, and `boss-mode-spec.md` for
 the design.
 
 ## Running it

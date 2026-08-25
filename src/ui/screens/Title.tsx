@@ -32,7 +32,7 @@ export function Title({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bizkids-save-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `boss-mode-save-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -56,7 +56,7 @@ export function Title({
         transition={{ type: 'spring', stiffness: 140, damping: 12 }}
       >
         <div style={{ fontSize: 64 }}>🍋</div>
-        <h1>BizKids</h1>
+        <h1>Boss Mode</h1>
         <p className="muted">Start a business. Run it. Sell it.</p>
       </motion.div>
 

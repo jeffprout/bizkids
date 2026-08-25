@@ -1,6 +1,7 @@
 # DECISIONS.md
 
-A running log of choices made while building BizKids. Newest first.
+A running log of choices made while building Boss Mode (called BizKids until
+August 2026). Newest first.
 Anything a player would notice and that the spec did not settle is flagged
 **FOR JEFF** — those are yours to overrule.
 
@@ -899,7 +900,8 @@ adding a field mid-test is now merely untidy rather than corrupting.
 
 ## 2026-08-25 — Updated spec and handoff, and off Vercel
 
-Jeff sent revised `CLAUDE.md` and `biz-kids-game-spec.md`. Both are now in the
+Jeff sent revised `CLAUDE.md` and the game spec (then `biz-kids-game-spec.md`,
+now `boss-mode-spec.md`). Both are now in the
 repo. Three changes in them:
 
 1. **Spec Section 7: 10 businesses becomes 11.** A **Pizza Parlor** joins, as the
@@ -1244,6 +1246,41 @@ pop stayed where it belongs — on the emoji.
 
 Also trimmed the treats card, which printed a generic line and a specific one
 where the specific one says more.
+
+---
+
+## 2026-08-25 — Renamed to Boss Mode
+
+BizKids becomes **Boss Mode** everywhere a person can see it: the title screen,
+the browser tab, the page description, exported save filenames, the package name,
+the docs, and the spec (now `boss-mode-spec.md`, and its open question about the
+name is closed).
+
+**The part that needed care was storage.** Profiles live under `bizkids.profiles`
+and runs under `bizkids.run.{id}` in each tester's own browser. Moving those keys
+without thought would have greeted everyone already playing with an empty trophy
+shelf and no stand — a rename that eats a week-30 run is not a rename.
+
+Reads now fall back to the old key when the new one is empty, and every write
+goes to the new one. No migration step to run, nothing for a tester to do,
+idempotent, and the old copy is left in place as a backstop rather than deleted
+out from under them. Verified end to end in the browser: a profile seeded under
+the old key loads with its trophies and its "where you left off" line intact, and
+the next write lands on `bossmode.*`.
+
+Exported save files carry an `app` field that said `bizkids`. Import accepts both
+spellings, so a JSON a tester emailed before the rename still loads.
+
+Four tests cover it, and they exist mainly so the fallback is not tidied away as
+dead code in six months.
+
+### Left alone deliberately
+
+The GitHub repository is still `bizkids` and the site is still
+`bizkids-wine.vercel.app`. Both are outward-facing — the URL in particular is what
+testers already have — so they are Jeff's call, not a thing to change quietly.
+The local folder is likewise still `bizkids/`, which is why `launch.json` still
+points `--prefix bizkids` at it.
 
 ---
 
