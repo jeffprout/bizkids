@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:school": "cross-env VITE_EDITION=school vite build",
-    "build:consumer": "cross-env VITE_EDITION=consumer vite build"
+    "build:consumer": "cross-env VITE_EDITION=consumer vite build",
+    "check": "tsc -b && vitest run"
   },
   "dependencies": {
     "framer-motion": "^13.1.1",

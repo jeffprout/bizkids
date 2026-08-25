@@ -790,7 +790,7 @@ describe('a save with a missing field cannot poison the run', () => {
   // new version onto the old shape at the next autosave.
   const legacy = (drop: keyof GameState) => {
     const s = { ...start(), cash: 500, inventory: 80, inventoryCost: 33.6 } as GameState;
-    delete (s as Record<string, unknown>)[drop];
+    delete (s as unknown as Record<string, unknown>)[drop];
     return s;
   };
 
