@@ -25,6 +25,13 @@ export interface LocationDef {
   weeklyFixedCosts: number;
   /** Reputation the location can never drag you below (credibility floor). */
   reputationFloor?: number;
+  /**
+   * How busy this spot is by season, on top of the season's effect on thirst.
+   * A soccer field lives and dies by the league calendar; a park is a summer
+   * destination; a front yard barely notices. Without this the busiest spot is
+   * simply the best spot all year and there is nothing to decide.
+   */
+  seasonMods: Record<Season, number>;
   /** One short line shown on the choice card. */
   blurb: string;
   /** Weekend-heavy spots swing harder week to week. */

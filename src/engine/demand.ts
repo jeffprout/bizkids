@@ -50,7 +50,9 @@ export interface DemandBreakdown {
 export function computeDemand(inp: DemandInputs): DemandBreakdown {
   const { state, location, quality, price, referencePrice, elasticity } = inp;
 
-  const seasonMod = SEASON_INFO[state.season].demandMod;
+  // Two separate seasonal effects: how thirsty people are, and how busy this
+  // particular spot is at this time of year.
+  const seasonMod = SEASON_INFO[state.season].demandMod * location.seasonMods[state.season];
   const weatherMod = WEATHER_INFO[state.weather].demandMod;
   const repMod = reputationMod(state.reputation);
   const priceMod = priceCurve(price, referencePrice, elasticity);

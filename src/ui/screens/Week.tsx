@@ -51,6 +51,7 @@ export function Week({
   const sideOptions = forTier(biz.sideProducts);
   const employeeOptions = forTier(biz.employees);
   const facesRival = biz.rival.tiers.includes(state.tier);
+  const current = state.employees[0];
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 
@@ -75,17 +76,17 @@ export function Week({
   const cards: CardId[] = useMemo(() => {
     const week = state.week;
     const stage2 = state.stage >= 2;
-    const lostMoneyLastWeek = (state.lastResult?.profit ?? 0) < 0;
 
     const extras: CardId[] = [];
-    // Staffing surfaces when there is something to decide: nobody hired yet, or
-    // a losing week that a wage might be the reason for.
-    if (stage2 && (state.employees.length === 0 || lostMoneyLastWeek)) extras.push('staff');
     if (stage2) extras.push('marketing');
     if (stage2) extras.push('treats');
     if (stage2 && week % 2 === 0) extras.push('quality');
 
-    const room = Math.max(0, tier.maxCards - 3);
+    // Spot, price, staffing and supplies are asked EVERY week. Staffing used to
+    // rotate, and only surfaced after a losing week, which left no way to swap
+    // or drop a helper when you wanted to — a wage is a weekly decision.
+    const fixedCount = stage2 ? 4 : 3;
+    const room = Math.max(0, tier.maxCards - fixedCount);
     const offset = extras.length ? week % extras.length : 0;
     const rotated = [...extras.slice(offset), ...extras.slice(0, offset)];
 
@@ -93,6 +94,7 @@ export function Week({
       ...state.pendingEvents.map((e) => `event:${e.id}`),
       'location',
       'price',
+      ...(stage2 ? ['staff'] : []),
       ...rotated.slice(0, room),
       'supplies',
       'ready',
@@ -102,7 +104,6 @@ export function Week({
     state.stage,
     state.employees.length,
     state.week,
-    state.lastResult,
     tier.maxCards,
   ]);
 
@@ -301,16 +302,29 @@ export function Week({
         {card === 'location' && (
           <div className="card stack">
             <h2 className="center">Where will you sell?</h2>
-            {biz.locations.map((l) => (
-              <Choice
-                key={l.id}
-                emoji={l.emoji}
-                title={l.name}
-                sub={l.blurb}
-                selected={locationId === l.id}
-                onClick={() => setLocationId(l.id)}
-              />
-            ))}
+            {/* Say how busy each spot is right now. Weekly relocation is only a
+                real decision if the player can see the season turning. */}
+            {biz.locations.map((l) => {
+              const busy = l.seasonMods[state.season];
+              const note =
+                busy >= 1.2
+                  ? '🔥 Busy this time of year.'
+                  : busy >= 0.85
+                    ? '🙂 Normal this time of year.'
+                    : busy >= 0.5
+                      ? '😴 Quiet this time of year.'
+                      : '🥶 Almost nobody there now.';
+              return (
+                <Choice
+                  key={l.id}
+                  emoji={l.emoji}
+                  title={l.name}
+                  sub={`${note} ${l.blurb}`}
+                  selected={locationId === l.id}
+                  onClick={() => setLocationId(l.id)}
+                />
+              );
+            })}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
@@ -319,7 +333,7 @@ export function Week({
 
         {card === 'staff' && (
           <div className="card stack">
-            <h2 className="center">{state.employees.length ? 'Your helper' : 'Want a helper?'}</h2>
+            <h2 className="center">{current ? 'Your helper' : 'Want a helper?'}</h2>
             {/* Say plainly what a helper buys, so hiring is a judgement call
                 and not a guess. Rookie skips the arithmetic. */}
             {tier.showFullPnL && (
@@ -328,41 +342,53 @@ export function Week({
                 {state.lastResult ? ` Last week ${state.lastResult.served} wanted one.` : ''}
               </p>
             )}
-            {state.employees.length === 0 &&
-              employeeOptions.map((e) => (
+            {/* Keep who you have, swap them for someone else, or work alone.
+                All three are available every week. */}
+            {current && (
               <Choice
-                key={e.id}
-                emoji={e.emoji}
-                title={`${e.name} · ${dollars(e.weeklyWage)} a week`}
-                sub={e.quirk}
-                selected={hireId === e.id}
-                disabled={state.cash < e.weeklyWage}
-                onClick={() => setHireId(e.id)}
-              />
-            ))}
-            {state.employees.map((e) => (
-              <Choice
-                key={e.id}
-                emoji={fireStaff ? '👋' : e.emoji}
-                title={fireStaff ? `Let ${e.name} go` : `Keep ${e.name} · ${dollars(e.weeklyWage)} a week`}
-                sub={
-                  fireStaff
-                    ? 'No more wages, but you serve fewer cups.'
-                    : 'Tap to let them go and stop the wages.'
-                }
-                selected={!fireStaff}
-                onClick={() => setFireStaff((f) => !f)}
-              />
-            ))}
-            {state.employees.length === 0 && (
-              <Choice
-                emoji="🙅"
-                title="Not yet"
-                sub="Keep working alone."
-                selected={!hireId}
-                onClick={() => setHireId(undefined)}
+                emoji={current.emoji}
+                title={`Keep ${current.name} · ${dollars(current.weeklyWage)} a week`}
+                sub={current.quirk}
+                selected={!fireStaff && !hireId}
+                onClick={() => {
+                  setFireStaff(false);
+                  setHireId(undefined);
+                }}
               />
             )}
+            {employeeOptions
+              .filter((e) => e.id !== current?.id)
+              .map((e) => (
+                <Choice
+                  key={e.id}
+                  emoji={e.emoji}
+                  title={`${current ? 'Switch to' : 'Hire'} ${e.name} · ${dollars(e.weeklyWage)} a week`}
+                  sub={
+                    current
+                      ? `${e.quirk} Serves ${e.capacityBonus > current.capacityBonus ? 'more' : 'fewer'} than ${current.name}.`
+                      : e.quirk
+                  }
+                  selected={hireId === e.id}
+                  disabled={state.cash < e.weeklyWage}
+                  onClick={() => {
+                    setHireId(e.id);
+                    // Swapping means letting the current one go the same week.
+                    setFireStaff(Boolean(current));
+                  }}
+                />
+              ))}
+            <Choice
+              emoji="🙅"
+              title={current ? `Let ${current.name} go` : 'Work alone'}
+              sub={
+                current ? 'No more wages, but you serve fewer cups.' : 'No wages to pay this week.'
+              }
+              selected={current ? fireStaff && !hireId : !hireId}
+              onClick={() => {
+                setHireId(undefined);
+                setFireStaff(Boolean(current));
+              }}
+            />
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>

@@ -603,6 +603,75 @@ The treats card also now answers "are these worth selling" directly: "Last week
 
 ---
 
+## 2026-08-24 (late) — Switching helpers, and why the soccer field always won
+
+Two from Jeff, both correct.
+
+### "At what point am I able to switch helpers?"
+
+Never, was the answer. Two separate faults:
+
+1. The staffing card only appeared when `employees.length === 0 || lostMoneyLastWeek`.
+   I had made it "contextual" so it would not nag, which meant a profitable run
+   never offered it at all.
+2. Even when shown, it only offered keep or fire. There was no swap.
+
+Staffing is now a **fixed weekly card at Stage 2**, alongside spot, price and
+supplies — a wage is a weekly decision, so it gets asked weekly. The card offers
+keep, switch, or let go:
+
+```
+👧 Keep Maya · $40 a week
+🧒 Switch to Theo · $25 a week   Cheap and cheerful. Serves fewer than Maya.
+🙅 Let Maya go
+```
+
+A swap sets `fireEmployee` and `hireEmployeeId` in the same week, which the
+engine already handled — only one wage is charged. Rookie's card budget went
+4 → 5 so it keeps a rotating slot after the four weekly cards.
+
+### "There doesn't seem to be EVER any reason to switch from the soccer field."
+
+Right, and the earlier probe data said so plainly: soccer had both the highest
+exit ($11,764 vs the park's $7,757) **and** the fewest losing weeks. A dominant
+option with no trade-off.
+
+The arithmetic: soccer buys +48 cups a week over the park for +$13 of overhead,
+about +$35/week of pure profit. Nothing in the model ever made that a bad bet.
+
+**Fix: locations now have their own seasonality**, separate from how thirsty
+people are. A soccer field lives by the league calendar; a park is a summer
+destination; a front yard barely notices the year and costs almost nothing.
+
+| Spot | Spring | Summer | Fall | Winter |
+|---|---|---|---|---|
+| Front yard | 1.00 | 1.00 | 1.10 | 1.25 |
+| Park | 1.05 | 1.25 | 0.85 | 0.60 |
+| Soccer field | 1.45 | 0.55 | 1.45 | 0.25 |
+
+Now soccer owns spring and fall, the park owns summer, and the front yard is the
+winter refuge — it wins on having almost no overhead when nobody is out, not on
+traffic. Across three seeds, rotating with the season earns about 25–30% more
+than camping on the soccer field *and* has roughly 40% fewer losing weeks:
+
+```
+always soccer      losing 14/50  OFFER $ 9,335
+follow the season  losing  9/50  OFFER $12,118
+```
+
+The spot card now says how busy each place is right now ("🔥 Busy this time of
+year", "😴 Quiet this time of year"), because a weekly choice the player cannot
+see the reason for is just a dice roll. Four tests pin the reversal: soccer
+peaks outside summer, the park beats it in summer, and the front yard beats both
+on profit in winter.
+
+Also trimmed the results screen — splitting drink and treat costs had pushed it
+35px past the fold — by tightening its ledger rows and folding the "forecast was
+wrong" banner into the heading. A full 50-week run now scrolls nowhere at
+760 x 890.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

@@ -46,7 +46,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     ages: 'Ages 6-9',
     emoji: '🐣',
     blurb: 'Small money, gentle weeks, no rivals.',
-    maxCards: 4,
+    maxCards: 5,
     priceStep: 0.25,
     minPrice: 0.25,
     maxPrice: 3,

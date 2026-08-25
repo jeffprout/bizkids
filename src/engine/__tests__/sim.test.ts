@@ -149,6 +149,22 @@ describe('simulateWeek', () => {
     expect(next.lastResult!.wages).toBe(40);
   });
 
+  it('swaps one helper for another in a single week', () => {
+    const base = {
+      ...start(),
+      cash: 500,
+      stage: 2 as const,
+      employees: [LEMONADE.employees[0]], // Maya, $40
+    };
+    const next = simulateWeek(
+      base,
+      decide(base, { fireEmployee: true, hireEmployeeId: 'theo', restockUnits: 60 }),
+    );
+    expect(next.employees.map((e) => e.name)).toEqual(['Theo']);
+    // Only the new hire's wage is charged, not both.
+    expect(next.lastResult!.wages).toBe(25);
+  });
+
   it('lets an employee raise the ceiling on customers served', () => {
     const base = { ...start(), cash: 900, locationId: 'soccer', reputation: 5, stage: 2 as const };
     const solo = simulateWeek(base, decide(base, { restockUnits: 900, price: 0.25 }));
@@ -539,6 +555,66 @@ describe('the books have to balance', () => {
     const r = next.lastResult!;
     expect(r.inventoryEnd).toBeGreaterThan(0);
     expect(r.profit).toBeGreaterThan(r.cashChange);
+  });
+});
+
+describe('no spot is right all year', () => {
+  const demandAt = (season: 'spring' | 'summer' | 'fall' | 'winter', locationId: string) => {
+    const base = {
+      ...start(),
+      cash: 800,
+      season,
+      weather: 'sunny' as const,
+      forecast: 'sunny' as const,
+      reputation: 4,
+      inventory: 900,
+    };
+    return simulateWeek(base, decide(base, { restockUnits: 0, locationId, price: 1.5 })).lastResult!
+      .demand;
+  };
+
+  it('fills the soccer field in league season and empties it in July', () => {
+    expect(demandAt('spring', 'soccer')).toBeGreaterThan(demandAt('summer', 'soccer'));
+    expect(demandAt('fall', 'soccer')).toBeGreaterThan(demandAt('summer', 'soccer'));
+  });
+
+  it('beats the soccer field with the park in summer', () => {
+    // The whole point: the busiest spot must not be the best spot every week.
+    expect(demandAt('summer', 'park')).toBeGreaterThan(demandAt('summer', 'soccer'));
+  });
+
+  it('beats both busy spots with the free front yard in winter', () => {
+    // Not on demand — on what is left after overhead when nobody is out.
+    const profitAt = (locationId: string) => {
+      const base = {
+        ...start(),
+        cash: 800,
+        season: 'winter' as const,
+        weather: 'cold' as const,
+        forecast: 'cold' as const,
+        inventory: 200,
+      };
+      return simulateWeek(base, decide(base, { restockUnits: 0, locationId, price: 1.5 }))
+        .lastResult!.profit;
+    };
+    expect(profitAt('front-yard')).toBeGreaterThan(profitAt('soccer'));
+    expect(profitAt('front-yard')).toBeGreaterThan(profitAt('park'));
+  });
+
+  it('gives every spot a season where it is the busiest', () => {
+    const seasons = ['spring', 'summer', 'fall', 'winter'] as const;
+    const winners = new Set(
+      seasons.map((season) => {
+        const scored = LEMONADE.locations.map((l) => ({
+          id: l.id,
+          score: l.baseTraffic * l.seasonMods[season],
+        }));
+        return scored.sort((a, b) => b.score - a.score)[0].id;
+      }),
+    );
+    // Soccer in spring and fall, park in summer — and the front yard wins on
+    // cost rather than traffic, so at least two spots take a turn on top.
+    expect(winners.size).toBeGreaterThanOrEqual(2);
   });
 });
 

@@ -54,16 +54,17 @@ export function Recap({
         />
       )}
 
-      <h2 className="center">Week {r.week} results</h2>
-
-      {r.forecastWasWrong && (
-        <div className="card card-tight center" style={{ background: '#fff6e5' }}>
-          <p style={{ margin: 0 }}>
-            🌦️ Forecast said {WEATHER_INFO[r.forecast].label.toLowerCase()}. You got{' '}
-            {WEATHER_INFO[r.weather].label.toLowerCase()}.
+      {/* The heading carries the forecast miss rather than a card of its own —
+          it is one short line and the results screen is the tightest we have. */}
+      <div className="center">
+        <h2>Week {r.week} results</h2>
+        {r.forecastWasWrong && (
+          <p className="muted" style={{ margin: 0 }}>
+            🌦️ Forecast said {WEATHER_INFO[r.forecast].label.toLowerCase()}, you got{' '}
+            {WEATHER_INFO[r.weather].label.toLowerCase()}
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="recap-cols">
         <div className="card">

@@ -335,6 +335,15 @@ button {
   gap: 8px;
   align-items: start;
 }
+/* The results ledgers carry the most rows of any screen, so they run tighter
+   than a ledger elsewhere. Splitting drinks from treats added two more rows. */
+.recap-cols .ledger {
+  padding: 3px 0;
+}
+.recap-cols .ledger.total {
+  padding-top: 5px;
+  margin-top: 2px;
+}
 @media (max-width: 560px) {
   .recap-cols {
     grid-template-columns: 1fr;
