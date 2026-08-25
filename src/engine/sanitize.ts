@@ -66,6 +66,24 @@ export function sanitizeRun(input: GameState): GameState {
   s.inventoryCost =
     s.inventory === 0 ? 0 : money(Math.max(0, num(s.inventoryCost, s.inventory * unitCost)));
 
+  // Event lines gained a title and a per-card cash figure so the recap could
+  // name which card took the money. A run that was open when that shipped keeps
+  // the old two-field shape, and the recap would have printed the card's name as
+  // "undefined". Fill the gap rather than force everyone mid-run to start over
+  // for what is only a label.
+  if (s.lastResult) {
+    const lines = Array.isArray(s.lastResult.eventLines) ? s.lastResult.eventLines : [];
+    s.lastResult = {
+      ...s.lastResult,
+      eventLines: lines.map((l) => ({
+        emoji: typeof l?.emoji === 'string' ? l.emoji : '⚡',
+        text: typeof l?.text === 'string' ? l.text : '',
+        title: typeof l?.title === 'string' ? l.title : 'What happened',
+        cash: num(l?.cash, 0),
+      })),
+    };
+  }
+
   s.loans = s.loans.map((l) => ({
     ...l,
     balance: Math.max(0, num(l.balance, 0)),

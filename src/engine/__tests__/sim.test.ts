@@ -4,6 +4,7 @@ import { simulateWeek, FINAL_WEEK } from '../simulateWeek';
 import { applySpoilage, priceCurve, reputationMod } from '../demand';
 import { seasonForWeek } from '../calendar';
 import { valueBusiness } from '../valuation';
+import { sanitizeRun } from '../sanitize';
 import type { GameState, WeekDecisions } from '../types';
 import { LEMONADE } from '../../config/businesses/lemonade';
 import { TIERS } from '../../config/difficulty';
@@ -961,5 +962,29 @@ describe('fixes from the live playtest', () => {
     expect(r.eventLines.map((l) => l.cash)).toEqual([-22, -3]);
     const parts = r.eventLines.reduce((sum, l) => sum + l.cash, 0);
     expect(parts).toBeCloseTo(r.eventCash, 2);
+  });
+});
+
+describe('a run left open across the event-label update', () => {
+  it('repairs event lines that predate the title and cash fields', () => {
+    const played = simulateWeek(start(), decide(start()));
+    // Exactly the shape a save written by the previous build carries.
+    const old = {
+      ...played,
+      lastResult: {
+        ...played.lastResult!,
+        eventLines: [{ emoji: '📑', text: 'Money for nothing visible.' }],
+      },
+    } as unknown as GameState;
+
+    const fixed = sanitizeRun(old);
+    expect(fixed.lastResult!.eventLines).toEqual([
+      { emoji: '📑', text: 'Money for nothing visible.', title: 'What happened', cash: 0 },
+    ]);
+    // Nothing is undefined, so the recap cannot print "undefined" as a label.
+    for (const line of fixed.lastResult!.eventLines) {
+      expect(typeof line.title).toBe('string');
+      expect(Number.isFinite(line.cash)).toBe(true);
+    }
   });
 });
