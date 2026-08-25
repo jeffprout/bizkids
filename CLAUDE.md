@@ -37,8 +37,11 @@ Scope: the full loop for ONE business at Rookie + Pro difficulty.
 
 Do not start Phase 2 until Jeff confirms playtesting is done.
 
-### Phase 2 — Full game
-All 10 businesses from config, Tycoon tier, Stage 3, full event pools (20 universal + 8–10 per business), the complete Marketing System (Section 9), Startup Asset Decision (Section 5), lease/buy/remote with NNN mechanics (Section 6), endgame valuation with recurring-revenue and owned-asset multiples.
+### Phase 2 — Launch set (4 businesses)
+The launch roster is **Lemonade Stand (Rookie), Food Truck (Pro), Pizza Parlor (Pro/Tycoon), Insurance Agency (Tycoon)** — chosen to showcase the game's signature systems: location basics; the Startup Asset Decision + weekly-spot mobility; the NNN lease + commitment + event marketing (the parlor is the deliberate foil to the truck — mobility vs. commitment); and recurring-revenue/book-of-business economics. Build Tycoon tier, Stage 3, full event pools for these four, the complete Marketing System (Section 9), lease/buy/remote with NNN mechanics (Section 6), and endgame valuation with recurring-revenue and owned-asset multiples. These four must be fully tuned through playtesting before launch — well-balanced beats more.
+
+### Phase 2b — Remaining businesses as free updates
+The other seven businesses ship as individual free updates on a regular cadence post-launch (roughly one every few weeks). Each must be pure config additions — if adding a business requires engine changes, the engine is wrong. Each update release is a natural moment for the native review prompt.
 
 ### Phase 3 — School Edition
 Behind `VITE_EDITION=school`: discussion-moment flags in save recaps, printable end-of-run Business Report, teacher class-roster view, curriculum-mapping doc generated from mechanic tags.

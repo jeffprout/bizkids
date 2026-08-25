@@ -98,7 +98,7 @@ Financing and location interlock: keeping a cash cushion lets you afford the bet
 
 ---
 
-## 7. The 10 Businesses
+## 7. The 11 Businesses
 
 Format: **Name — startup cost (Tycoon-scale) · core lesson · signature mechanics · signature events (partial list; 8–10 each in full build)**
 
@@ -112,6 +112,9 @@ Format: **Name — startup cost (Tycoon-scale) · core lesson · signature mecha
 8. **Web Design Studio** — $5,000 · project vs. retainer revenue · client pipeline, scope creep meter, contractor vs. hire · *Client wants "one tiny change" (×9); big client pays late; portfolio award; contractor misses deadline.*
 9. **Marketing Agency** — $10,000 · client churn & recurring revenue · retainer book, results dashboard per client, firing bad clients · *Client's campaign flops publicly; whale client demands exclusivity; employee poached; referral wave.*
 10. **Insurance Agency** — $30,000 · renewals & the book of business · new sales vs. renewal service time split, carrier relationships, retention rate · *Carrier cuts commission rates; hail storm claim wave (service crunch, retention opportunity); competitor buys leads; a big book is offered for sale — buy it with a loan?*
+11. **Pizza Parlor** — $60k–$180k depending on acquisition path (build out a new space vs. buy a tired existing parlor vs. lease equipment) · commitment & the full package · signs a multi-year **NNN lease** (Section 6) — no escape from a bad corner, you market your way out or eat the mistake; dough prep quantities (spoilage), Friday/weekend staffing, dine-in vs. delivery emphasis, weekend special, event marketing as a *recurring* decision (sponsor the little league, cater the school function, host birthday parties) · *Oven dies Friday at 6pm; CAM reconciliation true-up; chain pizza opens across the street; catering gig for 200 (can you deliver?); health inspection; viral review — good or brutal.*
+
+The pizza parlor is the deliberate foil to the food truck: the truck teaches mobility (escape a bad spot weekly), the parlor teaches commitment (the lease is signed — now make it work). Players who run both feel the difference in their bones.
 
 The insurance agency is the flagship recurring-revenue lesson: renewals compound quietly, and its endgame valuation multiple is the highest — the kid who serviced their book sees why.
 
@@ -200,7 +203,7 @@ The long-term goal is adoption by school systems. v1 must be built so this door 
 
 **One codebase, two editions, three targets.** Build a single React app with an `edition` flag — never fork the code. Everything below is config, not separate apps:
 
-- **School Edition (web):** deployed as a webpage (Vercel/Netlify — free tier is fine for a long time). Chromebook-first: works fully in browser, mouse/touch, no install, no accounts. Classroom features (teacher tools, Business Report, discussion flags) live behind this flag. This is the version pitched to districts.
+- **School Edition (web):** deployed as a webpage on **Cloudflare Pages/Workers static hosting** (free tier permits commercial use and has unlimited bandwidth — important for district pilots; Netlify is the fallback. Avoid Vercel's free tier: it prohibits commercial use). Chromebook-first: works fully in browser, mouse/touch, no install, no accounts. Classroom features (teacher tools, Business Report, discussion flags) live behind this flag. This is the version pitched to districts.
 - **Consumer Edition (App Store):** same app wrapped with **Capacitor** for iOS (and Android later). Targets Apple's **Kids Category**: no third-party ads, no analytics SDKs, no data leaving the device, parental gate on any external link. Classroom features hidden; App Store metadata, icon, and a simple onboarding instead.
 - **Consumer web (optional, free):** the same consumer build also deploys as a public webpage — it costs nothing extra and doubles as the marketing/demo site for both audiences.
 

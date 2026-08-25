@@ -6,29 +6,34 @@ browser.
 
 ## Putting it online
 
-Everything is configured; `vercel.json` already points at the School Edition
-build. From the `bizkids` folder:
+Hosted on **Cloudflare Pages**. Its free tier permits commercial use and has no
+bandwidth cap, which matters for district pilots. *(Not Vercel — its free tier
+prohibits commercial use. Netlify is the fallback.)*
+
+Everything is configured. From the `bizkids` folder:
 
 ```bash
-npx vercel --prod
+npm run deploy
 ```
 
-The first run asks a few setup questions (link to your account, confirm the
-project name) and then prints a URL like `https://bizkids.vercel.app`. That URL
-is what you send people. Every later deploy is the same one command.
+That builds the School Edition and pushes it with Wrangler. The first run opens a
+browser to authorise your Cloudflare account and creates the project; it then
+prints a URL like `https://bizkids.pages.dev`. That URL is what you send people.
+Every later deploy is the same one command.
 
-If you would rather keep it in a repo and have it deploy on every push:
+If you would rather it deploy on every push, put the repo on GitHub:
 
 ```bash
 git remote add origin https://github.com/<you>/bizkids.git && git push -u origin master
 ```
 
-then import the repo at vercel.com. Vercel reads `vercel.json` and needs no
-further configuration.
+then in the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect
+to Git**, with build command `npm run build:school` and output directory `dist`.
+Cache headers come from `public/_headers`, so there is nothing else to set.
 
 **No-account alternative.** Run `npm run build` and drag the `dist` folder onto
 https://app.netlify.com/drop. You get a link in about ten seconds. Fine for a
-weekend of testing; use Vercel if you want a stable URL you can redeploy to.
+weekend of testing; use Cloudflare for a stable URL you can redeploy to.
 
 ## What testers need to know
 

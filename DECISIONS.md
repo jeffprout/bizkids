@@ -897,6 +897,57 @@ adding a field mid-test is now merely untidy rather than corrupting.
 
 ---
 
+## 2026-08-25 — Updated spec and handoff, and off Vercel
+
+Jeff sent revised `CLAUDE.md` and `biz-kids-game-spec.md`. Both are now in the
+repo. Three changes in them:
+
+1. **Spec Section 7: 10 businesses becomes 11.** A **Pizza Parlor** joins, as the
+   deliberate foil to the food truck — the truck teaches mobility (escape a bad
+   spot weekly), the parlor teaches commitment (a multi-year NNN lease is signed,
+   now make it work).
+2. **Phase 2 is now a launch set of four**, not all ten: Lemonade Stand
+   (Rookie), Food Truck (Pro), Pizza Parlor (Pro/Tycoon), Insurance Agency
+   (Tycoon) — one per signature system, fully tuned. **Phase 2b** ships the
+   remaining seven as free post-launch updates, each a pure config addition:
+   *"if adding a business requires engine changes, the engine is wrong."*
+3. **Hosting moves to Cloudflare Pages.** Vercel's free tier prohibits commercial
+   use; Cloudflare's permits it and has no bandwidth cap, which matters for
+   district pilots. Netlify is the fallback.
+
+### The hosting change was urgent, because I had it wrong
+
+I set the project up on Vercel one session earlier and told Jeff to deploy with
+`npx vercel --prod`. That is precisely what the revised spec rules out, and he is
+days from sending links to testers. Replaced now rather than later:
+
+- `vercel.json` deleted; `public/_headers` added, which is how Cloudflare Pages
+  takes cache rules (hashed assets immutable, everything else `no-cache`). It is
+  copied into `dist` by Vite, verified in the built output.
+- `npm run deploy` builds the School Edition and pushes it with Wrangler.
+- The build stamp now reads `CF_PAGES_COMMIT_SHA` instead of the Vercel variable,
+  so a deployed build still identifies itself in playtest reports.
+- `PLAYTEST.md` rewritten around Cloudflare, with the commercial-use reason
+  stated so nobody quietly reverts to Vercel later.
+
+No gameplay code was touched: `git diff src/` is empty and all 80 tests pass.
+
+### Not done, deliberately
+
+I had begun a structural refactor to honour the new Phase 2b rule — the business
+registry currently lives *inside* `businesses/lemonade.ts`, so adding a pizza
+parlor would mean editing the lemonade stand, and `BusinessDef` (the engine's
+contract for a business) is declared there too. Jeff said mid-session not to
+change the current game, so it was reverted in full.
+
+**Worth doing before Phase 2 starts, not during it.** The engine itself is clean
+— no lemonade-specific logic anywhere in `/src/engine`, only the registry import.
+The fix is small and mechanical: move `BusinessDef` to `engine/types.ts`, put the
+registry in `config/businesses/index.ts`, and point imports at it. Left as an
+open item rather than a surprise.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
@@ -906,6 +957,9 @@ adding a field mid-test is now merely untidy rather than corrupting.
    named character. One guide for the whole game, or a mentor per business?
 4. **Rookie endgame** (spec open question 2) — Rookie currently gets the same
    sell-the-business screen as Pro. Simplify to a piggy-bank total?
-5. **Winter** is a long slow stretch (weeks 36–48) for a drinks business. It is
-   honest seasonality and the player can respond (cheaper spot, no helper, smaller
-   orders), but it may test a kid's patience. Worth watching in playtesting.
+5. **Winter** is a long slow stretch (weeks 36–48) for a drinks business.
+   Largely answered by the hot chocolate pivot, but still worth watching.
+6. **Before Phase 2:** move the business registry out of `businesses/lemonade.ts`
+   and `BusinessDef` into `engine/types.ts`, so adding a business is genuinely a
+   config-only change as Phase 2b requires. Small, mechanical, and much easier
+   before four businesses depend on it.

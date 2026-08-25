@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "build:school": "cross-env VITE_EDITION=school vite build",
     "build:consumer": "cross-env VITE_EDITION=consumer vite build",
-    "check": "tsc -b && vitest run"
+    "check": "tsc -b && vitest run",
+    "deploy": "npm run build:school && wrangler pages deploy dist --project-name bizkids"
   },
   "dependencies": {
     "framer-motion": "^13.1.1",
