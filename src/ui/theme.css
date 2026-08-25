@@ -381,6 +381,30 @@ button {
   }
 }
 
+/* A quiet marker that a line can be explained. Decorative only — the tappable
+   control is the toggle button, so this never needs to be a 44px target. */
+.ledger-q {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: #e6ecf5;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+.ledger-note {
+  margin: 2px 0 7px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
 /* ---------- misc ---------- */
 .row {
   display: flex;

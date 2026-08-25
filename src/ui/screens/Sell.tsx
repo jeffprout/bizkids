@@ -4,7 +4,7 @@ import type { GameState } from '../../engine/types';
 import { getBusiness } from '../../config/businesses/lemonade';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
-import { Confetti, dollars } from '../components/bits';
+import { Confetti, ExplainToggle, LedgerRow, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
 /**
@@ -28,6 +28,7 @@ export function Sell({
     inventoryUnitCost: quality.unitCost * TIERS[state.tier].unitCostScale,
   });
   const [sold, setSold] = useState(false);
+  const [ex, setEx] = useState(false);
 
   if (sold) {
     return (
@@ -65,49 +66,66 @@ export function Sell({
       </div>
 
       <div className="card">
-        <div className="ledger">
-          <span>📈 Profit each week</span>
-          <span>{dollars(v.avgWeeklyProfit)}</span>
-        </div>
-        <div className="ledger">
-          <span>🗓️ Averaged over</span>
-          <span>{v.weeksCounted} weeks</span>
-        </div>
-        <div className="ledger">
-          <span>📅 That is a year of</span>
-          <span>{dollars(v.annualProfit)}</span>
-        </div>
-        <div className="ledger">
-          <span>✖️ Times a multiple of</span>
-          <span>{v.multiple.toFixed(2)}</span>
-        </div>
-        <div className="ledger">
-          <span>💡 Business is worth</span>
-          <span className="in">{dollars(v.goodwill)}</span>
-        </div>
-        <div className="ledger">
-          <span>🧰 Plus your gear</span>
-          <span className="in">{dollars(v.equipmentValue)}</span>
-        </div>
-        <div className="ledger">
-          <span>🥤 Plus your supplies</span>
-          <span className="in">{dollars(v.inventoryValue)}</span>
-        </div>
-        <div className="ledger">
-          <span>🏦 Plus your cash</span>
-          <span className="in">{dollars(v.cash)}</span>
-        </div>
+        <LedgerRow
+          label="📈 Profit each week"
+          amount={dollars(v.avgWeeklyProfit)}
+          explainId="avgWeeklyProfit"
+          showExplain={ex}
+        />
+        <LedgerRow label="🗓️ Averaged over" amount={`${v.weeksCounted} weeks`} showExplain={ex} />
+        <LedgerRow
+          label="📅 That is a year of"
+          amount={dollars(v.annualProfit)}
+          explainId="annualProfit"
+          showExplain={ex}
+        />
+        <LedgerRow
+          label="✖️ Times a multiple of"
+          amount={v.multiple.toFixed(2)}
+          explainId="multiple"
+          showExplain={ex}
+        />
+        <LedgerRow
+          label="💡 Business is worth"
+          amount={dollars(v.goodwill)}
+          tone="in"
+          explainId="goodwill"
+          showExplain={ex}
+        />
+        <LedgerRow
+          label="🧰 Plus your gear"
+          amount={dollars(v.equipmentValue)}
+          tone="in"
+          explainId="equipmentValue"
+          showExplain={ex}
+        />
+        <LedgerRow
+          label="🥤 Plus your supplies"
+          amount={dollars(v.inventoryValue)}
+          tone="in"
+          showExplain={ex}
+        />
+        <LedgerRow label="🏦 Plus your cash" amount={dollars(v.cash)} tone="in" showExplain={ex} />
         {v.debtPayoff > 0 && (
-          <div className="ledger">
-            <span>💳 Minus what you owe</span>
-            <span className="out">-{dollars(v.debtPayoff)}</span>
-          </div>
+          <LedgerRow
+            label="💳 Minus what you owe"
+            amount={`-${dollars(v.debtPayoff)}`}
+            tone="out"
+            explainId="debtPayoff"
+            showExplain={ex}
+          />
         )}
-        <div className="ledger total">
-          <span>The offer</span>
-          <span className="in">{dollars(v.offer)}</span>
-        </div>
+        <LedgerRow
+          label="The offer"
+          amount={dollars(v.offer)}
+          tone="in"
+          explainId="offer"
+          showExplain={ex}
+          bold
+        />
       </div>
+
+      <ExplainToggle on={ex} onToggle={() => setEx((val) => !val)} />
 
       <div className="card card-tight stack" style={{ gap: 4 }}>
         {v.reasons.map((reason, i) => (

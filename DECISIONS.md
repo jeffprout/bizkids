@@ -505,6 +505,42 @@ those while people are playing.
 
 ---
 
+## 2026-08-24 (late) — Explaining the line items
+
+Jeff asked for hover explanations, or a question mark to click.
+
+**Not hover alone.** Wrap-readiness rule 2 is "no hover-dependent interactions",
+because iPad and Chromebook are the primary targets and neither has a hover
+state. Hover-only help would be invisible to most of the audience.
+
+**Not a tiny "?" per row either.** A 16px icon is not a 44px touch target, and
+giving each one a 44px hit area would make adjacent rows' targets overlap, since
+ledger rows are only about 26px apart. Padding the rows out to 44px each would
+undo the work of fitting a week on one screen.
+
+**What shipped:** one full-width **"❓ What do these mean?"** button per screen
+that reveals a plain-English line under every explainable item at once, and
+collapses again. It is a 696 x 44 target, unambiguous, and works identically by
+touch and mouse. Each row also carries a small grey `?` marker so it is visible
+that an explanation exists, and a native `title` tooltip — so Jeff gets his hover
+behaviour on desktop as a bonus, never as the mechanism.
+
+Explanations are off by default, so the results screen still fits one screen
+until you ask for help. With them on it is deliberately long; you are reading,
+not tapping through.
+
+**`src/config/glossary.ts`** holds 27 entries, each with the plain wording and
+the curriculum concept it demonstrates (fixed costs, cost of goods sold, working
+capital, interest vs principal, valuation multiple, goodwill…). That tagging is
+deliberate: spec Section 12 wants every mechanic mapped to a concept and the map
+shipped as a document, and this file is that map in machine-readable form rather
+than a second thing to keep in sync.
+
+Wired into the results screen (P&L, the bank reconciliation, the profit-to-cash
+bridge) and the sale screen, which is the most jargon-heavy of all.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

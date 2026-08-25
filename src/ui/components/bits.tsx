@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { explain } from '../../config/glossary';
 import { sfx } from '../sfx';
 
 export const dollars = (n: number, cents = false): string => {
@@ -193,5 +194,59 @@ export function Stepper({
         +
       </button>
     </div>
+  );
+}
+
+
+/**
+ * One line of a ledger, optionally explainable.
+ *
+ * Explanations are revealed by tapping, never by hovering — the app has to work
+ * the same on an iPad and a Chromebook as on a mouse. The `title` attribute is a
+ * free bonus for desktop, not the mechanism.
+ */
+export function LedgerRow({
+  label,
+  amount,
+  tone,
+  explainId,
+  showExplain,
+  bold,
+}: {
+  label: React.ReactNode;
+  amount: React.ReactNode;
+  tone?: 'in' | 'out';
+  explainId?: string;
+  showExplain?: boolean;
+  bold?: boolean;
+}) {
+  const entry = explainId ? explain(explainId) : undefined;
+  return (
+    <>
+      <div className={`ledger${bold ? ' total' : ''}`} title={entry?.plain}>
+        <span>
+          {label}
+          {entry && <span className="ledger-q" aria-hidden="true">?</span>}
+        </span>
+        <span className={tone}>{amount}</span>
+      </div>
+      {showExplain && entry && <p className="ledger-note">{entry.plain}</p>}
+    </>
+  );
+}
+
+/** The one control that turns every explanation on this screen on or off. */
+export function ExplainToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      className="btn btn-ghost"
+      aria-expanded={on}
+      onClick={() => {
+        sfx.tap();
+        onToggle();
+      }}
+    >
+      {on ? '✕ Hide explanations' : '❓ What do these mean?'}
+    </button>
   );
 }

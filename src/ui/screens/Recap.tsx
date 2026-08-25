@@ -4,7 +4,7 @@ import type { GameState } from '../../engine/types';
 import { TIERS } from '../../config/difficulty';
 import { badgeById } from '../../config/milestones';
 import { WEATHER_INFO } from '../../engine/calendar';
-import { Confetti, Stars, dollars } from '../components/bits';
+import { Confetti, ExplainToggle, LedgerRow, Stars, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
 export function Recap({
@@ -20,6 +20,8 @@ export function Recap({
   const tier = TIERS[state.tier];
   const celebrate = r.newBadges.length > 0 || r.stagedUp;
   const [showCelebration, setShowCelebration] = useState(celebrate);
+  // Off by default so the screen stays short. One tap explains every line.
+  const [ex, setEx] = useState(false);
 
   useEffect(() => {
     if (celebrate) sfx.levelUp();
@@ -65,168 +67,225 @@ export function Recap({
 
       <div className="recap-cols">
         <div className="card">
-          <div className="ledger">
-            <span>🥤 Cups sold</span>
-            <span>{r.served}</span>
-          </div>
+          <LedgerRow label="🥤 Cups sold" amount={r.served} explainId="cupsSold" showExplain={ex} />
+
           {r.sideUnits > 0 && tier.showFullPnL ? (
             <>
-              <div className="ledger">
-                <span>💰 Drink sales</span>
-                <span className="in">{dollars(r.revenue - r.sideRevenue)}</span>
-              </div>
-              <div className="ledger">
-                <span>🍭 Treats ({r.sideUnits})</span>
-                <span className="in">{dollars(r.sideRevenue)}</span>
-              </div>
+              <LedgerRow
+                label="💰 Drink sales"
+                amount={dollars(r.revenue - r.sideRevenue)}
+                tone="in"
+                explainId="drinkSales"
+                showExplain={ex}
+              />
+              <LedgerRow
+                label={`🍭 Treats (${r.sideUnits})`}
+                amount={dollars(r.sideRevenue)}
+                tone="in"
+                explainId="treatSales"
+                showExplain={ex}
+              />
             </>
           ) : (
-            <div className="ledger">
-              <span>💰 Sales</span>
-              <span className="in">{dollars(r.revenue)}</span>
-            </div>
+            <LedgerRow
+              label="💰 Sales"
+              amount={dollars(r.revenue)}
+              tone="in"
+              explainId="sales"
+              showExplain={ex}
+            />
           )}
 
           {tier.showFullPnL ? (
             <>
-              <div className="ledger">
-                <span>🍋 Cost of cups sold</span>
-                <span className="out">-{dollars(r.cogs)}</span>
-              </div>
+              <LedgerRow
+                label="🍋 Cost of cups sold"
+                amount={`-${dollars(r.cogs)}`}
+                tone="out"
+                explainId="cogs"
+                showExplain={ex}
+              />
               {r.spoilageCost > 0 && (
-                <div className="ledger">
-                  <span>🗑️ Thrown out ({r.spoilage})</span>
-                  <span className="out">-{dollars(r.spoilageCost)}</span>
-                </div>
+                <LedgerRow
+                  label={`🗑️ Thrown out (${r.spoilage})`}
+                  amount={`-${dollars(r.spoilageCost)}`}
+                  tone="out"
+                  explainId="spoilage"
+                  showExplain={ex}
+                />
               )}
               {r.stockLostCost > 0 && (
-                <div className="ledger">
-                  <span>💥 Stock lost ({r.stockLost})</span>
-                  <span className="out">-{dollars(r.stockLostCost)}</span>
-                </div>
+                <LedgerRow
+                  label={`💥 Stock lost (${r.stockLost})`}
+                  amount={`-${dollars(r.stockLostCost)}`}
+                  tone="out"
+                  explainId="stockLost"
+                  showExplain={ex}
+                />
               )}
-              <div className="ledger" style={{ fontWeight: 800 }}>
-                <span>Gross profit</span>
-                <span className={r.grossProfit >= 0 ? 'in' : 'out'}>{dollars(r.grossProfit)}</span>
-              </div>
+              <LedgerRow
+                label="Gross profit"
+                amount={dollars(r.grossProfit)}
+                tone={r.grossProfit >= 0 ? 'in' : 'out'}
+                explainId="grossProfit"
+                showExplain={ex}
+              />
               {r.fixedCosts > 0 && (
-                <div className="ledger">
-                  <span>🧊 Ice, cups &amp; permit</span>
-                  <span className="out">-{dollars(r.fixedCosts)}</span>
-                </div>
+                <LedgerRow
+                  label="🧊 Ice, cups & permit"
+                  amount={`-${dollars(r.fixedCosts)}`}
+                  tone="out"
+                  explainId="fixedCosts"
+                  showExplain={ex}
+                />
               )}
               {r.rent > 0 && (
-                <div className="ledger">
-                  <span>🏷️ Spot rent</span>
-                  <span className="out">-{dollars(r.rent)}</span>
-                </div>
+                <LedgerRow
+                  label="🏷️ Spot rent"
+                  amount={`-${dollars(r.rent)}`}
+                  tone="out"
+                  explainId="rent"
+                  showExplain={ex}
+                />
               )}
               {r.wages > 0 && (
-                <div className="ledger">
-                  <span>🤝 Helper pay</span>
-                  <span className="out">-{dollars(r.wages)}</span>
-                </div>
+                <LedgerRow
+                  label="🤝 Helper pay"
+                  amount={`-${dollars(r.wages)}`}
+                  tone="out"
+                  explainId="wages"
+                  showExplain={ex}
+                />
               )}
               {r.marketingSpend > 0 && (
-                <div className="ledger">
-                  <span>📣 Advertising</span>
-                  <span className="out">-{dollars(r.marketingSpend)}</span>
-                </div>
+                <LedgerRow
+                  label="📣 Advertising"
+                  amount={`-${dollars(r.marketingSpend)}`}
+                  tone="out"
+                  explainId="marketing"
+                  showExplain={ex}
+                />
               )}
               {r.interestPaid > 0 && (
-                <div className="ledger">
-                  <span>🏦 Loan interest</span>
-                  <span className="out">-{dollars(r.interestPaid)}</span>
-                </div>
+                <LedgerRow
+                  label="🏦 Loan interest"
+                  amount={`-${dollars(r.interestPaid)}`}
+                  tone="out"
+                  explainId="interest"
+                  showExplain={ex}
+                />
               )}
               {r.lateFees > 0 && (
-                <div className="ledger">
-                  <span>⏰ Late fee</span>
-                  <span className="out">-{dollars(r.lateFees)}</span>
-                </div>
+                <LedgerRow
+                  label="⏰ Late fee"
+                  amount={`-${dollars(r.lateFees)}`}
+                  tone="out"
+                  explainId="lateFee"
+                  showExplain={ex}
+                />
               )}
-              {/* What this week's event cards actually cost or paid. It was being
-                folded silently into profit, so choices felt free. */}
               {r.eventCash !== 0 && (
-                <div className="ledger">
-                  <span>{r.eventCash < 0 ? '⚡ What happened' : '⚡ Lucky break'}</span>
-                  <span className={r.eventCash < 0 ? 'out' : 'in'}>
-                    {r.eventCash < 0 ? '-' : ''}
-                    {dollars(Math.abs(r.eventCash))}
-                  </span>
-                </div>
+                <LedgerRow
+                  label={r.eventCash < 0 ? '⚡ What happened' : '⚡ Lucky break'}
+                  amount={`${r.eventCash < 0 ? '-' : ''}${dollars(Math.abs(r.eventCash))}`}
+                  tone={r.eventCash < 0 ? 'out' : 'in'}
+                  explainId="eventCash"
+                  showExplain={ex}
+                />
               )}
             </>
           ) : (
-            <div className="ledger">
-              <span>💸 Money out</span>
-              <span className="out">
-                -
-                {dollars(
-                  r.cogs + r.spoilageCost + r.stockLostCost + overheads + Math.max(0, -r.eventCash),
-                )}
-              </span>
-            </div>
+            <LedgerRow
+              label="💸 Money out"
+              amount={`-${dollars(
+                r.cogs + r.spoilageCost + r.stockLostCost + overheads + Math.max(0, -r.eventCash),
+              )}`}
+              tone="out"
+            />
           )}
 
-          <div className="ledger total">
-            <span>{r.profit >= 0 ? '🎉 Net profit' : '😬 Net loss'}</span>
-            <span className={r.profit >= 0 ? 'in' : 'out'}>{dollars(r.profit)}</span>
-          </div>
+          <LedgerRow
+            label={r.profit >= 0 ? '🎉 Net profit' : '😬 Net loss'}
+            amount={dollars(r.profit)}
+            tone={r.profit >= 0 ? 'in' : 'out'}
+            explainId="netProfit"
+            showExplain={ex}
+            bold
+          />
         </div>
 
         {/*
-        Every dollar that moved, so the opening and closing balances actually
-        reconcile. Profit and cash are different numbers — buying stock is the
-        usual reason they disagree — and the player should be able to see why
-        rather than being asked to take it on faith.
-      */}
+          Every dollar that moved, so the opening and closing balances actually
+          reconcile. Profit and cash are different numbers — buying stock is the
+          usual reason they disagree.
+        */}
         <div className="card">
-          <div className="ledger">
-            <span>🏦 Bank at week start</span>
-            <span>{dollars(r.cashStart)}</span>
-          </div>
-          <div className="ledger">
-            <span>💰 Sales</span>
-            <span className="in">+{dollars(r.revenue)}</span>
-          </div>
+          <LedgerRow
+            label="🏦 Bank at week start"
+            amount={dollars(r.cashStart)}
+            explainId="bankStart"
+            showExplain={ex}
+          />
+          <LedgerRow
+            label="💰 Sales"
+            amount={`+${dollars(r.revenue)}`}
+            tone="in"
+            explainId="sales"
+            showExplain={ex}
+          />
           {r.suppliesBought > 0 && (
-            <div className="ledger">
-              <span>🛒 Supplies bought ({r.suppliesUnits})</span>
-              <span className="out">-{dollars(r.suppliesBought)}</span>
-            </div>
+            <LedgerRow
+              label={`🛒 Supplies bought (${r.suppliesUnits})`}
+              amount={`-${dollars(r.suppliesBought)}`}
+              tone="out"
+              explainId="suppliesBought"
+              showExplain={ex}
+            />
           )}
           {overheadCash > 0 && (
-            <div className="ledger">
-              <span>🏠 Rent &amp; running costs</span>
-              <span className="out">-{dollars(overheadCash)}</span>
-            </div>
+            <LedgerRow
+              label="🏠 Rent & running costs"
+              amount={`-${dollars(overheadCash)}`}
+              tone="out"
+              explainId="overheadCash"
+              showExplain={ex}
+            />
           )}
           {r.eventCash !== 0 && (
-            <div className="ledger">
-              <span>⚡ What happened</span>
-              <span className={r.eventCash < 0 ? 'out' : 'in'}>
-                {r.eventCash < 0 ? '-' : '+'}
-                {dollars(Math.abs(r.eventCash))}
-              </span>
-            </div>
+            <LedgerRow
+              label="⚡ What happened"
+              amount={`${r.eventCash < 0 ? '-' : '+'}${dollars(Math.abs(r.eventCash))}`}
+              tone={r.eventCash < 0 ? 'out' : 'in'}
+              explainId="eventCash"
+              showExplain={ex}
+            />
           )}
           {r.loanPayment > 0 && (
-            <div className="ledger">
-              <span>💳 Loan payment</span>
-              <span className="out">-{dollars(r.loanPayment)}</span>
-            </div>
+            <LedgerRow
+              label="💳 Loan payment"
+              amount={`-${dollars(r.loanPayment)}`}
+              tone="out"
+              explainId="loanPayment"
+              showExplain={ex}
+            />
           )}
           {r.emergencyAdvance > 0 && (
-            <div className="ledger">
-              <span>🚨 Emergency advance</span>
-              <span className="in">+{dollars(r.emergencyAdvance)}</span>
-            </div>
+            <LedgerRow
+              label="🚨 Emergency advance"
+              amount={`+${dollars(r.emergencyAdvance)}`}
+              tone="in"
+              explainId="emergencyAdvance"
+              showExplain={ex}
+            />
           )}
-          <div className="ledger total">
-            <span>💵 Money in the bank</span>
-            <span className={r.cashEnd > 0 ? 'in' : 'out'}>{dollars(r.cashEnd)}</span>
-          </div>
+          <LedgerRow
+            label="💵 Money in the bank"
+            amount={dollars(r.cashEnd)}
+            tone={r.cashEnd > 0 ? 'in' : 'out'}
+            explainId="bankEnd"
+            showExplain={ex}
+            bold
+          />
         </div>
       </div>
 
@@ -235,53 +294,58 @@ export function Recap({
         guess. The identity is exact:
           bank moved = profit + (cost of stock used - stock bought)
                               - loan principal repaid + any advance
-        An earlier version picked one of two canned reasons from whether more
-        units were bought than sold, which named the wrong cause whenever the
-        stand was drawing down stock it had bought in an earlier week.
       */}
       {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 0.5 && (
         <div className="card card-tight">
-          <div className="ledger">
-            <span>🧮 Profit</span>
-            <span className={r.profit >= 0 ? 'in' : 'out'}>{dollars(r.profit, true)}</span>
-          </div>
+          <LedgerRow
+            label="🧮 Profit"
+            amount={dollars(r.profit, true)}
+            tone={r.profit >= 0 ? 'in' : 'out'}
+            explainId="netProfit"
+            showExplain={ex}
+          />
           {Math.abs(inventorySwing) >= 0.005 && (
-            <div className="ledger">
-              <span>
-                {inventorySwing > 0
-                  ? '🥤 Sold stock bought earlier'
-                  : '🥤 Bought stock not sold yet'}
-              </span>
-              <span className={inventorySwing > 0 ? 'in' : 'out'}>
-                {inventorySwing > 0 ? '+' : '-'}
-                {dollars(Math.abs(inventorySwing), true)}
-              </span>
-            </div>
+            <LedgerRow
+              label={
+                inventorySwing > 0 ? '🥤 Sold stock bought earlier' : '🥤 Bought stock not sold yet'
+              }
+              amount={`${inventorySwing > 0 ? '+' : '-'}${dollars(Math.abs(inventorySwing), true)}`}
+              tone={inventorySwing > 0 ? 'in' : 'out'}
+              explainId="inventorySwing"
+              showExplain={ex}
+            />
           )}
           {principalPaid >= 0.005 && (
-            <div className="ledger">
-              <span>🏦 Loan principal repaid</span>
-              <span className="out">-{dollars(principalPaid, true)}</span>
-            </div>
+            <LedgerRow
+              label="🏦 Loan principal repaid"
+              amount={`-${dollars(principalPaid, true)}`}
+              tone="out"
+              explainId="principalRepaid"
+              showExplain={ex}
+            />
           )}
           {r.emergencyAdvance > 0 && (
-            <div className="ledger">
-              <span>🚨 Emergency advance</span>
-              <span className="in">+{dollars(r.emergencyAdvance, true)}</span>
-            </div>
+            <LedgerRow
+              label="🚨 Emergency advance"
+              amount={`+${dollars(r.emergencyAdvance, true)}`}
+              tone="in"
+              explainId="emergencyAdvance"
+              showExplain={ex}
+            />
           )}
-          <div className="ledger total">
-            <span>💵 Bank moved</span>
-            <span className={r.cashChange >= 0 ? 'in' : 'out'}>
-              {r.cashChange >= 0 ? '+' : '-'}
-              {dollars(Math.abs(r.cashChange), true)}
-            </span>
-          </div>
+          <LedgerRow
+            label="💵 Bank moved"
+            amount={`${r.cashChange >= 0 ? '+' : '-'}${dollars(Math.abs(r.cashChange), true)}`}
+            tone={r.cashChange >= 0 ? 'in' : 'out'}
+            explainId="bankMoved"
+            showExplain={ex}
+            bold
+          />
         </div>
       )}
 
-      {/* What the event cards actually did, repeated here because the results
-          screen is where the numbers are questioned. */}
+      <ExplainToggle on={ex} onToggle={() => setEx((v) => !v)} />
+
       {r.eventLines.length > 0 && (
         <div className="card card-tight stack" style={{ gap: 4 }}>
           {r.eventLines.map((line, i) => (
@@ -339,9 +403,7 @@ export function Recap({
         </button>
       )}
 
-      {goodStoppingPoint && (
-        <p className="center muted">Good place to pause — your save is safe.</p>
-      )}
+      {goodStoppingPoint && <p className="center muted">Good place to pause — your save is safe.</p>}
     </div>
   );
 }
