@@ -1164,6 +1164,89 @@ gear may go untagged, and the set of genuinely free choices must stay non-empty.
 
 ---
 
+## 2026-08-25 — Weather counted once, a helper roster, and tap targets
+
+### Weather enters the model exactly once
+
+`computeDemand` was already right: traffic x conversion x season x weather x
+reputation x price x quality x marketing x event x noise, each force entering
+once. The fault was in the card data. The weather cards encoded **the weather**
+where they should have encoded **the decision**, so rain landed at 0.45 x 0.40 =
+0.18 and a heat wave at 1.8 x 1.35 = 2.43.
+
+The defect that mattered was not the magnitude, it was that a rainy week's
+severity depended on whether a card happened to be dealt. Same weather, same
+choices, an outcome twice as bad, for a reason invisible to the player.
+
+**The rule, now enforced by a test:** on a weather card, the do-nothing option is
+exactly neutral. Anything else has to be the marginal effect of the action taken.
+
+| Card | Was | Is |
+|---|---|---|
+| Wet week, "Wait it out" | x0.40 | **x1.0** — the rain already did that |
+| Wet week, "Rent a canopy" | x0.75, $24 | **x1.5, $18** |
+| Cold snap, "Ride it out" | x0.60 | **x1.0** |
+| Cold snap, "Sell it warm" | x0.95, $6 | **x1.6, $6** |
+| Heat wave, "Keep my price" | x1.35 | **x1.0** + goodwill |
+| Heat wave, "Raise price today" | demandMod 0.85 | **priceMod 1.3** |
+
+That last row needed one new field. `priceMod` multiplies the price actually
+charged, so the demand curve produces the drop in volume and the ledger shows
+the higher take per cup. A hand-written `demandMod` was inventing a second
+elasticity beside the one the model already has — and elasticity is on the list
+of things the spec says teachers will check.
+
+**Difficulty barely moved.** Fifty-week probes across both tiers and four seeds:
+pro averaged 4.75 losing weeks before and 4.5 after. Weather cards appear two or
+three times a run, so the double count was a rare invisible spike rather than a
+systematic drag. Removing it took out variance, not challenge.
+
+**A lesson now falls out of the model instead of being authored.** The canopy is
+a fixed cost buying a proportional benefit, so it is worth taking at the soccer
+field (about +40 cups, +$44, for $18) and not in the front yard (about +5 cups,
++$6). Same card, opposite answer, decided by scale.
+
+### The rival's table did nothing visible
+
+Jeff bought the table and watched "can serve" stay at 350. The engine was right —
+`bonusCapacity` had the +40 and had been applying it all along. The chip on the
+supplies card simply never added `state.bonusCapacity`, so the one number the
+player could see to check the purchase was the one number that ignored it.
+
+### Maya *and* Theo
+
+Asked whether both could be hired at once. They could not: the card offered one
+slot, and "Switch to Theo" fired Maya in the same week.
+
+**I got this wrong first time and told Jeff the Switch button was secretly hiring
+both.** That came from a test that drove the engine with a decision shape the UI
+never sends — the engine appends, but the UI always passes the fire flag too. The
+UI was honest; my test was not.
+
+Now it is a roster. Each helper is an independent yes or no, each draws its own
+wage, and the card totals both: `2 helpers · $65 a week · serve 500`. The engine
+gained `hireEmployeeIds` and `fireEmployeeIds` so a helper can be let go without
+losing the other; the old single-helper fields still work for older saves.
+
+Two helpers is a real growth step rather than a cheat — 190 solo plus 160 plus
+110 is 460, and a soccer field in peak season can want more than that.
+
+### Buttons that shrank below the tap minimum
+
+Found while sweeping viewports: three celebration animations scaled a container
+that held a button, so for as long as the spring ran the tap target was under the
+44px floor the spec calls non-negotiable — 48px of button rendering at 38 under
+`scale(0.8)`. Worse, an interrupted animation leaves it there.
+
+The end-of-week button, the sell panel and the trophy modal now rise or drop into
+place instead of growing. Movement keeps the target full size at every frame. The
+pop stayed where it belongs — on the emoji.
+
+Also trimmed the treats card, which printed a generic line and a specific one
+where the specific one says more.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

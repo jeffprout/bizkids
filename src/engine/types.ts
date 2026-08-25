@@ -174,6 +174,14 @@ export interface EventChoice {
   demandMod?: number;
   unitCostMod?: number;
   capacityMod?: number;
+  /**
+   * Multiplies the price actually charged this week. Use this rather than a
+   * demandMod when a choice is about changing the price: the demand curve then
+   * produces the drop in volume itself, and the ledger shows the higher take per
+   * cup. A hand-written demandMod would be inventing an elasticity the model
+   * already has.
+   */
+  priceMod?: number;
   /** Line the mascot says after the choice. */
   result: string;
 }
@@ -213,7 +221,13 @@ export interface WeekDecisions {
   eventChoices: Record<string, string>;
   /** Marketing channels purchased this week. */
   buyMarketing: string[];
+  /** Helpers taken on this week. More than one is allowed. */
+  hireEmployeeIds?: string[];
+  /** Helpers let go this week, by id. */
+  fireEmployeeIds?: string[];
+  /** @deprecated Single-helper shape kept so older saves and calls still work. */
   hireEmployeeId?: string;
+  /** @deprecated Let everyone go. Superseded by fireEmployeeIds. */
   fireEmployee?: boolean;
   /** Pay extra toward the loan this week. */
   extraLoanPayment?: number;

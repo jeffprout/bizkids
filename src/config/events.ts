@@ -20,8 +20,11 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     weathers: ['hot', 'sunny'],
     concept: 'Demand shocks',
     choices: [
-      { id: 'raise', label: 'Raise price today', cash: 0, demandMod: 0.85, reputation: -0.15, result: 'You charge more. Some kids grumble, most still buy.' },
-      { id: 'normal', label: 'Keep my price', demandMod: 1.35, reputation: 0.1, result: 'A long, happy line all week.' },
+      // Raise the actual price and let the demand curve answer. The heat is
+      // already in the weather multiplier; this card only decides what you do
+      // about it.
+      { id: 'raise', label: 'Raise price today', priceMod: 1.3, reputation: -0.15, result: 'You charge more. Some kids grumble, most still buy.' },
+      { id: 'normal', label: 'Keep my price', reputation: 0.15, result: 'A long, happy line all week, and they remember it.' },
     ],
   },
   {
@@ -36,8 +39,8 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     weathers: ['cold'],
     concept: 'Seasonality',
     choices: [
-      { id: 'hot', label: 'Sell it warm', cash: -6, demandMod: 0.95, result: 'Warm lemonade. Weirdly, it works.' },
-      { id: 'ride', label: 'Ride it out', demandMod: 0.6, result: 'Quiet week. You save your supplies.' },
+      { id: 'hot', label: 'Sell it warm', cash: -6, demandMod: 1.6, result: 'Warm lemonade. Weirdly, it works.' },
+      { id: 'ride', label: 'Ride it out', result: 'You wait out the cold. A quiet week, and you spend nothing.' },
     ],
   },
   {
@@ -381,8 +384,8 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     weathers: ['rain', 'cloudy'],
     concept: 'Demand shocks you cannot control',
     choices: [
-      { id: 'wait', label: 'Wait it out', demandMod: 0.4, result: 'A washout. The costs still arrive.' },
-      { id: 'canopy', label: 'Rent a canopy', cash: -24, demandMod: 0.75, result: 'The canopy helps a bit. It was not free.' },
+      { id: 'wait', label: 'Wait it out', result: 'A wet, quiet week. At least it cost you nothing extra.' },
+      { id: 'canopy', label: 'Rent a canopy', cash: -18, demandMod: 1.5, result: 'People stop instead of hurrying past. It was not free.' },
     ],
   },
 ];

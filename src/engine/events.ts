@@ -68,6 +68,7 @@ export interface EventEffects {
   inventory: number;
   demandMod: number;
   unitCostMod: number;
+  priceMod: number;
   capacityMod: number;
   /** Permanent, unlike the Mod fields: gear kept and capacity gained. */
   equipment: number;
@@ -89,6 +90,7 @@ export function resolveEventChoices(
     inventory: 0,
     demandMod: 1,
     unitCostMod: 1,
+    priceMod: 1,
     capacityMod: 1,
     equipment: 0,
     capacity: 0,
@@ -103,6 +105,7 @@ export function resolveEventChoices(
     out.inventory += Math.round((choice.inventory ?? 0) * scale);
     out.demandMod *= choice.demandMod ?? 1;
     out.unitCostMod *= choice.unitCostMod ?? 1;
+    out.priceMod *= choice.priceMod ?? 1;
     out.capacityMod *= choice.capacityMod ?? 1;
     out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
     out.capacity += Math.round((choice.capacity ?? 0) * scale);

@@ -81,10 +81,20 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 3. Hire and fire ---------------------------------------------------
+  // A stand can run more than one pair of hands. Each is hired and let go on
+  // its own, and each draws its own wage every week it stays.
   let employees = [...state.employees];
   if (decisions.fireEmployee) employees = [];
-  if (decisions.hireEmployeeId) {
-    const hire = biz.employees.find((e) => e.id === decisions.hireEmployeeId);
+  const letGo = decisions.fireEmployeeIds ?? [];
+  for (const id of letGo) {
+    const gone = employees.find((e) => e.id === id);
+    if (gone) discussionFlags.push(`Let ${gone.name} go`);
+  }
+  employees = employees.filter((e) => !letGo.includes(e.id));
+
+  const hiring = decisions.hireEmployeeIds ?? (decisions.hireEmployeeId ? [decisions.hireEmployeeId] : []);
+  for (const id of hiring) {
+    const hire = biz.employees.find((e) => e.id === id);
     if (hire && !employees.some((e) => e.id === hire.id)) {
       employees.push(hire);
       discussionFlags.push(`Hired ${hire.name} at $${hire.weeklyWage} a week`);
@@ -120,7 +130,10 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 5. Sell ------------------------------------------------------------
-  const price = decisions.price;
+  // An event that changes the price changes the PRICE, and the demand curve
+  // does the rest. Faking it with a demand multiplier would invent a second
+  // elasticity next to the one the model already has.
+  const price = money(decisions.price * ev.priceMod);
   const breakdown = computeDemand({
     state: { ...state, marketing, reputation },
     location,

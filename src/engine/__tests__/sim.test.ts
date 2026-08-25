@@ -1080,3 +1080,102 @@ describe('what an event choice tells you it costs', () => {
     for (const label of free) expect(typeof label).toBe('string');
   });
 });
+
+describe('the helper roster', () => {
+  it('runs two helpers at once, and charges both wages', () => {
+    let s = start();
+    s = simulateWeek(s, decide(s, { hireEmployeeIds: ['maya'], restockUnits: 60 }));
+    expect(s.employees.map((e) => e.id)).toEqual(['maya']);
+    expect(s.lastResult!.wages).toBe(40);
+
+    s = simulateWeek(s, decide(s, { hireEmployeeIds: ['theo'], restockUnits: 60 }));
+    expect(s.employees.map((e) => e.id)).toEqual(['maya', 'theo']);
+    expect(s.lastResult!.wages).toBe(65);
+  });
+
+  it('lets one helper go without losing the other', () => {
+    let s = start();
+    s = simulateWeek(s, decide(s, { hireEmployeeIds: ['maya', 'theo'], restockUnits: 60 }));
+    expect(s.employees).toHaveLength(2);
+    s = simulateWeek(s, decide(s, { fireEmployeeIds: ['maya'], restockUnits: 60 }));
+    expect(s.employees.map((e) => e.id)).toEqual(['theo']);
+    expect(s.lastResult!.wages).toBe(25);
+  });
+
+  it('counts every pair of hands and any gear towards what can be served', () => {
+    let s = start();
+    s = simulateWeek(s, decide(s, { hireEmployeeIds: ['maya', 'theo'], restockUnits: 60 }));
+    const withBoth = { ...s, bonusCapacity: 40 };
+    // 190 solo + 160 Maya + 110 Theo + 40 of gear.
+    const capacity =
+      LEMONADE.soloCapacity +
+      withBoth.bonusCapacity +
+      withBoth.employees.reduce((sum, e) => sum + e.capacityBonus, 0);
+    expect(capacity).toBe(500);
+  });
+
+  it('gear bought from an event raises capacity for good', () => {
+    let s = start();
+    const before = s.bonusCapacity;
+    s = {
+      ...s,
+      cash: 400,
+      pendingEvents: ALL_EVENTS.filter((e) => e.id === 'rival-closes'),
+    };
+    s = simulateWeek(s, decide(s, { eventChoices: { 'rival-closes': 'buy' }, restockUnits: 60 }));
+    expect(s.bonusCapacity).toBe(before + 40);
+    // Still there a week later with no event.
+    const later = simulateWeek({ ...s, pendingEvents: [] }, decide(s, { restockUnits: 60 }));
+    expect(later.bonusCapacity).toBe(before + 40);
+  });
+});
+
+describe('weather is counted once', () => {
+  /**
+   * The demand model already scales by weather — rain 0.45, cold 0.35, hot 1.8.
+   * A weather card that also moves demand for doing nothing is charging the
+   * weather twice: rain used to land at 0.45 x 0.40 = 0.18, and a player could
+   * not see why the same rainy week was sometimes twice as bad as another.
+   *
+   * So on a weather card, the do-nothing option must be exactly neutral. Any
+   * other number has to be the marginal effect of the action taken.
+   */
+  it('leaves the passive option on a weather card completely neutral', () => {
+    const weatherCards = ALL_EVENTS.filter((e) => e.weathers);
+    expect(weatherCards.length).toBeGreaterThan(0);
+
+    for (const card of weatherCards) {
+      const passive = card.choices.filter(
+        (c) => !c.cash && !c.inventory && !c.equipment && !c.capacity && !c.priceMod,
+      );
+      expect(passive.length, `${card.title} needs a do-nothing option`).toBeGreaterThan(0);
+      for (const c of passive) {
+        expect(c.demandMod ?? 1, `${card.title}: "${c.label}" re-charges the weather`).toBe(1);
+        expect(c.capacityMod ?? 1, `${card.title}: "${c.label}"`).toBe(1);
+        expect(c.unitCostMod ?? 1, `${card.title}: "${c.label}"`).toBe(1);
+      }
+    }
+  });
+
+  it('prices a heat wave through the demand curve, not a hand-written penalty', () => {
+    const heat = ALL_EVENTS.find((e) => e.id === 'heat-wave')!;
+    const raise = heat.choices.find((c) => c.id === 'raise')!;
+    expect(raise.priceMod).toBeGreaterThan(1);
+    expect(raise.demandMod).toBeUndefined();
+  });
+
+  it('actually charges the higher price when a card raises it', () => {
+    const base: GameState = {
+      ...start(),
+      cash: 400,
+      inventory: 200,
+      inventoryCost: 200 * 0.42,
+      pendingEvents: ALL_EVENTS.filter((e) => e.id === 'heat-wave'),
+    };
+    const held = simulateWeek(base, decide(base, { eventChoices: { 'heat-wave': 'normal' }, restockUnits: 0 }));
+    const raised = simulateWeek(base, decide(base, { eventChoices: { 'heat-wave': 'raise' }, restockUnits: 0 }));
+    // Dearer per cup, and the demand curve answers with fewer of them.
+    expect(raised.price).toBeCloseTo(base.price * 1.3, 2);
+    expect(raised.lastResult!.served).toBeLessThan(held.lastResult!.served);
+  });
+});

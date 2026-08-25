@@ -38,8 +38,11 @@ export function Week({
   const [locationId, setLocationId] = useState(state.locationId);
   const [eventChoices, setEventChoices] = useState<Record<string, string>>({});
   const [buyMarketing, setBuyMarketing] = useState<string[]>([]);
-  const [hireId, setHireId] = useState<string | undefined>();
-  const [fireStaff, setFireStaff] = useState(false);
+  // A roster, not a single slot. The engine has always allowed more than one
+  // helper; the card used to offer "Switch to Theo" and quietly hire him
+  // alongside Maya, charging both wages.
+  const [hireIds, setHireIds] = useState<string[]>([]);
+  const [letGo, setLetGo] = useState<string[]>([]);
   const [sideProductId, setSideProductId] = useState<string | null>(state.sideProductId);
   const [index, setIndex] = useState(0);
 
@@ -58,7 +61,6 @@ export function Week({
   const sideOptions = forTier(biz.sideProducts);
   const employeeOptions = forTier(biz.employees);
   const facesRival = biz.rival.tiers.includes(state.tier);
-  const current = state.employees[0];
   // What is on the menu right now. Hot chocolate only exists in the cold months.
   const menuOptions = biz.qualities.filter(
     (q) => !q.seasons || q.seasons.includes(state.season),
@@ -75,10 +77,14 @@ export function Week({
    */
   const committedCosts = useMemo(() => {
     const rent = location.weeklyRent + location.weeklyFixedCosts * tier.fixedCostScale;
-    const wages = fireStaff
-      ? 0
-      : state.employees.reduce((sum, e) => sum + e.weeklyWage, 0) +
-        (employeeOptions.find((e) => e.id === hireId)?.weeklyWage ?? 0);
+    const wages =
+      state.employees
+        .filter((e) => !letGo.includes(e.id))
+        .reduce((sum, e) => sum + e.weeklyWage, 0) +
+      hireIds.reduce(
+        (sum, id) => sum + (employeeOptions.find((e) => e.id === id)?.weeklyWage ?? 0),
+        0,
+      );
     const ads = buyMarketing.reduce(
       (sum, id) => sum + (marketingOptions.find((m) => m.id === id)?.cost ?? 0),
       0,
@@ -90,11 +96,11 @@ export function Week({
   }, [
     location,
     tier.fixedCostScale,
-    fireStaff,
+    letGo,
     state.employees,
     state.loans,
     employeeOptions,
-    hireId,
+    hireIds,
     buyMarketing,
     marketingOptions,
   ]);
@@ -180,12 +186,16 @@ export function Week({
       0,
     );
 
-    const keptStaff = fireStaff ? [] : state.employees;
-    const hired = hireId ? biz.employees.find((e) => e.id === hireId) : undefined;
     const capacity =
       biz.soloCapacity +
-      keptStaff.reduce((sum, e) => sum + e.capacityBonus, 0) +
-      (hired?.capacityBonus ?? 0);
+      state.bonusCapacity +
+      state.employees
+        .filter((e) => !letGo.includes(e.id))
+        .reduce((sum, e) => sum + e.capacityBonus, 0) +
+      hireIds.reduce(
+        (sum, id) => sum + (biz.employees.find((e) => e.id === id)?.capacityBonus ?? 0),
+        0,
+      );
 
     const want = Math.min(baseline * (1 + lift), capacity);
     const need = Math.round((want - state.inventory) / tier.restockStep) * tier.restockStep;
@@ -194,20 +204,41 @@ export function Week({
     state.history,
     state.inventory,
     state.employees,
+    state.bonusCapacity,
     buyMarketing,
-    hireId,
-    fireStaff,
+    hireIds,
+    letGo,
     biz,
     tier.restockStep,
     restockMax,
   ]);
 
+  // Who is actually on the team this week, once the taps on the staff card are
+  // applied to who was already here.
+  const roster = [
+    ...state.employees.filter((e) => !letGo.includes(e.id)),
+    ...hireIds
+      .map((id) => employeeOptions.find((e) => e.id === id))
+      .filter((e): e is NonNullable<typeof e> => Boolean(e)),
+  ];
+  const rosterWages = roster.reduce((sum, e) => sum + e.weeklyWage, 0);
+
   const restockUnits = restockTouched ? Math.min(restock, restockMax) : suggestedRestock;
   const supplyCost = Math.round(restockUnits * unitCost * 100) / 100;
+  // Gear won or bought from an event — the rival's table, say — raises this for
+  // good. The engine has always counted it; this chip did not, so a player who
+  // bought a second table watched the number sit still and reasonably concluded
+  // the purchase had done nothing.
   const capacityAfter =
     biz.soloCapacity +
-    (fireStaff ? 0 : state.employees.reduce((sum, e) => sum + e.capacityBonus, 0)) +
-    (hireId ? (biz.employees.find((e) => e.id === hireId)?.capacityBonus ?? 0) : 0);
+    state.bonusCapacity +
+    state.employees
+      .filter((e) => !letGo.includes(e.id))
+      .reduce((sum, e) => sum + e.capacityBonus, 0) +
+    hireIds.reduce(
+      (sum, id) => sum + (biz.employees.find((e) => e.id === id)?.capacityBonus ?? 0),
+      0,
+    );
 
   const card = cards[Math.min(index, cards.length - 1)];
   const next = () => {
@@ -225,8 +256,8 @@ export function Week({
       locationId,
       eventChoices,
       buyMarketing,
-      hireEmployeeId: hireId,
-      fireEmployee: fireStaff,
+      hireEmployeeIds: hireIds,
+      fireEmployeeIds: letGo,
       sideProductId,
     });
   }
@@ -325,8 +356,8 @@ export function Week({
                 </span>
               )}
               {buyMarketing.length > 0 && <span className="pill">📣 ads bring more</span>}
-              {hireId && <span className="pill">🤝 helper serves more</span>}
-              {fireStaff && <span className="pill">👋 no helper, serve fewer</span>}
+              {hireIds.length > 0 && <span className="pill">🤝 more hands, serve more</span>}
+              {letGo.length > 0 && <span className="pill">👋 fewer hands, serve fewer</span>}
               {committedCosts > 0 && (
                 <span className="pill">
                   💰 {dollars(stockBudget)} to spend · {dollars(committedCosts)} of bills due
@@ -408,62 +439,55 @@ export function Week({
 
         {card === 'staff' && (
           <div className="card stack">
-            <h2 className="center">{current ? 'Your helper' : 'Want a helper?'}</h2>
-            {/* Say plainly what a helper buys, so hiring is a judgement call
-                and not a guess. Rookie skips the arithmetic. */}
+            <h2 className="center">{roster.length ? 'Your helpers' : 'Want a helper?'}</h2>
+            {/* A roster, not one slot. Two pairs of hands is a real answer to a
+                spot that keeps turning people away, and the wage bill that comes
+                with it is the point. Each helper is an independent yes or no. */}
             {tier.showFullPnL && (
               <p className="muted center">
-                You can serve {biz.soloCapacity} cups a week alone.
-                {state.lastResult ? ` Last week ${state.lastResult.served} wanted one.` : ''}
+                Alone you serve {biz.soloCapacity + state.bonusCapacity} cups a week.
+                {state.lastResult
+                  ? ` Last week ${state.lastResult.served + state.lastResult.lostToCapacity} wanted one.`
+                  : ''}
               </p>
             )}
-            {/* Keep who you have, swap them for someone else, or work alone.
-                All three are available every week. */}
-            {current && (
-              <Choice
-                emoji={current.emoji}
-                title={`Keep ${current.name} · ${dollars(current.weeklyWage)} a week`}
-                sub={current.quirk}
-                selected={!fireStaff && !hireId}
-                onClick={() => {
-                  setFireStaff(false);
-                  setHireId(undefined);
-                }}
-              />
-            )}
-            {employeeOptions
-              .filter((e) => e.id !== current?.id)
-              .map((e) => (
+            {employeeOptions.map((e) => {
+              const onTeam = roster.some((r) => r.id === e.id);
+              const alreadyHere = state.employees.some((x) => x.id === e.id);
+              return (
                 <Choice
                   key={e.id}
                   emoji={e.emoji}
-                  title={`${current ? 'Switch to' : 'Hire'} ${e.name} · ${dollars(e.weeklyWage)} a week`}
-                  sub={
-                    current
-                      ? `${e.quirk} Serves ${e.capacityBonus > current.capacityBonus ? 'more' : 'fewer'} than ${current.name}.`
-                      : e.quirk
-                  }
-                  selected={hireId === e.id}
-                  disabled={state.cash < e.weeklyWage}
+                  // Wage in the title, what it buys in the sub. Putting both on
+                  // the title wrapped it to two lines on a phone and pushed the
+                  // card off the bottom of the screen.
+                  title={`${e.name} · ${dollars(e.weeklyWage)} a week`}
+                  sub={`${onTeam ? '✅ On the team. ' : ''}Serves ${e.capacityBonus} more. ${e.quirk}`}
+                  selected={onTeam}
+                  disabled={!onTeam && !alreadyHere && state.cash < e.weeklyWage}
                   onClick={() => {
-                    setHireId(e.id);
-                    // Swapping means letting the current one go the same week.
-                    setFireStaff(Boolean(current));
+                    if (alreadyHere) {
+                      setLetGo((ids) =>
+                        ids.includes(e.id) ? ids.filter((i) => i !== e.id) : [...ids, e.id],
+                      );
+                    } else {
+                      setHireIds((ids) =>
+                        ids.includes(e.id) ? ids.filter((i) => i !== e.id) : [...ids, e.id],
+                      );
+                    }
                   }}
                 />
-              ))}
-            <Choice
-              emoji="🙅"
-              title={current ? `Let ${current.name} go` : 'Work alone'}
-              sub={
-                current ? 'No more wages, but you serve fewer cups.' : 'No wages to pay this week.'
-              }
-              selected={current ? fireStaff && !hireId : !hireId}
-              onClick={() => {
-                setHireId(undefined);
-                setFireStaff(Boolean(current));
-              }}
-            />
+              );
+            })}
+            <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
+              <span className="pill">
+                {roster.length === 0
+                  ? '🙅 working alone'
+                  : `🤝 ${roster.length} helper${roster.length > 1 ? 's' : ''}`}
+              </span>
+              {rosterWages > 0 && <span className="pill">💸 {dollars(rosterWages)} a week</span>}
+              <span className="pill">🙌 serve {capacityAfter}</span>
+            </div>
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
@@ -473,14 +497,17 @@ export function Week({
         {card === 'treats' && (
           <div className="card stack">
             <h2 className="center">Sell a treat too?</h2>
-            <p className="muted center">Sold to people already buying a drink.</p>
-            {state.lastResult && state.lastResult.sideUnits > 0 && (
+            {/* One line, not two. Once there is a real number from last week it
+                says everything the generic sentence did and more, and the card
+                has four options to fit under it on a phone. */}
+            {state.lastResult && state.lastResult.sideUnits > 0 ? (
               <p className="muted center">
-                Last week {state.lastResult.sideUnits} of your {state.lastResult.served} customers
-                added one, worth{' '}
-                {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after what
-                they cost.
+                Last week {state.lastResult.sideUnits} of {state.lastResult.served} buyers added one,
+                worth {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after
+                costs.
               </p>
+            ) : (
+              <p className="muted center">Sold to people already buying a drink.</p>
             )}
             {sideOptions.map((sp) => {
               const margin = (sp.price - sp.unitCost * tier.unitCostScale).toFixed(2);

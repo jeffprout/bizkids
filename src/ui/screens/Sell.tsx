@@ -34,13 +34,23 @@ export function Sell({
     return (
       <>
         <Confetti pieces={90} />
+        {/* The pop belongs on the celebration, not on the panel — this block
+            holds a button, and scaling it takes the tap target under 44px for
+            as long as the spring runs. */}
         <motion.div
           className="stack center"
-          initial={{ scale: 0.7, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ y: 14, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 140, damping: 12 }}
         >
-          <div style={{ fontSize: 72 }}>💼</div>
+          <motion.div
+            style={{ fontSize: 72 }}
+            initial={{ scale: 0.6 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 160, damping: 11 }}
+          >
+            💼
+          </motion.div>
           <h1>Sold!</h1>
           <h2>{dollars(v.offer)}</h2>
           <p>You built a business and sold it. That is the whole game.</p>

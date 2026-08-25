@@ -601,4 +601,10 @@ button {
   .pill {
     padding: 3px 8px;
   }
+  /* Cards that offer four or five choices are the tallest in the game. Tighten
+     the padding, never the type — and the 44px tap minimum still holds because
+     a choice is two lines of text before any padding at all. */
+  .choice {
+    padding: 5px 12px;
+  }
 }

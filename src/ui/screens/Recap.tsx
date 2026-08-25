@@ -484,10 +484,13 @@ function Celebration({
     <>
       <Confetti />
       <div className="overlay" onClick={onClose}>
+        {/* The panel drops and tilts in; it does not grow. It holds the only
+            button that dismisses it, and a scaling parent takes that button
+            under the 44px tap floor for as long as the spring is running. */}
         <motion.div
           className="card center stack"
-          initial={{ scale: 0.6, rotate: -6 }}
-          animate={{ scale: 1, rotate: 0 }}
+          initial={{ y: -18, rotate: -6, opacity: 0 }}
+          animate={{ y: 0, rotate: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 180, damping: 12 }}
           style={{ maxWidth: 380 }}
         >

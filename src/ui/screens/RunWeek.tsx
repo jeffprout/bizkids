@@ -106,8 +106,13 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
       {phase >= 3 && (
         <motion.button
           className="btn btn-go"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          // Rises into place rather than growing into it. Scaling a button
+          // shrinks its tap target while the animation runs — 48px of button
+          // renders at 38 under scale(0.8), below the 44px floor — and if the
+          // animation is ever interrupted it stays that way. Moving it keeps
+          // the target the full size at every frame.
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           onClick={() => {
             sfx.tap();
             onDone();
