@@ -618,6 +618,52 @@ describe('no spot is right all year', () => {
   });
 });
 
+describe('spend-or-skimp cards are real choices', () => {
+  const run = (eventId: string, choiceId: string) => {
+    const base = {
+      ...start(),
+      cash: 200,
+      inventory: 150,
+      pendingEvents: [ALL_EVENTS.find((e) => e.id === eventId)!],
+    };
+    const next = simulateWeek(base, {
+      ...decide(base, { restockUnits: 0, price: 1.5 }),
+      eventChoices: { [eventId]: choiceId },
+    });
+    return {
+      cash: next.cash,
+      equipment: next.equipmentValue,
+      reputation: next.reputation,
+      netWorth: next.cash + next.equipmentValue,
+    };
+  };
+
+  it('makes the new cooler cost cash but buy something durable', () => {
+    const fix = run('broken-cooler', 'fix');
+    const tape = run('broken-cooler', 'tape');
+    // Skimping genuinely wins on this week's cash — that is the temptation.
+    expect(tape.cash).toBeGreaterThan(fix.cash);
+    // And genuinely loses on what the business is worth, which is the point.
+    expect(fix.equipment).toBeGreaterThan(tape.equipment);
+    expect(fix.netWorth).toBeGreaterThan(tape.netWorth);
+  });
+
+  it('leaves no free option on the insurance card', () => {
+    const buy = run('insurance', 'buy');
+    const risk = run('insurance', 'risk');
+    // Skipping cover used to cost nothing at all, so it was never a decision.
+    expect(risk.cash).toBeGreaterThan(buy.cash);
+    expect(risk.reputation).toBeLessThan(buy.reputation);
+  });
+
+  it('makes the lock box worth its extra cost', () => {
+    const box = run('stolen-cash', 'lockbox');
+    const shrug = run('stolen-cash', 'shrug');
+    expect(shrug.cash).toBeGreaterThan(box.cash);
+    expect(box.netWorth).toBeGreaterThanOrEqual(shrug.netWorth);
+  });
+});
+
 describe('valuation', () => {
   it('pays a multiple of yearly profit plus assets, minus debt', () => {
     const state: GameState = {

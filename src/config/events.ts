@@ -48,10 +48,27 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     title: 'The Cooler Cracked',
     line: 'Water everywhere. Your ice is melting fast.',
     weight: 8,
-    concept: 'Equipment and repair costs',
+    concept: 'Capital expenditure vs deferred maintenance',
     choices: [
-      { id: 'fix', label: 'Buy a new one', cash: -28, result: 'Fixed. Money hurts, drinks stay cold.' },
-      { id: 'tape', label: 'Tape it up', cash: -1, demandMod: 0.8, reputation: -0.1, result: 'Warm-ish lemonade. Customers noticed.' },
+      {
+        id: 'fix',
+        label: 'Buy a new cooler',
+        cash: -45,
+        // You spend $45 and own $25 of cooler: gear is worth less the moment
+        // you buy it, and the gap is the real cost of the week.
+        equipment: 25,
+        result: 'A proper new cooler. Expensive, and it is yours.',
+      },
+      {
+        id: 'tape',
+        label: 'Tape it up',
+        cash: -2,
+        // Skimping is cheap this week and shows up in what the stand is worth.
+        equipment: -18,
+        demandMod: 0.8,
+        reputation: -0.1,
+        result: 'Warm-ish lemonade, and a cooler worth less than it was.',
+      },
     ],
   },
   {
@@ -291,7 +308,13 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     weight: 6,
     concept: 'Shrinkage and controls',
     choices: [
-      { id: 'lockbox', label: 'Buy a lock box', cash: -34, result: 'You lose the cash and buy a lock. It will not happen twice.' },
+      {
+        id: 'lockbox',
+        label: 'Buy a lock box',
+        cash: -34,
+        equipment: 12,
+        result: 'The cash is gone, but the lock box is yours and it will not happen twice.',
+      },
       { id: 'shrug', label: 'Just move on', cash: -22, reputation: -0.05, result: 'You eat the loss and hope.' },
     ],
   },
@@ -305,8 +328,8 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     weight: 6,
     concept: 'Risk and insurance',
     choices: [
-      { id: 'buy', label: 'Pay for cover', cash: -30, reputation: 0.1, result: 'Thirty dollars for nothing visible. That is insurance.' },
-      { id: 'risk', label: 'Risk it', reputation: -0.1, demandMod: 1.0, result: 'Nothing happens this week. Probably fine.' },
+      { id: 'buy', label: 'Pay for cover', cash: -30, reputation: 0.15, result: 'Money for nothing visible. That is what insurance is.' },
+      { id: 'risk', label: 'Risk it', reputation: -0.3, result: 'A parent asks if you are covered. You are not, and people talk.' },
     ],
   },
   {

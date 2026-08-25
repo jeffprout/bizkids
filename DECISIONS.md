@@ -672,6 +672,61 @@ wrong" banner into the heading. A full 50-week run now scrolls nowhere at
 
 ---
 
+## 2026-08-24 (late) — The cooler bought you nothing
+
+Jeff: "I had to buy a new cooler. Did it even charge me? It should be a
+significant charge for what it is."
+
+It did charge — $28, shown as "⚡ What happened" in both the P&L and the bank
+reconciliation. But checking it turned up a worse problem: **taping it up was
+strictly better than buying one.**
+
+```
+fix   profit $27.64  cash $273.00  equipment $38
+tape  profit $33.76  cash $274.50  equipment $38
+```
+
+Better profit, better cash, identical assets. The $28 purchased nothing durable,
+so the rational play was always to skimp — which teaches the opposite of the
+intended lesson.
+
+Now it is a capital purchase with a real trade:
+
+```
+fix   cash $256.00  equipment $63  net worth $319.00
+tape  cash $273.50  equipment $20  net worth $293.50
+```
+
+Buying costs $45 and adds $25 of gear — **you spend more than the asset is
+worth the moment you own it**, and that gap is the honest cost of the week.
+Taping costs $2 now and writes $18 off the stand's value, on top of a weak week
+and a reputation ding. Skimping genuinely wins on this week's cash; buying
+genuinely wins on what the business is worth at the sale. Neither dominates.
+
+**Two other cards had the same fault** and were fixed alongside:
+
+- *Insurance* — "Risk it" had literally no downside ("Nothing happens this week.
+  Probably fine."), so paying for cover was never a decision. Skipping now costs
+  0.3 reputation, which is real money here because reputation drives both demand
+  and the exit multiple.
+- *Stolen cash* — the lock box cost $12 more than shrugging and bought nothing.
+  It now adds $12 of equipment, so the extra spend is an asset rather than a
+  penalty for choosing well.
+
+Three tests now assert that neither option on a spend-or-skimp card dominates:
+the cheap route must win on cash, and the careful route must win on net worth or
+reputation.
+
+**One accounting note, deliberately left as is.** Equipment bought through an
+event is expensed in full the week it is paid for, rather than capitalised and
+depreciated. That is cash-basis accounting, which is legitimate and normal for a
+business this size, and it keeps the profit-to-cash bridge to two terms instead
+of three. The asset still shows up in net worth and in the sale price, so the
+value is not lost — only the timing is simplified. Worth revisiting at Tycoon
+tier, where depreciation would be a fair thing to teach.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
