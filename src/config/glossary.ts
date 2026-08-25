@@ -48,6 +48,12 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'What the lemons, cups and ice cost for only the drinks you actually sold. Stock still sitting in your cooler is not counted here.',
     concept: 'Cost of goods sold',
   },
+  treatCogs: {
+    term: 'Cost of treats sold',
+    plain:
+      'What the snacks themselves cost you. Keeping it apart from the drinks is how you tell whether the treats are actually worth selling.',
+    concept: 'Cost of goods sold by product line',
+  },
   spoilage: {
     term: 'Thrown out',
     plain:

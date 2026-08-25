@@ -376,7 +376,9 @@ export function Week({
             {state.lastResult && state.lastResult.sideUnits > 0 && (
               <p className="muted center">
                 Last week {state.lastResult.sideUnits} of your {state.lastResult.served} customers
-                added one.
+                added one, worth{' '}
+                {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after what
+                they cost.
               </p>
             )}
             {sideOptions.map((sp) => {

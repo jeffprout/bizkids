@@ -570,6 +570,39 @@ New glossary entry `treatsSold`, tagged to the concept **attach rate**.
 
 ---
 
+## 2026-08-24 (late) — Cost of treats sold
+
+Jeff: "what about cost of treats sold?" A genuine reporting error, not a
+presentation gap. The engine computed the treat cost correctly but folded it into
+the total: `cogs = served * unitCost + sideCogs`. The recap then split revenue by
+product line while showing a single cost line labelled **Cost of cups sold** —
+which quietly contained the candy. Split revenue against combined cost means
+neither line's margin is true.
+
+Now reported separately:
+
+```
+💰 Drink sales           $96
+🍭 Treat sales           $15
+🍋 Cost of cups sold    -$27
+🍭 Cost of treats sold -$2.32
+```
+
+Drink cost is derived as `cogs - sideCogs`, both of which are already on
+`WeekResult`. **Deliberately no new field, so `SAVE_VERSION` stays at 4** — with
+playtesters about to start, a save-shape change would reset everyone's run for a
+label fix, and that trade is not worth it.
+
+A test now pins `cogs - sideCogs` to exactly `served x unit cost`, so nothing can
+drift back into the drinks line. *(The first version of that test had a garbled
+`find` predicate that always matched the first recipe and compared against the
+wrong unit cost — the test was wrong, not the code.)*
+
+The treats card also now answers "are these worth selling" directly: "Last week
+29 of your 64 customers added one, worth $12.18 after what they cost."
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

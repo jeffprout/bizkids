@@ -106,13 +106,25 @@ export function Recap({
 
           {tier.showFullPnL ? (
             <>
+              {/* Revenue is split by product, so cost has to be too — otherwise
+                  "cost of cups sold" quietly contains the candy and neither
+                  line's margin means anything. */}
               <LedgerRow
                 label="🍋 Cost of cups sold"
-                amount={`-${dollars(r.cogs)}`}
+                amount={`-${dollars(r.cogs - r.sideCogs)}`}
                 tone="out"
                 explainId="cogs"
                 showExplain={ex}
               />
+              {r.sideCogs > 0 && (
+                <LedgerRow
+                  label="🍭 Cost of treats sold"
+                  amount={`-${dollars(r.sideCogs)}`}
+                  tone="out"
+                  explainId="treatCogs"
+                  showExplain={ex}
+                />
+              )}
               {r.spoilageCost > 0 && (
                 <LedgerRow
                   label={`🗑️ Thrown out (${r.spoilage})`}

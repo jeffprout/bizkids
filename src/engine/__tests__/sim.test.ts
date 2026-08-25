@@ -6,6 +6,7 @@ import { seasonForWeek } from '../calendar';
 import { valueBusiness } from '../valuation';
 import type { GameState, WeekDecisions } from '../types';
 import { LEMONADE } from '../../config/businesses/lemonade';
+import { TIERS } from '../../config/difficulty';
 import { ALL_EVENTS } from '../../config/events';
 
 function start(overrides: Partial<Parameters<typeof newGame>[0]> = {}): GameState {
@@ -393,6 +394,20 @@ describe('playtest fixes', () => {
     // Same customers, more money from each of them.
     expect(r.served).toBe(plain.lastResult!.served);
     expect(r.profit).toBeGreaterThan(plain.lastResult!.profit);
+  });
+
+  it('keeps the drink cost and the treat cost separately reportable', () => {
+    const base = { ...start(), cash: 400, stage: 2 as const };
+    const next = simulateWeek(base, decide(base, { restockUnits: 120, sideProductId: 'brownies' }));
+    const r = next.lastResult!;
+    expect(r.sideCogs).toBeGreaterThan(0);
+    // The recap shows drink cost as cogs - sideCogs, so that has to be exactly
+    // the cups: no candy hiding inside the line labelled "cost of cups sold".
+    const quality = LEMONADE.qualities.find((q) => q.id === base.qualityId)!;
+    const unitCost = quality.unitCost * TIERS[base.tier].unitCostScale;
+    expect(r.cogs - r.sideCogs).toBeCloseTo(r.served * unitCost, 2);
+    // And the treats really do carry their own weight.
+    expect(r.sideRevenue).toBeGreaterThan(r.sideCogs);
   });
 
   it('does not blame the player for missing a helper they already have', () => {
