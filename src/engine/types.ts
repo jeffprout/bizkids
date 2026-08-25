@@ -206,12 +206,16 @@ export interface WeekDecisions {
   extraLoanPayment?: number;
 }
 
+/**
+ * An optional weekly target. Deliberately pays nothing — a business does not
+ * hand itself a bonus for hitting a number, and fake cash would corrupt both the
+ * bank balance and the P&L.
+ */
 export interface MiniGoal {
   id: string;
   label: string;
   kind: 'customers' | 'cashEnd' | 'profit' | 'reputation';
   target: number;
-  reward: number;
 }
 
 export interface WeekResult {
@@ -225,8 +229,9 @@ export interface WeekResult {
   lostToStockout: number;
   lostToCapacity: number;
   revenue: number;
-  /** Cash spent buying stock this week. */
+  /** Cash spent buying stock this week, and how many units that bought. */
   suppliesBought: number;
+  suppliesUnits: number;
   /** Cost of the units actually sold (accrual). */
   cogs: number;
   rent: number;
@@ -266,8 +271,10 @@ export interface WeekResult {
   spoilage: number;
   /** Dollar value of what was thrown out. */
   spoilageCost: number;
+  /** Stock destroyed by an event — a dumped batch, a knocked-over table. */
+  stockLost: number;
+  stockLostCost: number;
   miniGoalMet: boolean;
-  miniGoalReward: number;
   /** Cash the bank fronted you because the account went negative. */
   emergencyAdvance: number;
   /** Third bad week in a row — time for a talk with the banker. */

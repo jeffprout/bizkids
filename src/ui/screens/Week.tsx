@@ -252,6 +252,16 @@ export function Week({
             <p className="muted">
               You have {state.inventory} cups left over. You can serve {capacityAfter} this week.
             </p>
+            {/* What last week actually looked like, so this is not a blind guess. */}
+            {state.lastResult && (
+              <p className="muted">
+                Last week you bought {state.lastResult.suppliesUnits} and sold{' '}
+                {state.lastResult.served}
+                {state.lastResult.lostToStockout > 0
+                  ? `, and turned ${state.lastResult.lostToStockout} away.`
+                  : '.'}
+              </p>
+            )}
             {/* Everything decided earlier in the week that changes this number. */}
             {buyMarketing.length > 0 && (
               <p className="muted">📣 Advertising should bring extra customers.</p>

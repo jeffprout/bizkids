@@ -93,7 +93,7 @@ export function badgeById(id: string): Badge | undefined {
   return BADGES.find((b) => b.id === id);
 }
 
-/** Weekly optional goal. Small, always achievable, never punishing. */
+/** Weekly optional goal. Something to aim at — it pays nothing. */
 export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
   const lastServed = state.lastResult?.served ?? 20;
   const lastProfit = state.lastResult?.profit ?? 5;
@@ -104,28 +104,24 @@ export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
       kind: 'customers',
       target: Math.max(10, Math.round((lastServed * 1.1) / 5) * 5),
       label: `Serve {target} customers`,
-      reward: 5,
     },
     {
       id: 'cash',
       kind: 'cashEnd',
       target: Math.max(20, Math.round((state.cash * 1.15) / 5) * 5),
       label: `End the week with ${'{target}'}`,
-      reward: 5,
     },
     {
       id: 'profit',
       kind: 'profit',
       target: Math.max(5, Math.round(Math.max(5, lastProfit * 1.1))),
       label: `Make {target} profit`,
-      reward: 5,
     },
     {
       id: 'stars',
       kind: 'reputation',
       target: Math.min(5, Math.round((state.reputation + 0.2) * 10) / 10),
       label: `Reach {target} stars`,
-      reward: 5,
     },
   ];
 

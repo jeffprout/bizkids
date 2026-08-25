@@ -412,6 +412,92 @@ describe('playtest fixes', () => {
   });
 });
 
+describe('the books have to balance', () => {
+  it('never invents cash the business did not earn', () => {
+    let s = start({ financing: { loanIds: [], savingsUsed: 55, locationId: 'park' } });
+    for (let i = 0; i < 40; i++) {
+      s = simulateWeek(s, decide(s, { restockUnits: 70 }));
+      const r = s.lastResult!;
+      // Money only ever arrives from sales, an event, or the emergency advance.
+      const inflow = r.revenue + Math.max(0, r.eventCash) + r.emergencyAdvance;
+      const outflow =
+        r.suppliesBought +
+        r.rent +
+        r.fixedCosts +
+        r.wages +
+        r.marketingSpend +
+        r.lateFees +
+        Math.max(0, -r.eventCash) +
+        r.loanPayment;
+      expect(r.cashEnd).toBeCloseTo(r.cashStart + inflow - outflow, 2);
+    }
+  });
+
+  it('expenses stock an event destroys, instead of losing it silently', () => {
+    // Jeff's report: bought 100, sold 55, none left, and profit did not notice
+    // that 45 cups had been dumped.
+    const base = {
+      ...start(),
+      cash: 103,
+      inventory: 0,
+      locationId: 'soccer',
+      pendingEvents: [ALL_EVENTS.find((e) => e.id === 'spoiled-batch')!],
+    };
+    const next = simulateWeek(base, {
+      ...decide(base, { restockUnits: 100, price: 1.5, locationId: 'soccer' }),
+      eventChoices: { 'spoiled-batch': 'dump' },
+    });
+    const r = next.lastResult!;
+    expect(r.stockLost).toBe(45);
+    expect(r.stockLostCost).toBeCloseTo(45 * 0.42, 2);
+    // Every unit bought is either sold, thrown out, destroyed, or still on hand.
+    expect(r.suppliesUnits).toBe(r.served + r.spoilage + r.stockLost + r.inventoryEnd);
+    expect(r.grossProfit).toBeCloseTo(r.revenue - r.cogs - r.spoilageCost - r.stockLostCost, 2);
+  });
+
+  it('accounts for every cup, every week of a long run', () => {
+    let s = start({ financing: { loanIds: [], savingsUsed: 55, locationId: 'park' } });
+    let weeksChecked = 0;
+    for (let i = 0; i < 50; i++) {
+      const opening = s.inventory;
+      // Only weeks with no event card, so no cup arrives or leaves off-ledger.
+      const quiet = s.pendingEvents.length === 0;
+      s = simulateWeek(s, decide(s, { restockUnits: 80 }));
+      const r = s.lastResult!;
+      if (!quiet) continue;
+      weeksChecked++;
+      expect(opening + r.suppliesUnits).toBe(r.served + r.spoilage + r.inventoryEnd);
+    }
+    expect(weeksChecked).toBeGreaterThan(3);
+  });
+
+  it('reconciles the bank balance from the lines the recap shows', () => {
+    let s = start({ financing: { loanIds: ['family-60'], savingsUsed: 55, locationId: 'park' } });
+    for (let i = 0; i < 50; i++) {
+      s = simulateWeek(s, decide(s, { restockUnits: 70, buyMarketing: i === 3 ? ['flyers'] : [] }));
+      const r = s.lastResult!;
+      const moved =
+        r.revenue -
+        r.suppliesBought -
+        (r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.lateFees) +
+        r.eventCash -
+        r.loanPayment +
+        r.emergencyAdvance;
+      expect(r.cashStart + moved).toBeCloseTo(r.cashEnd, 2);
+    }
+  });
+
+  it('keeps profit and cash change as separate, explainable numbers', () => {
+    const base = { ...start(), cash: 300, inventory: 0 };
+    // Buy far more than can sell: profit should beat the cash movement, because
+    // the unsold stock was paid for but not expensed.
+    const next = simulateWeek(base, decide(base, { restockUnits: 300 }));
+    const r = next.lastResult!;
+    expect(r.inventoryEnd).toBeGreaterThan(0);
+    expect(r.profit).toBeGreaterThan(r.cashChange);
+  });
+});
+
 describe('valuation', () => {
   it('pays a multiple of yearly profit plus assets, minus debt', () => {
     const state: GameState = {

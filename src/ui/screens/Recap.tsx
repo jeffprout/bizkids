@@ -29,6 +29,8 @@ export function Recap({
 
   const overheads =
     r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.interestPaid + r.lateFees;
+  // Cash overheads exclude interest and fees, which leave with the loan payment.
+  const overheadCash = r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.lateFees;
 
   // A gentle nudge to stop, never a nag and never a timer.
   const goodStoppingPoint = state.week % 4 === 1 && state.week > 1;
@@ -90,6 +92,12 @@ export function Recap({
                 <span className="out">-{dollars(r.spoilageCost)}</span>
               </div>
             )}
+            {r.stockLostCost > 0 && (
+              <div className="ledger">
+                <span>💥 Stock lost ({r.stockLost})</span>
+                <span className="out">-{dollars(r.stockLostCost)}</span>
+              </div>
+            )}
             <div className="ledger" style={{ fontWeight: 800 }}>
               <span>Gross profit</span>
               <span className={r.grossProfit >= 0 ? 'in' : 'out'}>{dollars(r.grossProfit)}</span>
@@ -146,7 +154,7 @@ export function Recap({
           <div className="ledger">
             <span>💸 Money out</span>
             <span className="out">
-              -{dollars(r.cogs + r.spoilageCost + overheads + Math.max(0, -r.eventCash))}
+              -{dollars(r.cogs + r.spoilageCost + r.stockLostCost + overheads + Math.max(0, -r.eventCash))}
             </span>
           </div>
         )}
@@ -157,13 +165,43 @@ export function Recap({
         </div>
       </div>
 
-      {/* What is actually in the bank, which is not the same as profit. */}
+      {/*
+        Every dollar that moved, so the opening and closing balances actually
+        reconcile. Profit and cash are different numbers — buying stock is the
+        usual reason they disagree — and the player should be able to see why
+        rather than being asked to take it on faith.
+      */}
       <div className="card">
         <div className="ledger">
           <span>🏦 Bank at week start</span>
           <span>{dollars(r.cashStart)}</span>
         </div>
-        {tier.showFullPnL && r.loanPayment > 0 && (
+        <div className="ledger">
+          <span>💰 Sales</span>
+          <span className="in">+{dollars(r.revenue)}</span>
+        </div>
+        {r.suppliesBought > 0 && (
+          <div className="ledger">
+            <span>🛒 Supplies bought ({r.suppliesUnits})</span>
+            <span className="out">-{dollars(r.suppliesBought)}</span>
+          </div>
+        )}
+        {overheadCash > 0 && (
+          <div className="ledger">
+            <span>🏠 Rent &amp; running costs</span>
+            <span className="out">-{dollars(overheadCash)}</span>
+          </div>
+        )}
+        {r.eventCash !== 0 && (
+          <div className="ledger">
+            <span>⚡ What happened</span>
+            <span className={r.eventCash < 0 ? 'out' : 'in'}>
+              {r.eventCash < 0 ? '-' : '+'}
+              {dollars(Math.abs(r.eventCash))}
+            </span>
+          </div>
+        )}
+        {r.loanPayment > 0 && (
           <div className="ledger">
             <span>💳 Loan payment</span>
             <span className="out">-{dollars(r.loanPayment)}</span>
@@ -172,7 +210,7 @@ export function Recap({
         {r.emergencyAdvance > 0 && (
           <div className="ledger">
             <span>🚨 Emergency advance</span>
-            <span className="in">{dollars(r.emergencyAdvance)}</span>
+            <span className="in">+{dollars(r.emergencyAdvance)}</span>
           </div>
         )}
         <div className="ledger total">
@@ -180,6 +218,30 @@ export function Recap({
           <span className={r.cashEnd > 0 ? 'in' : 'out'}>{dollars(r.cashEnd)}</span>
         </div>
       </div>
+
+      {/* Why profit and the bank balance disagree, in one line. */}
+      {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 1 && (
+        <div className="card card-tight">
+          <p style={{ margin: 0 }}>
+            🧮 Profit says {dollars(r.profit)}, the bank moved {dollars(r.cashChange)}
+            {r.suppliesUnits > r.served
+              ? ' — you paid for stock you have not sold yet.'
+              : ' — loan principal moves cash without being a cost.'}
+          </p>
+        </div>
+      )}
+
+      {/* What the event cards actually did, repeated here because the results
+          screen is where the numbers are questioned. */}
+      {r.eventLines.length > 0 && (
+        <div className="card card-tight stack" style={{ gap: 4 }}>
+          {r.eventLines.map((line, i) => (
+            <p key={i} style={{ margin: 0 }}>
+              {line.emoji} {line.text}
+            </p>
+          ))}
+        </div>
+      )}
 
       <div className="row" style={{ justifyContent: 'space-around', flexWrap: 'wrap' }}>
         <span className="pill">
@@ -202,7 +264,7 @@ export function Recap({
           animate={{ scale: 1 }}
           style={{ background: '#eafbe7' }}
         >
-          <b>🎯 Goal hit! +{dollars(r.miniGoalReward)}</b>
+          <b>🎯 Weekly goal hit!</b>
         </motion.div>
       )}
 

@@ -79,7 +79,12 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   // --- 4. Instant event effects ------------------------------------------
   cash = money(cash + ev.cash);
   reputation += ev.reputation;
+  // Stock an event destroys is a real loss and has to be expensed. It never
+  // becomes revenue and it is not weekly spoilage, so without this line the
+  // cash left the bank and the profit figure never noticed.
+  const inventoryBeforeEvents = inventory;
   inventory = Math.max(0, inventory + ev.inventory);
+  const stockLost = ev.inventory < 0 ? inventoryBeforeEvents - inventory : 0;
   const eventCash = money(ev.cash);
 
   // --- 5. Sell ------------------------------------------------------------
@@ -189,6 +194,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   const { kept, spoiled } = applySpoilage(inventory, biz.spoilRate * tier.spoilScale);
   inventory = kept;
   const spoilageCost = money(spoiled * unitCost);
+  const stockLostCost = money(stockLost * unitCost);
 
   // --- 9. Reputation ------------------------------------------------------
   reputation += quality.reputationDrift;
@@ -253,7 +259,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 11. Score the week -------------------------------------------------
-  const grossProfit = money(revenue - cogs - spoilageCost);
+  const grossProfit = money(revenue - cogs - spoilageCost - stockLostCost);
   const profit = money(
     grossProfit - rent - fixedCosts - wages - marketingSpend - interestPaid - lateFees + eventCash,
   );
@@ -288,8 +294,6 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
       break;
   }
   const miniGoalStreak = miniGoalMet ? state.miniGoalStreak + 1 : 0;
-  const miniGoalReward = miniGoalMet ? goal.reward : 0;
-  cash = money(cash + miniGoalReward);
 
   // Marketing decay
   const nextMarketing = marketing
@@ -389,6 +393,7 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     lostToCapacity,
     revenue,
     suppliesBought,
+    suppliesUnits: boughtUnits,
     cogs,
     rent,
     fixedCosts,
@@ -416,8 +421,9 @@ export function simulateWeek(state: GameState, decisions: WeekDecisions): GameSt
     inventoryEnd: inventory,
     spoilage: spoiled,
     spoilageCost,
+    stockLost,
+    stockLostCost,
     miniGoalMet,
-    miniGoalReward,
     emergencyAdvance,
     bankerTalk,
     eventLines: ev.lines,

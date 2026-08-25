@@ -324,6 +324,49 @@ titled "Bad Review" has an ignore option in that range.
 
 ---
 
+## 2026-08-24 (late) — The books did not balance
+
+Jeff: "I bought 100, but sold out early at 55? Made $24 but same amount in bank
+at the end of the week?" Reproduced exactly, and he had found a real bug.
+
+**Stock destroyed by an event was never expensed.** *(bug — profit was wrong)*
+The spoiled-batch card dumps 45 cups. Those cups were paid for, never sold, and
+appeared in no expense line: not in cost of goods (never sold), not in spoilage
+(that is the weekly leftover calculation), not in "What happened" (cash only).
+Profit was overstated by the full value of the destroyed stock — in Jeff's week,
+$18.90 of a reported $24.31. The correct figure was $5.41.
+
+Event-destroyed stock is now written off at cost as `stockLost` / `stockLostCost`
+and shown as its own line ("💥 Stock lost (45)"). A test asserts the identity
+`unitsBought === sold + thrownOut + stockLost + leftOver` for the reported week,
+and a 50-week test asserts it holds on every event-free week.
+
+**"Sold out at 55" after buying 100** was the same bug seen from the other side:
+45 cups had been dumped by the event, so only 55 were on the table. Correct
+behaviour, invisible cause. The event's outcome line now also appears on the
+results screen, not just during the week animation, because the results screen
+is where the numbers get questioned.
+
+**"$24 profit but the same money in the bank."** The bank block showed opening
+balance, loan payment, closing balance — three numbers formatted like a
+subtraction that did not subtract, because every other cash movement was missing.
+It is now a full reconciliation: opening, sales, supplies bought (with the unit
+count, which Jeff asked for separately), rent and running costs, event cash, loan
+payment, closing. It always adds up. Below it, one line names the gap between
+profit and cash: either "you paid for stock you have not sold yet" or "loan
+principal moves cash without being a cost."
+
+**The weekly goal bonus is gone.** Jeff: "I do not want a goal bonus. That is not
+a real thing." Correct — a business does not pay itself $5 for hitting a target,
+and the fake cash was inflating both the bank balance and net profit. The weekly
+goal and the streak counter remain as something to aim at; they pay nothing. A
+test now asserts cash only ever arrives from sales, an event, or the emergency
+advance.
+
+`SAVE_VERSION` 4. 58 tests pass.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
