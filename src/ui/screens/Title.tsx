@@ -159,6 +159,10 @@ export function Title({
         />
       </div>
       {note && <p className="center muted">{note}</p>}
+      {/* Small, but it is how a playtester tells you which build they played. */}
+      <p className="center muted" style={{ fontSize: 12 }}>
+        build {typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}
+      </p>
     </div>
   );
 }

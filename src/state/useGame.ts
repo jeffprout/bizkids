@@ -33,6 +33,8 @@ export function useGame() {
   const [state, setState] = useState<GameState | null>(null);
   const [screen, setScreen] = useState<Screen>('title');
   const [ready, setReady] = useState(false);
+  /** Set when a saved run had to be dropped because the rules changed. */
+  const [runOutdated, setRunOutdated] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -63,10 +65,12 @@ export function useGame() {
   const chooseProfile = useCallback(async (p: Profile) => {
     setProfile(p);
     const run = await loadRun(p.id);
-    if (run) {
-      setState(run);
+    if (run.status === 'ok') {
+      setRunOutdated(false);
+      setState(run.state);
       setScreen('week');
     } else {
+      setRunOutdated(run.status === 'outdated');
       setState(null);
       setScreen('setup');
     }
@@ -172,6 +176,7 @@ export function useGame() {
 
   return {
     ready,
+    runOutdated,
     profiles,
     profile,
     state,

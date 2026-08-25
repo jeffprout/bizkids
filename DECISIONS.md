@@ -467,6 +467,44 @@ asserts cash beats profit when the stand sells with no restock.
 
 ---
 
+## 2026-08-24 (late) — Ready to hand to playtesters
+
+Jeff wants to send it to a few people. It is a static page with no server, so
+sharing is just hosting a folder — see `PLAYTEST.md` for the commands and for
+what to ask testers.
+
+Prepared for it:
+
+**Verified the production build, not just the dev server.** Everything up to now
+had been tested against `vite dev`. Served `dist` and played through: 34 screens,
+save persisted, no console errors. 127 KB gzipped.
+
+**Build stamp.** `vite.config.ts` injects `__BUILD_ID__` — the Vercel commit SHA
+when deployed, the date locally. It shows in small text on the opening screen and
+is written into every exported save, so a tester's report can be tied to a
+version.
+
+**A dropped run now explains itself.** `loadRun` returned `null` for both "no
+save" and "save too old to read", so a tester whose week-20 run was invalidated
+by a redeploy would land on the new-game screen with no idea why. It now returns
+a status, and the setup screen says the game was updated and that trophies were
+kept.
+
+**`vercel.json`** builds the School Edition and sets cache headers: hashed assets
+immutable, everything else `no-cache`, so a reload picks up a new deploy rather
+than a stale index.
+
+**The save export is the feedback channel.** It already contains every week's
+decisions and results; with the build id added it is self-identifying. One tap
+for the tester, and Jeff can load their file and step through the actual run.
+
+**Operational caveat, flagged in PLAYTEST.md:** changes to numbers, wording,
+events and layout are safe to ship mid-test, but anything that changes the shape
+of a save forces `SAVE_VERSION` up and resets in-progress runs. Worth batching
+those while people are playing.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

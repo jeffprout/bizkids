@@ -42,6 +42,7 @@ export default function App() {
 
       {screen === 'setup' && profile && (
         <Setup
+          runOutdated={game.runOutdated}
           playerName={profile.name}
           onStart={(tier, financing) => void game.startRun(tier, financing)}
           onBack={() => game.setScreen('title')}

@@ -75,15 +75,26 @@ export async function saveRun(state: GameState): Promise<void> {
   await storage.set(RUN_KEY(state.profileId), JSON.stringify(state));
 }
 
-export async function loadRun(profileId: string): Promise<GameState | null> {
+export type LoadOutcome =
+  | { status: 'ok'; state: GameState }
+  | { status: 'none' }
+  /** A save exists but predates the current rules, so it cannot be trusted. */
+  | { status: 'outdated' };
+
+/**
+ * Says WHY there is no run, not just that there isn't one. A playtester whose
+ * week-20 run disappears after a redeploy deserves to be told, rather than
+ * being dropped on the new-game screen wondering what happened.
+ */
+export async function loadRun(profileId: string): Promise<LoadOutcome> {
   const raw = await storage.get(RUN_KEY(profileId));
-  if (!raw) return null;
+  if (!raw) return { status: 'none' };
   try {
     const parsed = JSON.parse(raw) as GameState;
-    if (parsed.version !== SAVE_VERSION) return null;
-    return parsed;
+    if (parsed.version !== SAVE_VERSION) return { status: 'outdated' };
+    return { status: 'ok', state: parsed };
   } catch {
-    return null;
+    return { status: 'outdated' };
   }
 }
 
@@ -94,6 +105,8 @@ export async function clearRun(profileId: string): Promise<void> {
 export interface SaveBundle {
   app: 'bizkids';
   version: number;
+  /** Which build produced this save, so playtest reports are traceable. */
+  buildId: string;
   exportedAt: string;
   profiles: Profile[];
   runs: Record<string, GameState>;
@@ -104,11 +117,12 @@ export async function exportAll(): Promise<SaveBundle> {
   const runs: Record<string, GameState> = {};
   for (const p of profiles) {
     const run = await loadRun(p.id);
-    if (run) runs[p.id] = run;
+    if (run.status === 'ok') runs[p.id] = run.state;
   }
   return {
     app: 'bizkids',
     version: SAVE_VERSION,
+    buildId: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev',
     exportedAt: new Date().toISOString(),
     profiles,
     runs,

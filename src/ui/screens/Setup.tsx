@@ -12,10 +12,12 @@ type Step = 'tier' | 'money';
 
 export function Setup({
   playerName,
+  runOutdated,
   onStart,
   onBack,
 }: {
   playerName: string;
+  runOutdated?: boolean;
   onStart: (tier: Tier, financing: FinancingChoice) => void;
   onBack: () => void;
 }) {
@@ -40,6 +42,14 @@ export function Setup({
   if (step === 'tier') {
     return (
       <Panel title={`${playerName} — pick your level`}>
+        {runOutdated && (
+          <div className="card card-tight" style={{ background: '#fff6e5' }}>
+            <p style={{ margin: 0 }}>
+              🔄 The game was updated, so your old run could not be carried over. Your trophies
+              are still on the shelf.
+            </p>
+          </div>
+        )}
         {(['rookie', 'pro'] as Tier[]).map((t) => (
           <Choice
             key={t}
