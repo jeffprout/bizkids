@@ -373,6 +373,12 @@ export function Week({
           <div className="card stack">
             <h2 className="center">Sell a treat too?</h2>
             <p className="muted center">Sold to people already buying a drink.</p>
+            {state.lastResult && state.lastResult.sideUnits > 0 && (
+              <p className="muted center">
+                Last week {state.lastResult.sideUnits} of your {state.lastResult.served} customers
+                added one.
+              </p>
+            )}
             {sideOptions.map((sp) => {
               const margin = (sp.price - sp.unitCost * tier.unitCostScale).toFixed(2);
               return (

@@ -75,6 +75,11 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
       <div className="card center">
         <div className="hud-label">Cups sold</div>
         <div style={{ fontSize: 46, fontWeight: 800 }}>{servedShown}</div>
+        {r.sideUnits > 0 && phase >= 1 && (
+          <div className="pill" style={{ marginBottom: 4 }}>
+            🍭 {r.sideUnits} treats too
+          </div>
+        )}
         <div className="hud-label">Money</div>
         <div style={{ fontSize: 30 }}>
           <CashCounter value={phase >= 2 ? r.cashEnd : r.cashStart} tickSound durationMs={1200} />

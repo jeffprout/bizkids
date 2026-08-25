@@ -21,6 +21,12 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     plain: 'How many people actually bought a drink from you this week.',
     concept: 'Units sold',
   },
+  treatsSold: {
+    term: 'Treats sold',
+    plain:
+      'How many of your drink customers also bought a snack. Nobody comes just for the treat — it rides along with a drink.',
+    concept: 'Attach rate',
+  },
   sales: {
     term: 'Sales',
     plain: 'All the money customers handed you. Also called revenue.',

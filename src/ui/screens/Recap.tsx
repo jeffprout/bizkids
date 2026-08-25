@@ -68,6 +68,14 @@ export function Recap({
       <div className="recap-cols">
         <div className="card">
           <LedgerRow label="🥤 Cups sold" amount={r.served} explainId="cupsSold" showExplain={ex} />
+          {r.sideUnits > 0 && (
+            <LedgerRow
+              label="🍭 Treats sold"
+              amount={r.sideUnits}
+              explainId="treatsSold"
+              showExplain={ex}
+            />
+          )}
 
           {r.sideUnits > 0 && tier.showFullPnL ? (
             <>
@@ -79,7 +87,7 @@ export function Recap({
                 showExplain={ex}
               />
               <LedgerRow
-                label={`🍭 Treats (${r.sideUnits})`}
+                label="🍭 Treat sales"
                 amount={dollars(r.sideRevenue)}
                 tone="in"
                 explainId="treatSales"

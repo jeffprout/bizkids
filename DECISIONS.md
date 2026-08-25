@@ -541,6 +541,35 @@ bridge) and the sale screen, which is the most jargon-heavy of all.
 
 ---
 
+## 2026-08-24 (late) — Treats sold was not actually reported
+
+Jeff: "It doesn't say how many treats were sold." He was right in substance. The
+count existed, but only tucked inside a money row's label as `🍭 Treats (18)`,
+next to a prominent `🥤 Cups sold  55` row — so the one number with its own line
+was drinks, and treats looked like a dollar figure with a footnote. On Rookie,
+where the P&L collapses to a single Sales line, the count never appeared at all.
+
+Treats now get a count row of their own, directly under cups sold and on every
+tier, and the money row is plain `🍭 Treat sales`:
+
+```
+🥤 Cups sold      63
+🍭 Treats sold    28
+💰 Drink sales   $95
+🍭 Treat sales   $14
+```
+
+Added in the two other places the number is actually wanted:
+
+- The week animation, which counts cups up, now also shows "🍭 21 treats too".
+- The treats card itself reports last week's take-up — "Last week 21 of your 46
+  customers added one" — which is the number you need to judge whether to keep
+  selling them, and it is the attach rate made concrete.
+
+New glossary entry `treatsSold`, tagged to the concept **attach rate**.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
