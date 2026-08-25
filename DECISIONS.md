@@ -216,6 +216,59 @@ Any run in progress starts over.
 
 ---
 
+## 2026-08-24 (evening) — Deck order and weekly spot choice
+
+Jeff, after playing: he wants to pick the spot every week, and supplies asked
+last — "since I'll know if I'm going to market to people or hire an extra set of
+hands."
+
+**Spot is now a weekly card**, first after any events. It was week 1 and every
+fifth week.
+
+**Supplies is now the last card before End Week**, and the suggested quantity is
+*reactive*: it recomputes from advertising bought and helpers hired or let go
+earlier in the same week. Advertising raises expected demand; a helper raises how
+many cups you can physically hand over. The card also states the capacity plainly
+("You have 45 cups left over. You can serve 350 this week.") and calls out what
+changed. Until the player touches the stepper it follows the suggestion; after
+that it is theirs.
+
+Note that hiring does **not** always raise the suggested order — only when
+capacity was the binding constraint. A helper does not create demand, and the
+number should not pretend otherwise.
+
+**Deck shape is now:** events → spot → price → rotating extras → supplies →
+ready. `maxCards` counts all three fixed cards, so the caps went up (Rookie 4,
+Pro 6, Tycoon 8), leaving 1 / 3 / 5 slots for rotating extras.
+
+**Staffing replaced the hire-only card.** You could previously hire but never let
+anyone go, so a wage was a permanent commitment — which is a genuine dead end now
+that winter can run at a loss. The card surfaces when there is a decision to
+make: nobody hired yet, or a losing week a wage might be the cause of.
+
+### Does free weekly relocation break it?
+
+Checked before shipping, because chasing the forecast between a free front yard
+and a busy pitch looked like an obvious exploit. It is not:
+
+| Strategy | Losing weeks | Final offer |
+|---|---|---|
+| Park all season, $1.50 | 11/50 | $8,005 |
+| Chase the forecast, $1.50 | 11/50 | $8,528 |
+| Soccer all season, $1.75 | 10/50 | $12,010 |
+| Chase the forecast, $1.75 | 16/50 | $10,394 |
+
+Active management earns about 6% over a fixed pitch at the lower price, and is
+*worse* at the higher one — retreating to the front yard on a forecast that turns
+out fine costs you the good week. Since the forecast is only right about two
+thirds of the time, weekly relocation is a real bet rather than free money, so no
+moving cost was added. A lemonade stand is portable; the spec already gives the
+food truck weekly spot choice as its signature mechanic (Section 7).
+
+Full 50-week run after the change: no dead ends, 12 losing weeks, worst -$46.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

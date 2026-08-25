@@ -29,11 +29,15 @@ export function Week({
 
   const [price, setPrice] = useState(state.price);
   const [qualityId, setQualityId] = useState(state.qualityId);
-  const [restock, setRestock] = useState(() => suggestRestock(state, biz, tier.restockStep, tier.unitCostScale));
+  const [restock, setRestock] = useState(0);
+  // Until the player touches the stepper, supplies follow the suggestion — which
+  // moves as they decide on advertising and helpers.
+  const [restockTouched, setRestockTouched] = useState(false);
   const [locationId, setLocationId] = useState(state.locationId);
   const [eventChoices, setEventChoices] = useState<Record<string, string>>({});
   const [buyMarketing, setBuyMarketing] = useState<string[]>([]);
   const [hireId, setHireId] = useState<string | undefined>();
+  const [fireStaff, setFireStaff] = useState(false);
   const [index, setIndex] = useState(0);
 
   const quality = biz.qualities.find((q) => q.id === qualityId) ?? biz.qualities[0];
@@ -47,7 +51,7 @@ export function Week({
   const facesRival = biz.rival.tiers.includes(state.tier);
 
   const unitCost = quality.unitCost * tier.unitCostScale;
-  const supplyCost = Math.round(restock * unitCost * 100) / 100;
+
   // The stepper can never past what the player can pay for, so there is no way
   // to land on a disabled button with no obvious way out.
   const maxAffordable =
@@ -57,29 +61,94 @@ export function Week({
   const restockMax = Math.max(0, Math.min(600, maxAffordable));
 
   /**
-   * The week's deck. Price and supplies are asked every week; the rest rotate so
-   * a week stays short and no card nags. Extras are priority-ordered, because a
-   * plain slice would silently drop the last ones forever.
+   * The week's deck.
+   *
+   * Spot, price and supplies are asked every week. Supplies comes LAST on
+   * purpose: how much stock you need depends on whether you just bought
+   * advertising or took on a helper, so you should not have to guess at those
+   * before answering it.
+   *
+   * Everything in between rotates, so a week stays short and no card nags.
    */
   const cards: CardId[] = useMemo(() => {
     const week = state.week;
     const stage2 = state.stage >= 2;
+    const lostMoneyLastWeek = (state.lastResult?.profit ?? 0) < 0;
 
     const extras: CardId[] = [];
-    if (week === 1 || week % 5 === 0) extras.push('location');
-    if (stage2 && state.employees.length === 0 && week % 3 === 0) extras.push('hire');
-    if (stage2 && week % 2 === 0) extras.push('marketing');
-    if (stage2 && week % 4 === 2) extras.push('quality');
+    // Staffing surfaces when there is something to decide: nobody hired yet, or
+    // a losing week that a wage might be the reason for.
+    if (stage2 && (state.employees.length === 0 || lostMoneyLastWeek)) extras.push('staff');
+    if (stage2) extras.push('marketing');
+    if (stage2 && week % 2 === 0) extras.push('quality');
 
-    const room = Math.max(0, tier.maxCards - 2);
+    const room = Math.max(0, tier.maxCards - 3);
+    const offset = extras.length ? week % extras.length : 0;
+    const rotated = [...extras.slice(offset), ...extras.slice(0, offset)];
+
     return [
       ...state.pendingEvents.map((e) => `event:${e.id}`),
+      'location',
       'price',
+      ...rotated.slice(0, room),
       'supplies',
-      ...extras.slice(0, room),
       'ready',
     ];
-  }, [state.pendingEvents, state.stage, state.employees.length, state.week, tier.maxCards]);
+  }, [
+    state.pendingEvents,
+    state.stage,
+    state.employees.length,
+    state.week,
+    state.lastResult,
+    tier.maxCards,
+  ]);
+
+  /**
+   * How much stock to suggest, given everything decided so far this week.
+   * Advertising raises demand; a helper raises how many cups you can physically
+   * hand over. Both land before the supplies card, so both count here.
+   */
+  const suggestedRestock = useMemo(() => {
+    const recent = state.history.slice(-3);
+    // Best of the last three weeks, so one rained-out week does not suggest
+    // ordering nothing — a stand that orders nothing sells nothing forever.
+    const baseline = recent.length
+      ? Math.max(20, ...recent.map((h) => h.served + h.lostToStockout))
+      : 60;
+
+    const lift = buyMarketing.reduce(
+      (sum, id) => sum + (biz.marketing.find((m) => m.id === id)?.boost ?? 0),
+      0,
+    );
+
+    const keptStaff = fireStaff ? [] : state.employees;
+    const hired = hireId ? biz.employees.find((e) => e.id === hireId) : undefined;
+    const capacity =
+      biz.soloCapacity +
+      keptStaff.reduce((sum, e) => sum + e.capacityBonus, 0) +
+      (hired?.capacityBonus ?? 0);
+
+    const want = Math.min(baseline * (1 + lift), capacity);
+    const need = Math.round((want - state.inventory) / tier.restockStep) * tier.restockStep;
+    return Math.max(0, Math.min(restockMax, need));
+  }, [
+    state.history,
+    state.inventory,
+    state.employees,
+    buyMarketing,
+    hireId,
+    fireStaff,
+    biz,
+    tier.restockStep,
+    restockMax,
+  ]);
+
+  const restockUnits = restockTouched ? Math.min(restock, restockMax) : suggestedRestock;
+  const supplyCost = Math.round(restockUnits * unitCost * 100) / 100;
+  const capacityAfter =
+    biz.soloCapacity +
+    (fireStaff ? 0 : state.employees.reduce((sum, e) => sum + e.capacityBonus, 0)) +
+    (hireId ? (biz.employees.find((e) => e.id === hireId)?.capacityBonus ?? 0) : 0);
 
   const card = cards[Math.min(index, cards.length - 1)];
   const next = () => {
@@ -93,11 +162,12 @@ export function Week({
     onEndWeek({
       price,
       qualityId,
-      restockUnits: Math.min(restock, restockMax),
+      restockUnits,
       locationId,
       eventChoices,
       buyMarketing,
       hireEmployeeId: hireId,
+      fireEmployee: fireStaff,
     });
   }
 
@@ -160,28 +230,36 @@ export function Week({
 
         {card === 'supplies' && (
           <div className="card stack center">
-            <h2>Buy supplies</h2>
+            <h2>Last call: buy supplies</h2>
             <Stepper
-              value={Math.min(restock, restockMax)}
+              value={restockUnits}
               min={0}
               max={restockMax}
               step={tier.restockStep}
               format={(v) => `${v}`}
-              onChange={setRestock}
+              onChange={(v) => {
+                setRestockTouched(true);
+                setRestock(v);
+              }}
             />
             <p>
-              {restock} cups costs <b>{dollars(supplyCost, true)}</b>
+              {restockUnits} cups costs <b>{dollars(supplyCost, true)}</b>
             </p>
             <p className="muted">
-              You already have {state.inventory} cups ready.
-              {state.lastResult ? ` Last week you sold ${state.lastResult.served}.` : ''}
+              You have {state.inventory} cups left over. You can serve {capacityAfter} this week.
             </p>
+            {/* Everything decided earlier in the week that changes this number. */}
+            {buyMarketing.length > 0 && (
+              <p className="muted">📣 Advertising should bring extra customers.</p>
+            )}
+            {hireId && <p className="muted">🤝 Your new helper raises how many you can serve.</p>}
+            {fireStaff && <p className="muted">👋 Without a helper you can serve fewer.</p>}
             <p className="muted">
               ⚠️ Forecast says {WEATHER_INFO[state.forecast].label.toLowerCase()} — forecasts are
               often wrong. Leftovers go bad.
             </p>
-            {restock >= restockMax && restockMax > 0 && (
-              <p className="muted">That is all you can buy this week.</p>
+            {restockUnits >= restockMax && restockMax > 0 && (
+              <p className="muted">That is all you can afford this week.</p>
             )}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
@@ -227,9 +305,9 @@ export function Week({
           </div>
         )}
 
-        {card === 'hire' && (
+        {card === 'staff' && (
           <div className="card stack">
-            <h2 className="center">Want a helper?</h2>
+            <h2 className="center">{state.employees.length ? 'Your helper' : 'Want a helper?'}</h2>
             {/* Say plainly what a helper buys, so hiring is a judgement call
                 and not a guess. Rookie skips the arithmetic. */}
             {tier.showFullPnL && (
@@ -238,7 +316,8 @@ export function Week({
                 {state.lastResult ? ` Last week ${state.lastResult.served} wanted one.` : ''}
               </p>
             )}
-            {employeeOptions.map((e) => (
+            {state.employees.length === 0 &&
+              employeeOptions.map((e) => (
               <Choice
                 key={e.id}
                 emoji={e.emoji}
@@ -249,13 +328,29 @@ export function Week({
                 onClick={() => setHireId(e.id)}
               />
             ))}
-            <Choice
-              emoji="🙅"
-              title="Not yet"
-              sub="Keep working alone."
-              selected={!hireId}
-              onClick={() => setHireId(undefined)}
-            />
+            {state.employees.map((e) => (
+              <Choice
+                key={e.id}
+                emoji={fireStaff ? '👋' : e.emoji}
+                title={fireStaff ? `Let ${e.name} go` : `Keep ${e.name} · ${dollars(e.weeklyWage)} a week`}
+                sub={
+                  fireStaff
+                    ? 'No more wages, but you serve fewer cups.'
+                    : 'Tap to let them go and stop the wages.'
+                }
+                selected={!fireStaff}
+                onClick={() => setFireStaff((f) => !f)}
+              />
+            ))}
+            {state.employees.length === 0 && (
+              <Choice
+                emoji="🙅"
+                title="Not yet"
+                sub="Keep working alone."
+                selected={!hireId}
+                onClick={() => setHireId(undefined)}
+              />
+            )}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
@@ -380,26 +475,3 @@ function priceHint(price: number, reference: number): string {
   return 'A normal price around here.';
 }
 
-/**
- * A helpful starting number so a kid is never staring at zero. If they sold out
- * last week the suggestion counts the customers they turned away, otherwise the
- * stand can never grow out of a stockout.
- */
-function suggestRestock(
-  state: GameState,
-  biz: ReturnType<typeof getBusiness>,
-  step: number,
-  unitCostScale: number,
-): number {
-  // Look at the best of the last three weeks, not just the last one. A single
-  // rained-out week would otherwise suggest ordering nothing, and a stand that
-  // orders nothing sells nothing forever.
-  const recent = state.history.slice(-3);
-  const wanted = recent.length
-    ? Math.max(20, ...recent.map((h) => h.served + h.lostToStockout))
-    : 60;
-  const want = Math.round((wanted * 1.15 - state.inventory) / step) * step;
-  const quality = biz.qualities.find((q) => q.id === state.qualityId) ?? biz.qualities[0];
-  const affordable = Math.floor(Math.floor(state.cash / (quality.unitCost * unitCostScale)) / step) * step;
-  return Math.max(0, Math.min(400, want, affordable));
-}

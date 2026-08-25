@@ -6,8 +6,8 @@ export interface TierConfig {
   ages: string;
   emoji: string;
   blurb: string;
-  /** Max decision cards in one week, event cards not counted. Price and
-   *  supplies always take two of these. */
+  /** Max decision cards in one week, event cards not counted. Spot, price and
+   *  supplies are asked every week and take three of these. */
   maxCards: number;
   /** Price slider step. Rookie uses round quarters. */
   priceStep: number;
@@ -46,7 +46,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     ages: 'Ages 6-9',
     emoji: '🐣',
     blurb: 'Small money, gentle weeks, no rivals.',
-    maxCards: 3,
+    maxCards: 4,
     priceStep: 0.25,
     minPrice: 0.25,
     maxPrice: 3,
@@ -67,7 +67,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     ages: 'Ages 10-14',
     emoji: '🚀',
     blurb: 'Overhead, a price war, and weeks you lose money.',
-    maxCards: 4,
+    maxCards: 6,
     priceStep: 0.25,
     minPrice: 0.25,
     maxPrice: 5,
@@ -88,7 +88,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     ages: 'Ages 14+',
     emoji: '🏦',
     blurb: 'Amortized debt, NNN leases, CAC. Coming in Phase 2.',
-    maxCards: 6,
+    maxCards: 8,
     priceStep: 0.05,
     minPrice: 0.25,
     maxPrice: 8,
