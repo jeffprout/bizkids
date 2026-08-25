@@ -7,7 +7,21 @@ function meetsRequirement(event: GameEvent, state: GameState): boolean {
   if (event.minStage && state.stage < event.minStage) return false;
   // A cold snap in the middle of a sunny July is not a thing.
   if (event.seasons && !event.seasons.includes(state.season)) return false;
-  if (event.weathers && !event.weathers.includes(state.weather)) return false;
+  // A weather card is dealt before the week runs, next to a forecast the player
+  // is still deciding against — so it has to agree with that forecast, not just
+  // with the weather that actually turns up. The forecast is wrong a third of
+  // the time, which is what put a "Rain All Week" card beside a sunny forecast.
+  // Requiring both keeps the card honest in both directions: it cannot
+  // contradict the forecast on screen, and it cannot promise rain and deliver
+  // sun. The cost is that weather cards only appear when the forecast is right,
+  // which is the correct trade — a card that announces the weather is news, and
+  // news that disagrees with itself teaches nothing.
+  if (
+    event.weathers &&
+    !(event.weathers.includes(state.weather) && event.weathers.includes(state.forecast))
+  ) {
+    return false;
+  }
   switch (event.requires) {
     case 'hasEmployee':
       return state.employees.length > 0;

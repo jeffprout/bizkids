@@ -988,3 +988,43 @@ describe('a run left open across the event-label update', () => {
     }
   });
 });
+
+describe('weather cards agree with the forecast beside them', () => {
+  it('never deals a weather card that contradicts the forecast on screen', () => {
+    // The forecast is wrong about a third of the time by design. Events used to
+    // be gated on the real weather, so a "Rain All Week" card could land next to
+    // a sunny forecast — and it leaked the answer to the bet the forecast exists
+    // to create.
+    let state = start();
+    let weatherCards = 0;
+    for (let w = 0; w < 400; w++) {
+      for (const ev of state.pendingEvents) {
+        const def = ALL_EVENTS.find((e) => e.id === ev.id)!;
+        if (!def.weathers) continue;
+        weatherCards++;
+        // The card has to describe the forecast the player is looking at AND
+        // the week that actually turns up. Within a card that covers two
+        // conditions the two may still differ — "a wet week" is true of both
+        // rain and cloud — so the bet the forecast creates survives.
+        expect(def.weathers).toContain(state.forecast);
+        expect(def.weathers).toContain(state.weather);
+      }
+      state = simulateWeek(state, decide(state));
+      if (state.gameOver || state.week > FINAL_WEEK) state = start({ seed: w + 1 });
+    }
+    // The gate must not quietly delete weather cards from the game. Requiring
+    // the forecast to agree costs roughly a third of them; 400 weeks deals
+    // about 21, or two to three across a 50-week run.
+    expect(weatherCards).toBeGreaterThan(12);
+  });
+
+  it('gives every weather card a set that matches what it says', () => {
+    // Cloudy has no weather card: there is nothing dramatic to report about it,
+    // and letting one cover two conditions is how "Rain All Week" ended up
+    // describing a cloudy day.
+    const byId = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
+    expect(byId['wet-week'].weathers).toEqual(['rain', 'cloudy']);
+    expect(byId['cold-snap'].weathers).toEqual(['cold']);
+    expect(byId['heat-wave'].weathers).toEqual(['hot', 'sunny']);
+  });
+});

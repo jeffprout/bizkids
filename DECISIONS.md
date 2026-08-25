@@ -1064,6 +1064,58 @@ demonstrably was not.
 
 ---
 
+## 2026-08-25 — Weather cards now agree with the forecast
+
+Jeff saw the Weather Kid announce rain all week while the forecast on the HUD
+said sunny.
+
+Events were gated on `state.weather` — the truth — while the player is shown
+`state.forecast`, which is deliberately wrong about a third of the time. So any
+weather card drawn in a week where the forecast had drifted contradicted the
+screen it was sitting on. Jeff's exact case: the week was cloudy, the forecast
+drifted to sunny, and `wet-week` accepted cloudy, so a card titled "Rain All
+Week" appeared beside a sunny forecast on a week that was neither.
+
+Worse than the cosmetic clash, the card **leaked the answer to the bet**. A
+player who noticed that a weather card always told the truth could ignore the
+forecast entirely whenever one appeared, which is the one mechanic the whole
+ordering decision rests on.
+
+**Fixed** by requiring a weather card to match the forecast *and* the real
+weather. It cannot contradict the screen, and it cannot promise rain and deliver
+sun. Within a card that spans two conditions the two may still differ — "a wet
+week" is true of both rain and cloud — so the bet survives; the player learns the
+band, not the answer.
+
+Also gave each card a set its words are actually true of. `wet-week` covered
+rain *and* cloudy while saying "seven days of rain", so it is now "A Wet Week —
+grey and wet all week". `cold-snap` covered cold, cloudy and rain while saying "a
+cold wind blew in"; it is now cold only.
+
+**Cost:** weather cards are about a third rarer — 400 simulated weeks deal 21, so
+two or three per 50-week run. That is the right trade. A card that announces the
+weather is news, and news that disagrees with the forecast beside it teaches
+nothing.
+
+### Found while investigating, NOT changed — for Jeff to call
+
+**Weather is counted twice.** `WEATHER_INFO` already scales demand by weather:
+rain 0.45, cold 0.35, hot 1.8. The weather cards then multiply that again:
+
+| week | weather alone | card choice | combined |
+|---|---|---|---|
+| rain | 0.45 | wet-week, "Wait it out" 0.40 | **0.18** |
+| cold | 0.35 | cold-snap, "Ride it out" 0.60 | **0.21** |
+| hot | 1.80 | heat-wave, "Keep my price" 1.35 | **2.43** |
+
+So a storm week runs 82% below normal demand, and a heat wave nearly two and a
+half times it. That may be exactly the drama intended — a storm week *should*
+hurt — but it is worth knowing the multiplier is landing twice, because it makes
+those weeks far swingier than the card's own numbers suggest. Rebalancing is a
+change a player would feel, so it is Jeff's call, not mine.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
