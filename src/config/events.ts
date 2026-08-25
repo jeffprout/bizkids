@@ -30,7 +30,7 @@ export const UNIVERSAL_EVENTS: GameEvent[] = [
     character: 'Weather Kid',
     emoji: '🥶',
     title: 'Cold Snap',
-    line: 'A freezing wind blew in. Nobody wants a cold drink.',
+    line: 'A cold wind blew in. Nobody wants a cold drink today.',
     weight: 8,
     seasons: ['fall', 'winter', 'spring'],
     weathers: ['cold', 'cloudy', 'rain'],

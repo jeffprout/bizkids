@@ -348,17 +348,60 @@ button {
   .recap-cols {
     grid-template-columns: 1fr;
   }
-  /* Two ledgers stacked on a phone is a lot of rows, so tighten them. */
+  /* Three ledgers stacked on a phone is a lot of rows, so tighten them. A busy
+     week — treats, a helper, advertising, a loan and two event cards — runs to
+     fifteen rows, and every pixel per row is a pixel off the bottom of the
+     screen. Type size is held at 15px; only the spacing gives way. */
   .recap-cols .ledger {
-    padding: 3px 0;
+    padding: 1px 0;
     font-size: 15px;
   }
   .recap-cols .ledger.total {
     font-size: 17px;
-    padding-top: 5px;
+    padding-top: 4px;
   }
   .recap-cols .card {
-    padding: 8px 12px;
+    padding: 6px 12px;
+  }
+  .recap-cols {
+    gap: 6px;
+  }
+}
+
+/* The bridge is the third ledger. In two columns it runs full width under the
+   other two; given a third column it sits beside them. */
+.recap-bridge {
+  grid-column: 1 / -1;
+}
+
+/* Wide and short — a laptop window. The app is normally kept narrow so a line
+   of text stays readable, but when height is the scarce dimension and width is
+   not, spending width to buy back height is the right trade: the three recap
+   ledgers go side by side instead of stacking off the bottom. */
+@media (min-width: 1000px) and (max-height: 780px) {
+  .app {
+    max-width: 1000px;
+  }
+  .recap-cols {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .recap-bridge {
+    grid-column: auto;
+  }
+}
+
+/* The goals screen carries four panels. A wide, short window (a laptop) has
+   plenty of room sideways and none downwards, so they pair up rather than
+   running off the bottom. Phones keep the single column. */
+.goals-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+}
+@media (max-width: 560px) {
+  .goals-cols {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -532,5 +575,30 @@ button {
   * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Very short windows — a small phone in portrait, or a laptop with a toolbar
+   and a bookmarks bar. Squeeze the spacing between blocks and inside the
+   ledgers, never the type size and never a tap target. */
+@media (max-height: 700px) {
+  .app {
+    gap: 4px;
+    padding: 4px 10px 8px;
+  }
+  .stack {
+    gap: 6px;
+  }
+  .recap-cols {
+    gap: 5px;
+  }
+  .recap-cols .ledger {
+    padding: 0;
+  }
+  .card-tight {
+    padding: 5px 10px;
+  }
+  .pill {
+    padding: 3px 8px;
   }
 }

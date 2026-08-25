@@ -483,6 +483,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
       stagedUp,
       price,
       ref,
+      bought: boughtUnits,
     }),
     newBadges,
     stagedUp,
@@ -528,6 +529,7 @@ function coachFor(x: {
   stagedUp: boolean;
   price: number;
   ref: number;
+  bought: number;
 }): string {
   if (x.emergencyAdvance > 0) return 'You ran out of money. The bank covered it — that costs extra.';
   if (x.missedPayment) return 'You missed a loan payment. The banker is watching.';
@@ -538,7 +540,14 @@ function coachFor(x: {
       ? 'Even with help the line was too long. A quieter spot or a higher price would thin it.'
       : 'The line was too long. You need another pair of hands.';
   }
-  if (x.spoiled > x.served * 0.35) return 'You threw out a lot. Buy a little less next week.';
+  if (x.spoiled > x.served * 0.35) {
+    // Telling a player to buy less when they bought nothing is impossible
+    // advice. If the waste came out of stock they were already carrying, the
+    // lesson is about holding it, not about ordering it.
+    return x.bought > 0
+      ? 'You threw out a lot. Buy a little less next week.'
+      : 'Your leftover stock went bad. Drinks do not keep — sell them or lose them.';
+  }
   if (x.forecastWasWrong && x.profit <= 0) return 'The forecast was wrong and it cost you. That happens.';
   if (x.lostToRival > x.served * 0.25) return 'The stand across the street is cheaper. People noticed.';
   if (x.grossProfit > 0 && x.profit <= 0) return 'You sold plenty but costs ate all of it.';

@@ -34,6 +34,30 @@ export function Recap({
   // Cash overheads exclude interest and fees, which leave with the loan payment.
   const overheadCash = r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.lateFees;
 
+  // Name the card that took the money. A lumped "What happened -$30" with two
+  // cards on screen leaves the player unable to tell which one did it. Only
+  // split when the parts add back to the total the ledger is balanced on —
+  // a card that hands over stock is booked as supplies, not as an event cost.
+  const cashEvents = r.eventLines.filter((l) => l.cash !== 0);
+  const splitsReconcile =
+    cashEvents.length > 1 &&
+    Math.abs(cashEvents.reduce((sum, l) => sum + l.cash, 0) - r.eventCash) < 0.005;
+  const eventRows = splitsReconcile
+    ? cashEvents.map((l) => ({ label: `${l.emoji} ${l.title}`, cash: l.cash }))
+    : r.eventCash !== 0
+      ? [
+          {
+            label:
+              cashEvents.length === 1
+                ? `${cashEvents[0].emoji} ${cashEvents[0].title}`
+                : r.eventCash < 0
+                  ? '⚡ What happened'
+                  : '⚡ Lucky break',
+            cash: r.eventCash,
+          },
+        ]
+      : [];
+
   // The two reasons profit and cash ever differ. Stock consumed but paid for in
   // an earlier week pushes cash above profit; stock bought and not yet sold
   // pushes it below. Loan principal leaves the bank without being an expense.
@@ -153,7 +177,7 @@ export function Recap({
               />
               {r.fixedCosts > 0 && (
                 <LedgerRow
-                  label="🧊 Ice, cups & permit"
+                  label="🧊 Running costs (ice, cups, permit)"
                   amount={`-${dollars(r.fixedCosts)}`}
                   tone="out"
                   explainId="fixedCosts"
@@ -205,15 +229,16 @@ export function Recap({
                   showExplain={ex}
                 />
               )}
-              {r.eventCash !== 0 && (
+              {eventRows.map((row) => (
                 <LedgerRow
-                  label={r.eventCash < 0 ? '⚡ What happened' : '⚡ Lucky break'}
-                  amount={`${r.eventCash < 0 ? '-' : ''}${dollars(Math.abs(r.eventCash))}`}
-                  tone={r.eventCash < 0 ? 'out' : 'in'}
+                  key={`pl-${row.label}`}
+                  label={row.label}
+                  amount={`${row.cash < 0 ? '-' : ''}${dollars(Math.abs(row.cash))}`}
+                  tone={row.cash < 0 ? 'out' : 'in'}
                   explainId="eventCash"
                   showExplain={ex}
                 />
-              )}
+              ))}
             </>
           ) : (
             <LedgerRow
@@ -265,22 +290,23 @@ export function Recap({
           )}
           {overheadCash > 0 && (
             <LedgerRow
-              label="🏠 Rent & running costs"
+              label="🏠 Spot rent & running costs"
               amount={`-${dollars(overheadCash)}`}
               tone="out"
               explainId="overheadCash"
               showExplain={ex}
             />
           )}
-          {r.eventCash !== 0 && (
+          {eventRows.map((row) => (
             <LedgerRow
-              label="⚡ What happened"
-              amount={`${r.eventCash < 0 ? '-' : '+'}${dollars(Math.abs(r.eventCash))}`}
-              tone={r.eventCash < 0 ? 'out' : 'in'}
+              key={`cash-${row.label}`}
+              label={row.label}
+              amount={`${row.cash < 0 ? '-' : '+'}${dollars(Math.abs(row.cash))}`}
+              tone={row.cash < 0 ? 'out' : 'in'}
               explainId="eventCash"
               showExplain={ex}
             />
-          )}
+          ))}
           {r.loanPayment > 0 && (
             <LedgerRow
               label="💳 Loan payment"
@@ -308,62 +334,64 @@ export function Recap({
             bold
           />
         </div>
-      </div>
 
-      {/*
-        Why profit and the bank disagree, as an actual bridge rather than a
-        guess. The identity is exact:
-          bank moved = profit + (cost of stock used - stock bought)
-                              - loan principal repaid + any advance
-      */}
-      {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 0.5 && (
-        <div className="card card-tight">
-          <LedgerRow
-            label="🧮 Profit"
-            amount={dollars(r.profit, true)}
-            tone={r.profit >= 0 ? 'in' : 'out'}
-            explainId="netProfit"
-            showExplain={ex}
-          />
-          {Math.abs(inventorySwing) >= 0.005 && (
+        {/*
+          Why profit and the bank disagree, as an actual bridge rather than a
+          guess. The identity is exact:
+            bank moved = profit + (cost of stock used - stock bought)
+                                - loan principal repaid + any advance
+          It is the third ledger, so it lives in the same grid as the other two
+          and lines up beside them when the window is wide and short.
+        */}
+        {tier.showFullPnL && Math.abs(r.profit - r.cashChange) >= 0.5 && (
+          <div className="card card-tight recap-bridge">
             <LedgerRow
-              label={
-                inventorySwing > 0 ? '🥤 Sold stock bought earlier' : '🥤 Bought stock not sold yet'
-              }
-              amount={`${inventorySwing > 0 ? '+' : '-'}${dollars(Math.abs(inventorySwing), true)}`}
-              tone={inventorySwing > 0 ? 'in' : 'out'}
-              explainId="inventorySwing"
+              label="🧮 Profit"
+              amount={dollars(r.profit, true)}
+              tone={r.profit >= 0 ? 'in' : 'out'}
+              explainId="netProfit"
               showExplain={ex}
             />
-          )}
-          {principalPaid >= 0.005 && (
+            {Math.abs(inventorySwing) >= 0.005 && (
+              <LedgerRow
+                label={
+                  inventorySwing > 0 ? '🥤 Sold stock bought earlier' : '🥤 Bought stock not sold yet'
+                }
+                amount={`${inventorySwing > 0 ? '+' : '-'}${dollars(Math.abs(inventorySwing), true)}`}
+                tone={inventorySwing > 0 ? 'in' : 'out'}
+                explainId="inventorySwing"
+                showExplain={ex}
+              />
+            )}
+            {principalPaid >= 0.005 && (
+              <LedgerRow
+                label="🏦 Loan principal repaid"
+                amount={`-${dollars(principalPaid, true)}`}
+                tone="out"
+                explainId="principalRepaid"
+                showExplain={ex}
+              />
+            )}
+            {r.emergencyAdvance > 0 && (
+              <LedgerRow
+                label="🚨 Emergency advance"
+                amount={`+${dollars(r.emergencyAdvance, true)}`}
+                tone="in"
+                explainId="emergencyAdvance"
+                showExplain={ex}
+              />
+            )}
             <LedgerRow
-              label="🏦 Loan principal repaid"
-              amount={`-${dollars(principalPaid, true)}`}
-              tone="out"
-              explainId="principalRepaid"
+              label="💵 Bank moved"
+              amount={`${r.cashChange >= 0 ? '+' : '-'}${dollars(Math.abs(r.cashChange), true)}`}
+              tone={r.cashChange >= 0 ? 'in' : 'out'}
+              explainId="bankMoved"
               showExplain={ex}
+              bold
             />
-          )}
-          {r.emergencyAdvance > 0 && (
-            <LedgerRow
-              label="🚨 Emergency advance"
-              amount={`+${dollars(r.emergencyAdvance, true)}`}
-              tone="in"
-              explainId="emergencyAdvance"
-              showExplain={ex}
-            />
-          )}
-          <LedgerRow
-            label="💵 Bank moved"
-            amount={`${r.cashChange >= 0 ? '+' : '-'}${dollars(Math.abs(r.cashChange), true)}`}
-            tone={r.cashChange >= 0 ? 'in' : 'out'}
-            explainId="bankMoved"
-            showExplain={ex}
-            bold
-          />
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       <ExplainToggle on={ex} onToggle={() => setEx((v) => !v)} />
 
@@ -389,28 +417,33 @@ export function Recap({
         <span className="pill">🥤 {r.inventoryEnd} left</span>
         {r.lostToStockout > 0 && <span className="pill">🚫 {r.lostToStockout} turned away</span>}
         {r.lostToRival > 0 && <span className="pill">😼 {r.lostToRival} went to the rival</span>}
+        {/* The weekly goal joins the other chips rather than claiming a card of
+            its own. It still pops, and it costs a line instead of a block —
+            which is the difference between fitting a small phone and not. */}
+        {r.miniGoalMet && (
+          <motion.span
+            className="pill"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            style={{ background: '#eafbe7', fontWeight: 700 }}
+          >
+            🎯 Weekly goal hit!
+          </motion.span>
+        )}
       </div>
 
-      {r.miniGoalMet && (
-        <motion.div
-          className="card card-tight center"
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          style={{ background: '#eafbe7' }}
-        >
-          <b>🎯 Weekly goal hit!</b>
-        </motion.div>
-      )}
-
-      <div className="card card-tight">
-        <p style={{ margin: 0 }}>🧑‍🏫 {r.coachLine}</p>
-      </div>
-
-      {r.bankerTalk && (
+      {/* One piece of advice, not two. When the banker speaks the coach is
+          saying the same thing in weaker words, and a bad week is exactly the
+          week with the most rows to get through already. */}
+      {r.bankerTalk ? (
         <div className="card card-tight" style={{ background: '#fff1f1' }}>
           <p style={{ margin: 0 }}>
             🏦 The banker wants a word. Three rough weeks. Try a cheaper spot or a smaller order.
           </p>
+        </div>
+      ) : (
+        <div className="card card-tight">
+          <p style={{ margin: 0 }}>🧑‍🏫 {r.coachLine}</p>
         </div>
       )}
 

@@ -39,116 +39,123 @@ export function Goals({
   return (
     <div className="stack">
       <div className="center">
-        <div style={{ fontSize: 44 }}>🎯</div>
-        <h2>What you are playing for</h2>
-      </div>
-
-      <div className="card card-tight">
-        <p style={{ margin: 0 }}>
+        <h2 style={{ margin: '2px 0' }}>🎯 What you are playing for</h2>
+        <p className="muted" style={{ margin: 0 }}>
           Build the stand up over {FINAL_WEEK} weeks, then <b>sell it for as much as you can</b>. A
-          business is worth what it earns — so steady profit, happy customers and gear you own all
-          push the price up.
+          business is worth what it earns.
         </p>
       </div>
 
-      {/* The long game. */}
-      <div className="card">
-        <h3>💼 The sale · {weeksLeft} weeks to go</h3>
-        <LedgerRow label="If you sold today" amount={dollars(v.offer)} tone="in" bold />
-        <div className="bar" style={{ marginTop: 8 }}>
-          <div className="bar-fill" style={{ width: `${pct(state.week, FINAL_WEEK)}%` }} />
-        </div>
-        <p className="muted" style={{ marginTop: 6 }}>
-          Week {Math.min(state.week, FINAL_WEEK)} of {FINAL_WEEK}
-        </p>
-        {v.reasons.map((reason, i) => (
-          <p key={i} className="muted" style={{ margin: '2px 0' }}>
-            {reason.effect === 'raises the offer' ? '⬆️' : '⬇️'} {reason.label} — {reason.effect}.
+      <div className="goals-cols">
+        {/* The long game. */}
+        <div className="card">
+          <h3>💼 The sale · {weeksLeft} weeks to go</h3>
+          {/* Whole dollars, matching the HUD. A headline, not a column to add up. */}
+          <LedgerRow
+            label="If you sold today"
+            amount={dollars(Math.round(v.offer))}
+            tone="in"
+            bold
+          />
+          <div className="bar" style={{ marginTop: 8 }}>
+            <div className="bar-fill" style={{ width: `${pct(state.week, FINAL_WEEK)}%` }} />
+          </div>
+          <p className="muted" style={{ marginTop: 6 }}>
+            Week {Math.min(state.week, FINAL_WEEK)} of {FINAL_WEEK}
           </p>
-        ))}
-      </div>
-
-      {/* The medium game. */}
-      <div className="card">
-        {nextStage ? (
-          <>
-            <h3>🚀 Next: Stage {nextStage.stage}</h3>
-            <p className="muted">Unlocks a helper, advertising and treats.</p>
-            <LedgerRow
-              label="Total sales"
-              amount={`${dollars(state.totals.revenue)} of ${dollars(nextStage.minTotalRevenue)}`}
-            />
-            <div className="bar">
-              <div
-                className="bar-fill"
-                style={{ width: `${pct(state.totals.revenue, nextStage.minTotalRevenue)}%` }}
-              />
-            </div>
-            <div style={{ height: 8 }} />
-            <LedgerRow
-              label="Reputation"
-              amount={
-                <span>
-                  <Stars value={state.reputation} /> of {nextStage.minReputation}
-                </span>
-              }
-            />
-            <div className="bar">
-              <div
-                className="bar-fill"
-                style={{ width: `${pct(state.reputation, nextStage.minReputation)}%` }}
-              />
-            </div>
-            {state.week < nextStage.minWeek && (
-              <p className="muted" style={{ marginTop: 6 }}>
-                Opens in week {nextStage.minWeek}.
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <h3>🚀 Stage {state.stage}</h3>
-            <p className="muted">
-              Everything is unlocked. Now make it worth as much as you can by the sale.
+          {v.reasons.slice(0, 3).map((reason, i) => (
+            <p key={i} className="muted" style={{ margin: '2px 0' }}>
+              {reason.effect === 'raises the offer' ? '⬆️' : '⬇️'} {reason.label} — {reason.effect}.
             </p>
-          </>
-        )}
-      </div>
-
-      {/* The short game. */}
-      <div className="card card-tight">
-        <h3>📅 This week</h3>
-        <p style={{ margin: '4px 0' }}>
-          {miniGoalText(state.miniGoal)}
-          {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak} in a row`}
-        </p>
-      </div>
-
-      <div className="card">
-        <h3>
-          🏆 Trophies · {earned.length} of {BADGES.length}
-        </h3>
-        <div className="row" style={{ flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-          {earned.map((b) => (
-            <span key={b.id} className="pill" title={b.blurb}>
-              {b.emoji} {b.name}
-            </span>
           ))}
         </div>
-        {nextTrophies.length > 0 && (
-          <>
-            <p className="muted" style={{ marginTop: 8, marginBottom: 4 }}>
-              Still to win:
-            </p>
-            <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
-              {nextTrophies.map((b) => (
-                <span key={b.id} className="pill" style={{ opacity: 0.6 }} title={b.blurb}>
-                  🔒 {b.name}
-                </span>
-              ))}
-            </div>
-          </>
-        )}
+
+        {/* The medium game. */}
+        <div className="card">
+          {nextStage ? (
+            <>
+              <h3>🚀 Next: Stage {nextStage.stage}</h3>
+              <p className="muted">Unlocks a helper, advertising and treats.</p>
+              <LedgerRow
+                label="Total sales"
+                amount={`${dollars(state.totals.revenue)} of ${dollars(nextStage.minTotalRevenue)}`}
+              />
+              <div className="bar">
+                <div
+                  className="bar-fill"
+                  style={{
+                    width: `${pct(state.totals.revenue, nextStage.minTotalRevenue)}%`,
+                  }}
+                />
+              </div>
+              <div style={{ height: 8 }} />
+              <LedgerRow
+                label="Reputation"
+                amount={
+                  <span>
+                    <Stars value={state.reputation} /> of {nextStage.minReputation}
+                  </span>
+                }
+              />
+              <div className="bar">
+                <div
+                  className="bar-fill"
+                  style={{
+                    width: `${pct(state.reputation, nextStage.minReputation)}%`,
+                  }}
+                />
+              </div>
+              {state.week < nextStage.minWeek && (
+                <p className="muted" style={{ marginTop: 6 }}>
+                  Opens in week {nextStage.minWeek}.
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <h3>🚀 Stage {state.stage}</h3>
+              <p className="muted">
+                Everything is unlocked. Now make it worth as much as you can by the sale.
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* The short game. */}
+        <div className="card card-tight">
+          <h3>📅 This week</h3>
+          <p style={{ margin: '4px 0' }}>
+            {miniGoalText(state.miniGoal)}
+            {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak} in a row`}
+          </p>
+        </div>
+
+        <div className="card">
+          <h3>
+            🏆 Trophies · {earned.length} of {BADGES.length}
+          </h3>
+          <div className="row" style={{ flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+            {earned.map((b) => (
+              <span key={b.id} className="pill" title={b.blurb}>
+                {b.emoji} {b.name}
+              </span>
+            ))}
+          </div>
+          {nextTrophies.length > 0 && (
+            <>
+              <p className="muted" style={{ marginTop: 8, marginBottom: 4 }}>
+                Still to win:
+              </p>
+              <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
+                {nextTrophies.map((b) => (
+                  <span key={b.id} className="pill" style={{ opacity: 0.6 }} title={b.blurb}>
+                    🔒 {b.name}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <button className="btn btn-go" onClick={onBack}>

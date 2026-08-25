@@ -71,7 +71,7 @@ const LOCATIONS: LocationDef[] = [
     // Your own street: the same neighbours all year, and they still walk past
     // when it is cold. Small, steady, and almost free.
     seasonMods: { spring: 1, summer: 1, fall: 1.1, winter: 1.25 },
-    blurb: 'Free, tiny, and steady all year. About 10 people a day.',
+    blurb: 'Tiny but steady all year. About 10 people a day.',
     volatility: 0.1,
   },
   {
@@ -83,7 +83,7 @@ const LOCATIONS: LocationDef[] = [
     weeklyFixedCosts: 14,
     // A park is a summer destination and quiet the rest of the year.
     seasonMods: { spring: 1.05, summer: 1.25, fall: 0.85, winter: 0.6 },
-    blurb: '$5 rent plus permit. Packed in summer, quiet in winter.',
+    blurb: 'Rent and a permit. Packed in summer, quiet in winter.',
     volatility: 0.15,
   },
   {
@@ -96,7 +96,7 @@ const LOCATIONS: LocationDef[] = [
     // The league calendar rules this spot: spring and fall seasons are packed,
     // nobody is there in July, and the field is empty all winter.
     seasonMods: { spring: 1.45, summer: 0.55, fall: 1.45, winter: 0.25 },
-    blurb: '$10 rent, pricey permit. Packed in season, empty in July.',
+    blurb: 'Rent and a pricey permit. Packed in season, empty in July.',
     volatility: 0.35,
   },
 ];

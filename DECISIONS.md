@@ -948,6 +948,89 @@ open item rather than a surprise.
 
 ---
 
+## 2026-08-25 — Twelve fixes from playing the deployed build
+
+Played the live site through 7 weeks on Pro and read the numbers off every
+recap. Twelve issues, all fixed in one pass. The engine was right throughout;
+almost every problem was in what the game *told* the player.
+
+**1. The P&L did not add up on screen.** `dollars()` showed cents only below
+$10, so a column read `25 - 5.88 - 1.68 = 17` and the total said `$14.94` six
+lines later. Cents are now shown whenever they exist, at any size. This is the
+one that mattered most: a game teaching a ledger cannot print a ledger that
+fails to add up, and a teacher checks that first.
+
+**2. The spot cards quoted rent only.** Front Yard said "Free" and charged $2;
+Soccer Field said "$10 rent" and charged $32 — rent plus a permit the card never
+priced. The card now carries the all-in weekly bill, which is the number the
+player is actually charged. Overhead is the point of the Pro tier; hiding
+two-thirds of it made the lesson unlearnable.
+
+**3. The confirmation screen showed the wrong stock.** It read `state.inventory +
+restock`, but the value the game buys is `restockUnits` — which differs whenever
+the player accepts the suggested amount without touching the stepper. The
+default path, every week, said "0 cups" just before committing.
+
+**4. Event choices hid their price.** "Remake it stronger" costs $4 and raises
+unit cost 10% for good; nothing said so. Cash and stock effects are now on the
+button; reputation and demand stay hidden. The gamble is whether it works, not
+what it costs.
+
+**5. The supplies cap ignored costs already committed.** It offered the whole
+bank balance while rent for the spot just chosen was locked in, so the default
+order could leave a player unable to pay. It now reserves rent, wages,
+advertising and the loan payment, and shows both figures. A floor keeps one
+order affordable so the rail can never create a dead end. Verified against a
+50-week probe on both tiers and four seeds: a well-played run is bit-for-bit
+identical with and without the reserve, so it only ever binds where it helps.
+
+**6. "Buy a little less next week" fired when nothing had been bought.** The tip
+keyed on spoilage alone. When the waste comes out of stock already held, the
+lesson is about holding it, not ordering it.
+
+**7. The headline valuation was too jumpy to steer by.** One $15 week in week 3
+annualised to $535, and the next quiet week halved it. Trailing profit is now
+averaged over at least 8 weeks even when fewer have been played — which is what
+a buyer does with a short track record, and is stated as a reason on the Goals
+screen. Selling unlocks in week 9, so no actual sale price changes.
+
+**8. Screens that did not fit.** Goals overflowed a 1366x640 laptop by 239px and
+the recap by 99px. The recap's three ledgers now sit in one grid and go
+side-by-side on wide-and-short windows, where the app widens to 1000px: spending
+width to buy height is right when height is the scarce dimension. Phones keep
+one column with tighter spacing — type size and the 44px tap minimum are never
+touched. Everything fits at 375x812, 414x896, 768x1024, 1024x600, 1366x640,
+1440x900. **Residual:** the very worst recap — an insolvency week with a late
+fee, an event, an emergency advance and 17 ledger rows — still needs about 60px
+of scroll on a 375x667 phone. Closing it would mean cutting detail Jeff asked
+for, so it stands.
+
+**9. "What happened -$30" named no card.** With two cards on screen the player
+could not tell which took the money. Each card's cash now carries its own title
+and gets its own row — but only when the parts add back to the total, so the
+ledger still balances. A card that hands over stock is booked as supplies, not
+as an event cost, and stays lumped.
+
+**10. One number, three names.** The Front Yard's $2 was "Free" on the card,
+"Ice, cups & permit" in the P&L and "Rent & running costs" in the cash table.
+
+**11. Price hints had a dead band 1.8x wide.** $2.25 against a $1.50 rival still
+read "normal". Four bands now, first warning at 1.15x.
+
+**12. Cold Snap** was already gated out of summer; only the copy was overstated
+for spring ("freezing" to "cold").
+
+Also folded the weekly-goal celebration into the chip row, and suppressed the
+coach line on weeks the banker speaks — it was saying the same thing twice on
+exactly the week with the most to read.
+
+94 tests, up from 80. The new ones cover the ledger formatting, the coach line
+in both directions, the valuation damping, per-card event attribution, and a
+full 50-week run on both tiers proving the supplies rail costs a good player
+nothing.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

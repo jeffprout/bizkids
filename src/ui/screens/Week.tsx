@@ -67,13 +67,52 @@ export function Week({
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 
-  // The stepper can never past what the player can pay for, so there is no way
-  // to land on a disabled button with no obvious way out.
-  const maxAffordable =
+  /**
+   * Costs this week is already committed to by the time supplies are chosen.
+   * Supplies are deliberately the last card, so the spot, the helper and the
+   * advertising are all decided — which means the bill is knowable, and
+   * spending every last cent on stock would leave the player unable to pay it.
+   */
+  const committedCosts = useMemo(() => {
+    const rent = location.weeklyRent + location.weeklyFixedCosts * tier.fixedCostScale;
+    const wages = fireStaff
+      ? 0
+      : state.employees.reduce((sum, e) => sum + e.weeklyWage, 0) +
+        (employeeOptions.find((e) => e.id === hireId)?.weeklyWage ?? 0);
+    const ads = buyMarketing.reduce(
+      (sum, id) => sum + (marketingOptions.find((m) => m.id === id)?.cost ?? 0),
+      0,
+    );
+    const debt = state.loans
+      .filter((l) => !l.paidOff)
+      .reduce((sum, l) => sum + Math.min(l.weeklyPayment, l.balance), 0);
+    return Math.round((rent + wages + ads + debt) * 100) / 100;
+  }, [
+    location,
+    tier.fixedCostScale,
+    fireStaff,
+    state.employees,
+    state.loans,
+    employeeOptions,
+    hireId,
+    buyMarketing,
+    marketingOptions,
+  ]);
+
+  // The stepper can never go past what the player can pay for, so there is no
+  // way to land on a disabled button with no obvious way out. What is left after
+  // the week's committed bill is the real budget, not the whole bank balance.
+  const stockBudget = Math.max(0, state.cash - committedCosts);
+  const stepsFor = (budget: number) =>
     unitCost > 0
-      ? Math.floor(Math.floor(state.cash / unitCost) / tier.restockStep) * tier.restockStep
+      ? Math.floor(Math.floor(budget / unitCost) / tier.restockStep) * tier.restockStep
       : 600;
-  const restockMax = Math.max(0, Math.min(600, maxAffordable));
+  // Reserving the bill must never leave a player with stock they cannot buy and
+  // nothing to sell. If the bank covers one order at all, one order stays on the
+  // table — going short into a week you can trade out of beats a dead end.
+  const floorUnits =
+    state.inventory === 0 && stepsFor(state.cash) >= tier.restockStep ? tier.restockStep : 0;
+  const restockMax = Math.max(0, Math.min(600, Math.max(stepsFor(stockBudget), floorUnits)));
 
   /**
    * The week's deck.
@@ -288,6 +327,11 @@ export function Week({
               {buyMarketing.length > 0 && <span className="pill">📣 ads bring more</span>}
               {hireId && <span className="pill">🤝 helper serves more</span>}
               {fireStaff && <span className="pill">👋 no helper, serve fewer</span>}
+              {committedCosts > 0 && (
+                <span className="pill">
+                  💰 {dollars(stockBudget)} to spend · {dollars(committedCosts)} of bills due
+                </span>
+              )}
               {restockUnits >= restockMax && restockMax > 0 && (
                 <span className="pill">💳 all you can afford</span>
               )}
@@ -340,11 +384,16 @@ export function Week({
                     : busy >= 0.5
                       ? '😴 Quiet this time of year.'
                       : '🥶 Almost nobody there now.';
+              // The all-in weekly bill, not just the rent. Overhead is the
+              // whole lesson of this card, so the number the player is actually
+              // charged has to be the number on the card.
+              const allIn =
+                Math.round((l.weeklyRent + l.weeklyFixedCosts * tier.fixedCostScale) * 100) / 100;
               return (
                 <Choice
                   key={l.id}
                   emoji={l.emoji}
-                  title={l.name}
+                  title={`${l.name} · ${allIn > 0 ? `${dollars(allIn)} a week` : 'free'}`}
                   sub={`${note} ${l.blurb}`}
                   selected={locationId === l.id}
                   onClick={() => setLocationId(l.id)}
@@ -488,7 +537,7 @@ export function Week({
             <h2>Ready for week {state.week}?</h2>
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
               <span className="pill">💲 {dollars(price, true)} a cup</span>
-              <span className="pill">🥤 {state.inventory + restock} cups</span>
+              <span className="pill">🥤 {state.inventory + restockUnits} cups</span>
               <span className="pill">
                 {location.emoji} {location.name}
               </span>
@@ -524,6 +573,7 @@ function EventCard({
 }) {
   const event = state.pendingEvents.find((e) => e.id === eventId);
   if (!event) return null;
+  const scale = TIERS[state.tier].eventScale;
   return (
     <motion.div
       className="event-card"
@@ -540,15 +590,28 @@ function EventCard({
       </div>
       <div className="speech">{event.line}</div>
       <div className="stack" style={{ padding: '0 14px 14px' }}>
-        {event.choices.map((c) => (
-          <Choice
-            key={c.id}
-            emoji="👉"
-            title={c.label}
-            selected={chosen[event.id] === c.id}
-            onClick={() => onChoose(event.id, c.id)}
-          />
-        ))}
+        {event.choices.map((c) => {
+          // Say what a choice costs. Whether it works is the gamble; what it
+          // costs is not something the player should have to find out after.
+          const cash = Math.round((c.cash ?? 0) * scale * 100) / 100;
+          const stock = Math.round((c.inventory ?? 0) * scale);
+          const tags = [
+            cash < 0 ? `costs ${dollars(-cash)}` : '',
+            cash > 0 ? `pays ${dollars(cash)}` : '',
+            stock > 0 ? `+${stock} cups` : '',
+            stock < 0 ? `${stock} cups` : '',
+          ].filter(Boolean);
+          return (
+            <Choice
+              key={c.id}
+              emoji="👉"
+              title={c.label}
+              sub={tags.length ? tags.join(' · ') : 'costs nothing'}
+              selected={chosen[event.id] === c.id}
+              onClick={() => onChoose(event.id, c.id)}
+            />
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -574,8 +637,13 @@ function Dots({ count, index }: { count: number; index: number }) {
 }
 
 function priceHint(price: number, reference: number): string {
-  if (price <= reference * 0.6) return 'Cheap! Lots of customers, less money each.';
-  if (price >= reference * 1.8) return 'Pricey. Fewer customers, more money each.';
+  // Narrow bands. The old ones only spoke up past 1.8x, so a price half again
+  // as high as the going rate still read as "normal" and the player got no
+  // warning until the sales came in.
+  if (price <= reference * 0.6) return 'Very cheap. Crowds, but pennies on each cup.';
+  if (price <= reference * 0.85) return 'A bargain. You will be busy.';
+  if (price >= reference * 1.6) return 'Very pricey. Expect a lot of people to walk on by.';
+  if (price >= reference * 1.15) return 'On the dear side. Fewer customers, more from each.';
   return 'A normal price around here.';
 }
 

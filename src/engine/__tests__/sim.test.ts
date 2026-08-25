@@ -8,6 +8,7 @@ import type { GameState, WeekDecisions } from '../types';
 import { LEMONADE } from '../../config/businesses/lemonade';
 import { TIERS } from '../../config/difficulty';
 import { ALL_EVENTS } from '../../config/events';
+import { dollars } from '../../ui/components/bits';
 
 function start(overrides: Partial<Parameters<typeof newGame>[0]> = {}): GameState {
   return newGame({
@@ -882,5 +883,83 @@ describe('valuation', () => {
       { multipleLow: 0.6, multipleHigh: 2.4, inventoryUnitCost: 0.24 },
     );
     expect(v.debtPayoff).toBe(150);
+  });
+});
+
+describe('fixes from the live playtest', () => {
+  it('shows odd cents at every size, so a ledger column adds up on screen', () => {
+    // The old rule hid cents above $10, which printed 25 - 5.88 - 1.68 = 17.
+    expect(dollars(24.5)).toBe('$24.50');
+    expect(dollars(16.94)).toBe('$16.94');
+    expect(dollars(14.94)).toBe('$14.94');
+    // Whole dollars still read clean.
+    expect(dollars(25)).toBe('$25');
+    expect(dollars(-32)).toBe('-$32');
+  });
+
+  it('never tells a player to buy less when they bought nothing', () => {
+    const state: GameState = {
+      ...start(),
+      inventory: 60,
+      inventoryCost: 60 * 0.42,
+      cash: 200,
+      forecast: 'rain',
+      weather: 'rain',
+    };
+    const next = simulateWeek(state, decide(state, { restockUnits: 0, eventChoices: {} }));
+    const r = next.lastResult!;
+    expect(r.suppliesUnits).toBe(0);
+    expect(r.coachLine).not.toContain('Buy a little less');
+  });
+
+  it('still tells a player who over-ordered to buy less', () => {
+    const state: GameState = { ...start(), cash: 400, forecast: 'sunny', weather: 'rain' };
+    const next = simulateWeek(state, decide(state, { restockUnits: 300, eventChoices: {} }));
+    const r = next.lastResult!;
+    expect(r.spoilage).toBeGreaterThan(r.served * 0.35);
+    expect(r.coachLine).toBe('You threw out a lot. Buy a little less next week.');
+  });
+
+  it('does not annualise a thin track record into a wild valuation', () => {
+    const opts = { multipleLow: 0.6, multipleHigh: 2.4, inventoryUnitCost: 0.24 };
+    // One good week in week 3 used to price the stand as if every week were that
+    // good, which sent the headline goal from $131 to $535 and back again.
+    const thin: GameState = {
+      ...start(),
+      cash: 24,
+      profitHistory: [0.97, 0.73, 14.94],
+      revenueHistory: [6.75, 5.25, 24.5],
+    };
+    const v = valueBusiness(thin, opts);
+    expect(v.avgWeeklyProfit).toBeCloseTo(16.64 / 8, 2);
+    expect(v.reasons.some((r) => r.label.includes('3 weeks of history'))).toBe(true);
+
+    // Once there is a real track record the average is the true one again.
+    const full: GameState = {
+      ...start(),
+      profitHistory: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+      revenueHistory: Array.from({ length: 10 }, () => 30),
+    };
+    expect(valueBusiness(full, opts).avgWeeklyProfit).toBe(10);
+  });
+
+  it('labels each event card with what it cost, and the parts add to the total', () => {
+    const state = start();
+    const withCards: GameState = {
+      ...state,
+      cash: 300,
+      pendingEvents: ALL_EVENTS.filter((e) => e.id === 'permit-fee' || e.id === 'harsh-review'),
+    };
+    const next = simulateWeek(
+      withCards,
+      decide(withCards, { eventChoices: { 'permit-fee': 'pay', 'harsh-review': 'apologize' } }),
+    );
+    const r = next.lastResult!;
+    expect(r.eventLines).toHaveLength(2);
+    expect(r.eventLines.map((l) => l.title)).toEqual(['Permit Please', 'Bad Review']);
+    // -22 and -3 at Pro's 1x event scale.
+    expect(r.eventLines.map((l) => l.cash)).toEqual([-22, -3]);
+    const parts = r.eventLines.reduce((sum, l) => sum + l.cash, 0);
+    expect(parts).toBeCloseTo(r.eventCash, 2);
   });
 });

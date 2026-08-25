@@ -5,11 +5,11 @@ import { sfx } from '../sfx';
 
 export const dollars = (n: number, cents = false): string => {
   const abs = Math.abs(n);
-  // Whole dollars stay clean; odd cents are only shown when they exist.
-  const body =
-    cents || (!Number.isInteger(Math.round(abs * 100) / 100) && abs < 10)
-      ? abs.toFixed(2)
-      : Math.round(abs).toString();
+  const rounded = Math.round(abs * 100) / 100;
+  // Odd cents are always shown, whatever the size of the number. Hiding them on
+  // the big lines and showing them on the small ones made ledger columns fail to
+  // add up on screen, which is fatal in a game about reading a ledger.
+  const body = cents || !Number.isInteger(rounded) ? rounded.toFixed(2) : rounded.toString();
   return `${n < 0 ? '-' : ''}$${body}`;
 };
 

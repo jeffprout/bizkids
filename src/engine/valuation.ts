@@ -28,6 +28,15 @@ export interface Valuation {
 const TTM_WEEKS = 52;
 /** Volatility is judged on the recent past, the way a buyer actually judges it. */
 const STEADY_WEEKS = 12;
+/**
+ * A buyer discounts a short track record, and so do we — by averaging over at
+ * least this many weeks even when fewer have been played. Without it a single
+ * good week early on gets annualised into a wild number: one $15 week in week 3
+ * priced the stand at $535, and the next quiet week halved it. The headline goal
+ * has to be steady enough to steer by. Selling only unlocks in week 9, so this
+ * never touches the price of an actual sale.
+ */
+const MIN_TRACK_RECORD = 8;
 
 export function valueBusiness(
   state: GameState,
@@ -40,7 +49,7 @@ export function valueBusiness(
   const window = state.profitHistory.slice(-TTM_WEEKS);
   const revenueWindow = state.revenueHistory.slice(-TTM_WEEKS);
   const avgWeeklyProfit = window.length
-    ? window.reduce((s, p) => s + p, 0) / window.length
+    ? window.reduce((s, p) => s + p, 0) / Math.max(window.length, MIN_TRACK_RECORD)
     : 0;
   const annualProfit = money(avgWeeklyProfit * 52);
 
@@ -64,6 +73,13 @@ export function valueBusiness(
     label: `${Math.round(margin * 100)}% of sales became profit`,
     effect: marginScore > 0.6 ? 'raises the offer' : 'lowers the offer',
   });
+
+  if (window.length < MIN_TRACK_RECORD) {
+    reasons.push({
+      label: `Only ${window.length} week${window.length === 1 ? '' : 's'} of history`,
+      effect: 'lowers the offer',
+    });
+  }
 
   // Steadiness: a buyer pays more for a business that does not swing wildly.
   const recent = state.profitHistory.slice(-STEADY_WEEKS);

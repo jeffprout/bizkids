@@ -58,7 +58,8 @@ export interface EventEffects {
   /** Permanent, unlike the Mod fields: gear kept and capacity gained. */
   equipment: number;
   capacity: number;
-  lines: { emoji: string; text: string }[];
+  /** One per card played, so the recap can name which card cost what. */
+  lines: { emoji: string; text: string; title: string; cash: number }[];
 }
 
 /** Fold the player's answers to this week's cards into one set of modifiers. */
@@ -91,7 +92,12 @@ export function resolveEventChoices(
     out.capacityMod *= choice.capacityMod ?? 1;
     out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
     out.capacity += Math.round((choice.capacity ?? 0) * scale);
-    out.lines.push({ emoji: event.emoji, text: choice.result });
+    out.lines.push({
+      emoji: event.emoji,
+      text: choice.result,
+      title: event.title,
+      cash: Math.round((choice.cash ?? 0) * scale * 100) / 100,
+    });
   }
 
   return out;
