@@ -19,10 +19,12 @@ export function Week({
   state,
   onEndWeek,
   onMenu,
+  onGoals,
 }: {
   state: GameState;
   onEndWeek: (d: WeekDecisions) => void;
   onMenu: () => void;
+  onGoals: () => void;
 }) {
   const biz = getBusiness(state.businessId);
   const tier = TIERS[state.tier];
@@ -178,7 +180,7 @@ export function Week({
 
   return (
     <div className="stack">
-      <Hud state={state} showRival={facesRival} onMenu={onMenu} />
+      <Hud state={state} showRival={facesRival} onMenu={onMenu} onGoals={onGoals} />
       <StandArt
         stage={state.stage}
         weather={state.forecast}

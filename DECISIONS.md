@@ -727,6 +727,44 @@ tier, where depreciation would be a fair thing to teach.
 
 ---
 
+## 2026-08-24 (late) — Making the long game visible
+
+Jeff: "What is the long term goal? I'd like to see the goals a little more
+pronounced."
+
+The goal was in the design but not on the screen. A player saw `week 12/50` and
+a weekly mini-goal, and nothing else until a buyer appeared in week 50. The whole
+arc the spec is built around — *a business is an asset you build and sell* — was
+invisible for 49 weeks.
+
+**Stated up front.** The business card on the setup screen now says it plainly:
+"Build it up over 50 weeks, then sell it for as much as you can."
+
+**Live valuation in the HUD.** A tappable pill shows what the stand would fetch
+today — `🎯 worth $959 · goals`. This is the single best change: the exit number
+already existed in `valueBusiness`, it was just hidden until the end. Showing it
+weekly connects every decision to the thing being built. Early on it is mostly
+assets minus debt, which is honest — that really is what you would get.
+
+The net worth bar was a fake meter (`netWorth / 400`) with no defined top. It now
+tracks weeks played, which is a real quantity.
+
+**A goals screen** (menu, or tap the pill) covering all three timescales:
+
+- **The sale** — what you would get today, weeks remaining, and the three
+  reasons the offer sits where it does, reusing the valuation's own reasoning.
+- **Next stage** — progress bars against the actual thresholds (total sales and
+  reputation), so Stage 2 stops being a surprise.
+- **This week** — the mini-goal and streak.
+- **Trophies** — earned count, plus the next three still locked, so there is
+  always something visible to chase.
+
+Costs nothing on the decision screens: the pill joins the existing wrapping row
+and a full week still fits one screen with no scrolling. The goals screen itself
+lands within 2px of the fold.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

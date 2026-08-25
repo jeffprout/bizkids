@@ -1,5 +1,8 @@
 import type { GameState } from '../../engine/types';
 import { SEASON_INFO, WEATHER_INFO } from '../../engine/calendar';
+import { getBusiness } from '../../config/businesses/lemonade';
+import { TIERS } from '../../config/difficulty';
+import { valueBusiness } from '../../engine/valuation';
 import { miniGoalText } from '../../config/milestones';
 import { CashCounter, Stars } from './bits';
 import { FINAL_WEEK } from '../../engine/simulateWeek';
@@ -9,15 +12,28 @@ export function Hud({
   state,
   showRival,
   onMenu,
+  onGoals,
 }: {
   state: GameState;
   showRival: boolean;
   onMenu: () => void;
+  onGoals: () => void;
 }) {
   const debt = state.loans.filter((l) => !l.paidOff).reduce((s, l) => s + l.balance, 0);
-  const netWorth = state.cash + state.equipmentValue - debt;
-  // The bar is a feel-good progress meter, not an accounting figure.
-  const barPct = Math.max(2, Math.min(100, (netWorth / 400) * 100));
+
+  // What the business would fetch right now. This is the long-term goal made
+  // visible every week, instead of a number that only appears in week 50.
+  const biz = getBusiness(state.businessId);
+  const tier = TIERS[state.tier];
+  const quality = biz.qualities.find((q) => q.id === state.qualityId) ?? biz.qualities[0];
+  const worth = valueBusiness(state, {
+    multipleLow: biz.valuationMultiple.low,
+    multipleHigh: biz.valuationMultiple.high,
+    inventoryUnitCost: quality.unitCost * tier.unitCostScale,
+  }).offer;
+
+  // The bar tracks the run, which is a real quantity, not a feel-good meter.
+  const barPct = Math.max(2, Math.min(100, (state.week / FINAL_WEEK) * 100));
 
   return (
     <div className="stack" style={{ gap: 6 }}>
@@ -62,13 +78,16 @@ export function Hud({
         </span>
         {debt > 0 && <span className="pill">🏦 owe ${Math.round(debt)}</span>}
         {showRival && <span className="pill">😼 rival ${state.rivalPrice.toFixed(2)}</span>}
+        <button className="pill pill-btn" onClick={onGoals}>
+          🎯 worth ${Math.round(worth)} · goals
+        </button>
         <span className="pill">
           🎯 {miniGoalText(state.miniGoal)}
           {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak}`}
         </span>
       </div>
 
-      <div className="bar" aria-label="Net worth">
+      <div className="bar" aria-label="Weeks played">
         <div className="bar-fill" style={{ width: `${barPct}%` }} />
       </div>
     </div>

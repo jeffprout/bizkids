@@ -441,6 +441,14 @@ button {
   font-weight: 800;
   font-size: 13px;
 }
+.pill-btn {
+  min-height: 44px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.pill-btn:active {
+  transform: translateY(2px);
+}
 .stars {
   letter-spacing: 1px;
   font-size: 18px;

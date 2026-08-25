@@ -63,7 +63,9 @@ export function Setup({
         <div className="card card-tight center">
           <div style={{ fontSize: 44 }}>🍋</div>
           <h3>Lemonade Stand</h3>
-          <p className="muted">{biz.tagline}</p>
+          <p className="muted">
+            Build it up over 50 weeks, then sell it for as much as you can.
+          </p>
         </div>
         <button
           className="btn btn-go"

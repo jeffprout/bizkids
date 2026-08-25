@@ -8,6 +8,7 @@ import { RunWeek } from './ui/screens/RunWeek';
 import { Recap } from './ui/screens/Recap';
 import { Sell } from './ui/screens/Sell';
 import { Trophies } from './ui/screens/Trophies';
+import { Goals } from './ui/screens/Goals';
 import { FEATURES } from './config/edition';
 import { exportAll } from './storage/saves';
 import { sfx } from './ui/sfx';
@@ -54,6 +55,7 @@ export default function App() {
           state={state}
           onEndWeek={(d) => void game.endWeek(d)}
           onMenu={() => setMenuOpen(true)}
+          onGoals={() => game.setScreen('goals')}
         />
       )}
 
@@ -74,6 +76,14 @@ export default function App() {
           state={state}
           onSell={() => void game.sellBusiness()}
           onKeepPlaying={() => game.setScreen('week')}
+        />
+      )}
+
+      {screen === 'goals' && state && (
+        <Goals
+          state={state}
+          badges={profile?.badges ?? state.badges}
+          onBack={() => game.setScreen('week')}
         />
       )}
 
@@ -98,6 +108,17 @@ export default function App() {
             >
               {profile?.soundOn ? '🔊 Sound is on' : '🔇 Sound is off'}
             </button>
+            {state && (
+              <button
+                className="btn"
+                onClick={() => {
+                  setMenuOpen(false);
+                  game.setScreen('goals');
+                }}
+              >
+                🎯 My goals
+              </button>
+            )}
             <button
               className="btn"
               onClick={() => {
