@@ -14,7 +14,7 @@ import type {
  * The food truck.
  *
  * Where the lemonade stand teaches that a spot has a price, the truck teaches
- * two things the stand cannot: that HOW you buy the thing you trade out of is
+ * two things the stand cannot: that HOW you buy the thing you work out of is
  * itself a decision worth thousands, and that being able to move every week is
  * worth paying for.
  *
@@ -44,9 +44,9 @@ const LOCATIONS: LocationDef[] = [
     baseTraffic: 420,
     weeklyRent: 85,
     weeklyFixedCosts: 70,
-    // Bars and queues. Brilliant when it is warm and dry, dead when it is not.
+    // Bars and long lines. Great when it is warm and dry, dead when it is not.
     seasonMods: { spring: 1.1, summer: 1.35, fall: 1, winter: 0.55 },
-    blurb: 'Late crowds and long queues. Weather makes or breaks it.',
+    blurb: 'Late crowds and long lines. Weather makes or breaks it.',
     volatility: 0.4,
   },
   {
@@ -66,7 +66,7 @@ const LOCATIONS: LocationDef[] = [
 
 /**
  * Menu size against speed — the truck's own version of the recipe choice. A
- * short menu serves a queue fast; a long one draws more people to the queue but
+ * short menu serves a line fast; a long one draws more people into the line but
  * every order takes longer, so capacity falls.
  */
 const QUALITIES: QualityDef[] = [
@@ -78,7 +78,7 @@ const QUALITIES: QualityDef[] = [
     demandMod: 0.82,
     capacityMod: 1.35,
     reputationDrift: 0.05,
-    blurb: 'A single item. The queue moves fast and never stalls.',
+    blurb: 'One item only. The line moves fast and never stalls.',
   },
   {
     id: 'short-menu',
@@ -114,7 +114,7 @@ const ASSETS: AssetOption[] = [
     weeklyPayment: { rookie: 0, pro: 0, tycoon: 0 },
     // Everything is new, so almost nothing breaks in the first year.
     reliability: 0.45,
-    blurb: 'Trading on day one, nothing breaks, and you own it at the end.',
+    blurb: 'Open on day one, nothing breaks, and you own it at the end.',
   },
   {
     id: 'used-refurb',
@@ -122,11 +122,11 @@ const ASSETS: AssetOption[] = [
     emoji: '🔧',
     kind: 'used',
     upfront: { rookie: 2100, pro: 12000, tycoon: 60000 },
-    // Four weeks of bills with the shutters down and the loan clock running.
+    // Four weeks of bills with the doors closed and the loan clock running.
     weeksToOpen: 4,
     equity: { rookie: 2000, pro: 11500, tycoon: 58000 },
     weeklyPayment: { rookie: 0, pro: 0, tycoon: 0 },
-    // What is actually under the bonnet. Half the price of new, and somewhere
+    // What is actually under the hood. Half the price of new, and somewhere
     // between a steal and a very expensive mistake.
     conditionRange: { low: 0.55, high: 1.35 },
     reliability: 1.6,
@@ -148,7 +148,7 @@ const ASSETS: AssetOption[] = [
     equity: { rookie: 0, pro: 0, tycoon: 0 },
     weeklyPayment: { rookie: 26, pro: 145, tycoon: 580 },
     reliability: 0.7,
-    blurb: 'Cheapest way in, trading tomorrow, and yours to hand back at the end.',
+    blurb: 'Cheapest way in, open right away, and you hand it back at the end.',
   },
 ];
 
@@ -358,7 +358,7 @@ export const FOOD_TRUCK: BusinessDef = {
   ],
   concepts: [
     'Asset acquisition: buy, refurbish or lease',
-    'Opportunity cost of weeks not trading',
+    'What closed weeks cost you',
     'Equity at exit',
     'Weekly mobility as a strategy',
     'Menu breadth against throughput',

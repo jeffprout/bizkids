@@ -4,8 +4,16 @@ import type { Profile } from '../../storage/saves';
 import { exportAll, importAll } from '../../storage/saves';
 import { sfx } from '../sfx';
 import { Choice } from '../components/bits';
+import { BrandArt } from '../components/BrandArt';
 
-const AVATARS = ['⚡', '🔥', '🌊', '🎯', '🚀', '👑', '💎', '🐺'];
+/**
+ * A player is marked by the initial of their own name rather than a picked
+ * animal. The badge grid was the most obviously young thing on the first screen,
+ * and a monogram costs nobody a decision they did not want to make.
+ *
+ * Profiles made before this keep whatever they chose — the field is the same.
+ */
+const monogramFor = (name: string) => (name.trim()[0] ?? '?').toUpperCase();
 
 export function Title({
   profiles,
@@ -22,7 +30,6 @@ export function Title({
 }) {
   const [adding, setAdding] = useState(profiles.length === 0);
   const [name, setName] = useState('');
-  const [emoji, setEmoji] = useState(AVATARS[0]);
   const [note, setNote] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -51,12 +58,12 @@ export function Title({
     <div className="stack">
       <motion.div
         className="center"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 140, damping: 12 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
       >
-        <div style={{ fontSize: 64 }}>🍋</div>
-        <h1>Boss Mode</h1>
+        <BrandArt />
+        <h1 style={{ marginTop: 4 }}>Boss Mode</h1>
         <p className="muted">Start a business. Run it. Sell it.</p>
       </motion.div>
 
@@ -106,27 +113,12 @@ export function Title({
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <div className="grid-3">
-            {AVATARS.map((a) => (
-              <button
-                key={a}
-                className={`choice ${emoji === a ? 'selected' : ''}`}
-                style={{ justifyContent: 'center', fontSize: 30 }}
-                onClick={() => {
-                  sfx.tap();
-                  setEmoji(a);
-                }}
-              >
-                {a}
-              </button>
-            ))}
-          </div>
           <button
             className="btn btn-go"
             disabled={!name.trim()}
             onClick={() => {
               sfx.cheer();
-              onCreate(name.trim(), emoji);
+              onCreate(name.trim(), monogramFor(name));
             }}
           >
             Start

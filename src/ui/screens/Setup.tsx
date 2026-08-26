@@ -183,7 +183,7 @@ export function Setup({
           <span className="in">{dollars(borrowed)}</span>
         </div>
         <div className="ledger total">
-          <span>Left to trade with</span>
+          <span>Money to start with</span>
           <span className={cushion >= 0 ? 'in' : 'out'}>{dollars(cushion)}</span>
         </div>
       </div>

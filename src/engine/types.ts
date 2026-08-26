@@ -55,7 +55,7 @@ export interface QualityDef {
   demandMod: number;
   /**
    * Multiplies how many can be served in a week. A wider menu draws a bigger
-   * queue and then serves it more slowly; a single item flies out of the
+   * line and then serves it more slowly; a single item flies out of the
    * window. Omitted means the product makes no difference to throughput, which
    * is true of a lemonade stand and emphatically not of a kitchen.
    */
@@ -96,8 +96,8 @@ export interface SideProduct {
  *
  * Startup cost is not one number. Buying new costs the most and opens straight
  * away. Buying used and doing it up is far cheaper, but the doors stay shut for
- * weeks while the loan clock runs, and what turns up under the bonnet is a roll
- * of the dice. Leasing gets you trading tomorrow for almost nothing down, and
+ * weeks while the loan clock runs, and what turns up under the hood is a roll
+ * of the dice. Leasing gets you open tomorrow for almost nothing down, and
  * leaves you owning nothing at all when it comes time to sell.
  *
  * That last part is the lesson: the choice made in week 1 is still on the books

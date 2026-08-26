@@ -181,7 +181,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   // --- the sale ---
   avgWeeklyProfit: {
     term: 'Profit each week',
-    plain: 'Your average weekly profit over the last year of trading.',
+    plain: 'Your average weekly profit over the last year you were open.',
     concept: 'Earnings',
   },
   annualProfit: {

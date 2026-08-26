@@ -118,7 +118,7 @@ export function Week({
       : 600;
   // Reserving the bill must never leave a player with stock they cannot buy and
   // nothing to sell. If the bank covers one order at all, one order stays on the
-  // table — going short into a week you can trade out of beats a dead end.
+  // table — going short into a week you can sell your way out of beats a dead end.
   const floorUnits =
     state.inventory === 0 && stepsFor(state.cash) >= tier.restockStep ? tier.restockStep : 0;
   const restockMax = Math.max(0, Math.min(600, Math.max(stepsFor(stockBudget), floorUnits)));
@@ -257,7 +257,7 @@ export function Week({
     );
 
   /**
-   * A refit still running means there is nothing to decide: the shutters are
+   * A refit still running means there is nothing to decide: the doors are
    * down, no stock is worth buying, and no spot will sell a thing. Rather than
    * deal a deck of pointless cards, say plainly what is happening and what this
    * week costs — which is the lesson of buying something cheap and unfinished.

@@ -152,7 +152,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     ? rivalShare(price, state.rivalPrice, biz.rival.sensitivity)
     : 1;
   /**
-   * A business still being built out does not trade. The doors are shut, the
+   * A business still being built out cannot sell anything. The doors are shut,
    * refit is half finished, and every bill — the loan, the lease, the pitch fee
    * — arrives anyway. That is the whole price of buying something cheap and
    * unfinished, and it has to be felt rather than described.
@@ -217,7 +217,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const rent = money(location.weeklyRent);
   const fixedCosts = money(location.weeklyFixedCosts * tier.fixedCostScale);
   // A leased asset costs the same every week for the life of the business,
-  // whether it is trading, building out, or having a terrible July.
+  // whether it is open, being built out, or having a terrible July.
   const assetPayment = money(state.assetWeekly ?? 0);
   const wages = money(employees.reduce((s, e) => s + e.weeklyWage, 0));
   cash = money(cash - rent - fixedCosts - assetPayment - wages);

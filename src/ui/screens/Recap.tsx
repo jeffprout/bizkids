@@ -86,7 +86,7 @@ export function Recap({
    * The heart of a lemonade stand, and the only question the week really asks:
    * did you order too much or too little?
    *
-   * Order over and you throw the difference away. Order under and people queue
+   * Order over and you throw the difference away. Order under and people line
    * up, find nothing, and leave. Both are losses, and neither appears in the
    * profit line — the money you never took cannot show up in a ledger — so a
    * nine-year-old looking at "11 left" had no way to tell whether that was good
