@@ -7,6 +7,7 @@ import { Hud } from '../components/Hud';
 import { StandArt } from '../components/StandArt';
 import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
 import { Choice, Stepper, dollars } from '../components/bits';
+import { priceBoundsFor } from '../../engine/pricing';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -69,6 +70,9 @@ export function Week({
   // and a screen that insists otherwise reads as someone else's game.
   const unit = biz.unitName;
   const units = biz.unitNamePlural;
+
+  // What the price control may offer, scaled to what this business charges.
+  const priceBounds = priceBoundsFor(biz.referencePrice[state.tier], tier);
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 
@@ -382,9 +386,9 @@ export function Week({
             <h2>How much per {unit}?</h2>
             <Stepper
               value={price}
-              min={tier.minPrice}
-              max={tier.maxPrice}
-              step={tier.priceStep}
+              min={priceBounds.min}
+              max={priceBounds.max}
+              step={priceBounds.step}
               format={(v) => dollars(v, true)}
               onChange={setPrice}
             />

@@ -1511,6 +1511,67 @@ but it turned up three things that were only ever right by accident:
 
 ---
 
+## 2026-08-26 — The price buttons, and the language
+
+**The price control was broken for the truck, and badly.** Its floor, ceiling
+and step were dollar amounts held on the *tier* — which quietly assumed every
+business was a lemonade stand. Pro's ceiling is $5. The truck opens at $9 a meal.
+So "more expensive" did nothing at all, "cheaper" cut the price by nearly half in
+a single tap, and the step was a quarter on a nine dollar meal.
+
+What counts as a fair price belongs to the business. How far a tier lets you
+stray from it belongs to the tier. They are now multipliers of the business's
+reference price, resolved by `priceBoundsFor`:
+
+| | reference | range | step |
+|---|---|---|---|
+| Lemonade, Rookie | $1 | $0.25 – $3 | 25c |
+| Lemonade, Pro | $1.50 | $0.25 – $5 | 25c |
+| Truck, Rookie | $6 | $2 – $18 | $1 |
+| Truck, Pro | $9 | $2 – $30 | $1 |
+| Truck, Tycoon | $11 | $2 – $50 | $1 |
+
+Rookie and Pro lemonade come out byte-identical to the dollar values that
+shipped, which is the point — a playtested balance must not move because a second
+business arrived. There is a test asserting exactly that.
+
+Two things the arithmetic needed. Steps snap to a *nice* number, because $1.53 a
+meal reads as a rounding error rather than a decision. And the step errs fine and
+then coarsens only if crossing the range would take more than eighty taps —
+rounding to the nearest instead made one tap worth 22% of a $9 meal.
+
+**Lemonade at Tycoon does change**: five cent steps across $0.25 to $8 is a
+hundred and fifty taps end to end. It is a dime now, seventy-seven. That range
+was never reachable in the shipped game, since Tycoon was not offered.
+
+### The language
+
+"Trading" was mine and it is not how anyone here talks. "Left to trade with" is
+now "Money to start with"; the truck opens on day one rather than trades on it; a
+closed week costs you rather than costing opportunity. Swept the rest of the same
+habit while there: queues are lines, shutters are doors, and what is under the
+bonnet is under the hood.
+
+### Growing the look up
+
+The title led with a lemon emoji at 64px and offered eight animals to pick from.
+Both are gone. The hero is drawn now — a lemonade stand and a food truck, flat
+vector in the game's palette, one light source, sharing a ground line so they
+read as one scene rather than two stickers. Both are drawn rather than only the
+truck, because an emoji lemon beside a real illustration would look worse than
+either alone. It also no longer springs in; things that bounce read young.
+
+A player is marked by the initial of their own name. The badge grid was the most
+obviously childish thing on the first screen, and a monogram costs nobody a
+decision they did not want to make. Profiles made before this keep what they
+chose — the field is unchanged.
+
+**Not verified visually.** The preview pane would not composite frames this
+session, so the artwork was sent to Jeff as a standalone file to judge rather
+than claimed to look good.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
