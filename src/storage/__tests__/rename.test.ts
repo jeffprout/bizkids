@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { storage } from '../adapter';
 import { listProfiles, loadRun, newProfile, saveProfiles, saveRun } from '../saves';
 import { newGame, SAVE_VERSION } from '../../engine/newGame';
+import { simulateWeek } from '../../engine/simulateWeek';
 
 /**
  * The game shipped to playtesters as BizKids. Renaming it to Boss Mode moved the
@@ -65,5 +66,73 @@ describe('a save written before the rename', () => {
     });
     await saveRun(run);
     expect(await storage.get('bossmode.run.p2')).not.toBeNull();
+  });
+});
+
+describe('a run started on the live site before v2', () => {
+  beforeEach(async () => {
+    for (const k of await storage.keys()) await storage.remove(k);
+  });
+
+  it('loads and keeps playing after treats became a batch', async () => {
+    // Exactly what master writes: a played week, then the fields v2 added
+    // stripped back off. SAVE_VERSION did not move, so this save is accepted
+    // rather than discarded — which means it has to be repaired, not trusted.
+    const fresh = newGame({
+      profileId: 'live1',
+      businessId: 'lemonade',
+      tier: 'pro',
+      financing: { loanIds: [], savingsUsed: 55, locationId: 'park' },
+      seed: 42,
+    });
+    const played = simulateWeek(fresh, {
+      price: fresh.price,
+      qualityId: fresh.qualityId,
+      restockUnits: 80,
+      locationId: fresh.locationId,
+      sideProductId: 'cookies',
+      eventChoices: Object.fromEntries(fresh.pendingEvents.map((e) => [e.id, e.choices[0].id])),
+      buyMarketing: [],
+    });
+
+    const asMasterWroteIt = JSON.parse(JSON.stringify(played));
+    delete asMasterWroteIt.lastResult.price;
+    delete asMasterWroteIt.lastResult.sideWasted;
+    delete asMasterWroteIt.lastResult.sideBatchSize;
+    for (const line of asMasterWroteIt.lastResult.eventLines ?? []) {
+      delete line.title;
+      delete line.cash;
+    }
+    await storage.set('bossmode.run.live1', JSON.stringify(asMasterWroteIt));
+
+    const loaded = await loadRun('live1');
+    expect(loaded.status).toBe('ok');
+    if (loaded.status !== 'ok') return;
+
+    // Every number the recap reads has to be a number.
+    const r = loaded.state.lastResult!;
+    for (const [key, value] of Object.entries(r)) {
+      if (typeof value === 'number') {
+        expect(Number.isFinite(value), `lastResult.${key}`).toBe(true);
+      }
+    }
+    expect(Number.isFinite(r.price)).toBe(true);
+    expect(r.sideWasted).toBe(0);
+    expect(r.sideBatchSize).toBe(0);
+    for (const line of r.eventLines) expect(typeof line.title).toBe('string');
+
+    // And the next week runs on it without poisoning anything.
+    const next = simulateWeek(loaded.state, {
+      price: loaded.state.price,
+      qualityId: loaded.state.qualityId,
+      restockUnits: 40,
+      locationId: loaded.state.locationId,
+      sideProductId: 'cookies',
+      eventChoices: {},
+      buyMarketing: [],
+    });
+    expect(Number.isFinite(next.cash)).toBe(true);
+    expect(Number.isFinite(next.lastResult!.profit)).toBe(true);
+    expect(next.lastResult!.sideBatchSize).toBe(40);
   });
 });
