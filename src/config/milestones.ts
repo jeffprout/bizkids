@@ -14,7 +14,8 @@ export const BADGES: Badge[] = [
     id: 'first-sale',
     name: 'First Sale',
     emoji: '🎉',
-    blurb: 'You sold your very first cup.',
+    // Every business earns this one, so it cannot name what was sold.
+    blurb: 'You made your very first sale.',
     test: (s) => s.totals.customers > 0,
   },
   {

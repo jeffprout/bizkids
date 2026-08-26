@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
-import { getBusiness } from '../../config/businesses';
+import { businessFor } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { Confetti, ExplainToggle, LedgerRow, dollars } from '../components/bits';
@@ -20,7 +20,7 @@ export function Sell({
   onSell: () => void;
   onKeepPlaying: () => void;
 }) {
-  const biz = getBusiness(state.businessId);
+  const biz = businessFor(state.businessId, state.tier);
   const quality = biz.qualities.find((q) => q.id === state.qualityId) ?? biz.qualities[0];
   const v = valueBusiness(state, {
     multipleLow: biz.valuationMultiple.low,

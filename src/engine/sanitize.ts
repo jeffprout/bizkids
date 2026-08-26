@@ -1,5 +1,5 @@
 import type { GameState } from './types';
-import { getBusiness } from '../config/businesses';
+import { businessFor } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { money } from './loans';
 
@@ -63,7 +63,7 @@ export function sanitizeRun(input: GameState): GameState {
   // Stock value has to agree with the stock on hand. When it is missing, price
   // what is in the cooler at today's cost — the best estimate available, and
   // far better than letting NaN through.
-  const biz = getBusiness(s.businessId);
+  const biz = businessFor(s.businessId, s.tier);
   const tier = TIERS[s.tier] ?? TIERS.pro;
   const quality = biz.qualities.find((q) => q.id === s.qualityId) ?? biz.qualities[0];
   const unitCost = quality.unitCost * tier.unitCostScale;
@@ -96,6 +96,17 @@ export function sanitizeRun(input: GameState): GameState {
       })),
     };
   }
+
+  /**
+   * Staff are stored on the run, so a team hired before the tier started sizing
+   * wages and capacity would keep drawing the old wage and serving the old
+   * number forever. Re-read both from the business every week: the roster is the
+   * player's choice, but what each person costs and how fast they work belongs
+   * to the tier, and there is only one right answer for it.
+   */
+  s.employees = (Array.isArray(s.employees) ? s.employees : [])
+    .map((e) => biz.employees.find((d) => d.id === e?.id))
+    .filter((e): e is NonNullable<typeof e> => Boolean(e));
 
   s.loans = s.loans.map((l) => ({
     ...l,

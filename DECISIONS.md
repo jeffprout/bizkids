@@ -7,6 +7,72 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-08-25 — Tycoon was a tax, not a difficulty
+
+Jeff, playing the food truck: *"I can't make a dollar in Tycoon on the food
+truck."* He was right, and it was not a matter of playing better.
+
+**What was wrong.** Every tier ran the SAME footfall and then piled bigger bills
+on top of it. Tycoon tripled overhead, multiplied unit costs by 1.6, and put a
+$120,000 build with a $910-a-week loan in front of a truck that still only sold a
+hundred-odd meals a week. Played identically on an identical seed, the Pro truck
+made $11,984 over twenty weeks and the Tycoon truck made $2,121 — and every
+LEASED Tycoon truck, in every spot, lost money outright. Break-even at the Friday
+Night District needed 176 meals a week against typical demand of 82-165.
+
+**The fix.** A tier now scales the MARKET as well as the bills. `trafficScale`,
+`capacityScale` and `wageScale` join the existing multipliers; Tycoon runs at
+2.6x traffic, 2.6x capacity and 1.6x wages. A $120,000 truck is not a $24,000
+trailer with worse luck — it is a bigger operation in a bigger city, and the
+footfall now says so. Rent moved onto `fixedCostScale` at the same time: a flat
+$260 pitch fee against triple the footfall had erased the festival's whole
+lesson.
+
+**Where the scaling lives.** `businessFor(id, tier)` in
+`src/config/businesses/index.ts` returns the business already sized for the tier,
+and every reader — engine and UI — goes through it. Scaling privately inside
+`simulateWeek` was the obvious alternative and is wrong: the week screen reads
+capacity, wages and batch sizes straight off the business to tell the player what
+a decision will do, so a private scale would make every one of those numbers a
+lie by the time the week ran. Pro is the scale everything is authored at, and
+`businessFor` returns the base object unchanged there — asserted by test.
+
+**A card that wiped the fridge.** Jeff bought 225 meals ahead of a forecast heat
+wave, served 25, and turned 299 people away. The cooler card is written to
+destroy 80 portions; event scaling ran that PORTION COUNT through the MONEY
+multiplier and made it 200. Physical things now scale by `trafficScale` — a
+cooler holds what a cooler holds, and a bigger truck loses a bigger cooler's
+worth, stinging exactly as much as it did at Pro. Money still scales by
+`eventScale`. Tested by comparing the loss as a share of a well-stocked week
+across tiers: it used to be 35% at Pro and 87% at Tycoon.
+
+**The recap now names the culprit.** `stockLostTo` carries the card's title
+through to the ledger, so "Stock lost (200)" reads "It Failed Overnight (200)"
+and the order-judgement block says so too. The result line was already at the
+bottom of the recap; the number and the reason are together now.
+
+**FOR JEFF — Tycoon lemonade got $220 more pocket money.** A 2.6x market needs
+stock to sell into it, and $30 of working capital could not buy it. Tycoon
+savings went $210 → $430 (startup is still $180). Rookie and Pro are untouched.
+
+**A balance guard, so this cannot come back quietly.**
+`src/engine/__tests__/tierScale.test.ts` plays 30 weeks competently across every
+tier, spot and acquisition route on four seeds and fails if any of them ends in
+the red or goes bust. That is the test that would have caught this before Jeff
+did.
+
+**Smaller things found on the way.** The First Sale badge congratulated a food
+truck owner on selling their "very first cup" — every business earns that badge,
+so it cannot name what was sold. The used-truck card said "opens in 5 weeks" next
+to a blurb promising four weeks shut; the count IS the number of shut weeks, so
+it reads "shut for 4 weeks" now.
+
+**Known and NOT fixed:** the week screen still draws a lemonade stand for the
+food truck (`StandArt.tsx`). It wants a truck scene of its own with the same
+stage-by-stage upgrades, which is real art work rather than a tuning fix.
+
+---
+
 ## 2026-08-24 — Phase 1 build (Lemonade Stand v1)
 
 ### Architecture

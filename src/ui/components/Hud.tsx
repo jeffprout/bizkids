@@ -1,6 +1,6 @@
 import type { GameState } from '../../engine/types';
 import { SEASON_INFO, WEATHER_INFO, temperatureFor } from '../../engine/calendar';
-import { getBusiness } from '../../config/businesses';
+import { businessFor } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { miniGoalText } from '../../config/milestones';
@@ -23,7 +23,7 @@ export function Hud({
 
   // What the business would fetch right now. This is the long-term goal made
   // visible every week, instead of a number that only appears in week 50.
-  const biz = getBusiness(state.businessId);
+  const biz = businessFor(state.businessId, state.tier);
   const tier = TIERS[state.tier];
   const quality = biz.qualities.find((q) => q.id === state.qualityId) ?? biz.qualities[0];
   const worth = valueBusiness(state, {

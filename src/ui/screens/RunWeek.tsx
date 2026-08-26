@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
-import { getBusiness } from '../../config/businesses';
+import { businessFor } from '../../config/businesses';
 import { StandArt } from '../components/StandArt';
 import { CashCounter } from '../components/bits';
 import { sfx } from '../sfx';
@@ -14,7 +14,7 @@ import { sfx } from '../sfx';
 export function RunWeek({ state, onDone }: { state: GameState; onDone: () => void }) {
   const r = state.lastResult!;
   // What this business calls what it sells, capitalised for the counter label.
-  const plural = getBusiness(state.businessId).unitNamePlural;
+  const plural = businessFor(state.businessId, state.tier).unitNamePlural;
   const units = `${plural[0].toUpperCase()}${plural.slice(1)}`;
   const [phase, setPhase] = useState(0);
   const [servedShown, setServedShown] = useState(0);

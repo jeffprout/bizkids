@@ -1,5 +1,5 @@
 import type { GameEvent, GameState, WeekDecisions, WeekResult } from './types';
-import { getBusiness } from '../config/businesses';
+import { businessFor } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { eventsForBusiness } from '../config/events';
 import { BADGES, rollMiniGoal } from '../config/milestones';
@@ -24,7 +24,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // Never trust the incoming shape. One undefined number becomes NaN and then
   // spreads through profit, the history and the valuation without a whisper.
   const state = sanitizeRun(input);
-  const biz = getBusiness(state.businessId);
+  const biz = businessFor(state.businessId, state.tier);
   const tier = TIERS[state.tier];
   const rng = makeRng(state.rngSeed);
 
@@ -65,7 +65,12 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     (e) => !e.locations || e.locations.includes(location.id),
   );
 
-  const ev = resolveEventChoices(eventsHappening, decisions.eventChoices, tier.eventScale, biz);
+  const ev = resolveEventChoices(
+    eventsHappening,
+    decisions.eventChoices,
+    tier.eventScale,
+    tier.trafficScale,
+  );
 
   let cash = cashStart;
   let inventory = state.inventory;
@@ -543,6 +548,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     spoilageCost,
     stockLost,
     stockLostCost,
+    stockLostTo: ev.stockLostTo,
     miniGoalMet,
     emergencyAdvance,
     bankerTalk,

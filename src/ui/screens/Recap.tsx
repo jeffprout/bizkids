@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { TIERS } from '../../config/difficulty';
-import { getBusiness } from '../../config/businesses';
+import { businessFor } from '../../config/businesses';
 import { badgeById } from '../../config/milestones';
 import { WEATHER_INFO } from '../../engine/calendar';
 import { money } from '../../engine/loans';
@@ -25,7 +25,7 @@ export function Recap({
   // rent and permit on the recap meant neither line matched the number they
   // agreed to, and "Spot rent -$10" read as a stale value after picking a spot
   // billed at $32.
-  const biz = getBusiness(state.businessId);
+  const biz = businessFor(state.businessId, state.tier);
   const units = biz.unitNamePlural;
   const spot = biz.locations.find((l) => l.id === state.locationId);
   const spotCost = Math.round((r.rent + r.fixedCosts) * 100) / 100;
@@ -162,6 +162,14 @@ export function Recap({
                 </span>
               </div>
             )}
+            {r.stockLost > 0 && r.lostToStockout > 0 && (
+              <div className="ledger">
+                <span>
+                  {r.stockLostTo ? `💥 ${r.stockLostTo} — before you sold any` : '💥 Stock destroyed'}
+                </span>
+                <span className="out">{r.stockLost} gone</span>
+              </div>
+            )}
             {r.sideWasted > 0 && (
               <div className="ledger">
                 <span>🍭 Baked too many — treats binned</span>
@@ -238,7 +246,7 @@ export function Recap({
                   is noise on the one screen that has to read cleanly. */}
               {r.cogs - r.sideCogs > 0 && (
                 <LedgerRow
-                  label={`🍋 Cost of ${units} sold (${dollars(r.avgUnitCost, true)} each)`}
+                  label={`🧾 Cost of ${units} sold (${dollars(r.avgUnitCost, true)} each)`}
                   amount={`-${dollars(r.cogs - r.sideCogs)}`}
                   tone="out"
                   explainId="cogs"
@@ -265,7 +273,11 @@ export function Recap({
               )}
               {r.stockLostCost > 0 && (
                 <LedgerRow
-                  label={`💥 Stock lost (${r.stockLost})`}
+                  label={
+                    r.stockLostTo
+                      ? `💥 ${r.stockLostTo} (${r.stockLost})`
+                      : `💥 Stock lost (${r.stockLost})`
+                  }
                   amount={`-${dollars(r.stockLostCost)}`}
                   tone="out"
                   explainId="stockLost"

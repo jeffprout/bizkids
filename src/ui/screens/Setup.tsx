@@ -137,7 +137,9 @@ export function Setup({
         </p>
         {assets.map((a) => {
           const facts = [
-            a.weeksToOpen > 0 ? `opens in ${a.weeksToOpen + 1} weeks` : 'opens right away',
+            // The count IS the number of shut weeks. Saying "opens in 5" beside a
+              // blurb promising four weeks shut made the same fact contradict itself.
+              a.weeksToOpen > 0 ? `shut for ${a.weeksToOpen} weeks` : 'opens right away',
             a.weeklyPayment[tier] > 0
               ? `${dollars(a.weeklyPayment[tier])} every week`
               : `worth about ${dollars(a.equity[tier])} at the end`,

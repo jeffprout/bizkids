@@ -381,6 +381,8 @@ export interface WeekResult {
   /** Stock destroyed by an event — a dumped batch, a knocked-over table. */
   stockLost: number;
   stockLostCost: number;
+  /** Title of the card that destroyed it, when a card did. */
+  stockLostTo?: string;
   miniGoalMet: boolean;
   /** Cash the bank fronted you because the account went negative. */
   emergencyAdvance: number;

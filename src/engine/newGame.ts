@@ -1,5 +1,5 @@
 import type { GameState, Tier } from './types';
-import { getBusiness } from '../config/businesses';
+import { businessFor } from '../config/businesses';
 import { eventsForBusiness } from '../config/events';
 import { rollMiniGoal } from '../config/milestones';
 import { forecastFor, rollWeather, seasonForWeek } from './calendar';
@@ -28,7 +28,7 @@ export function newGame(opts: {
   financing: FinancingChoice;
   seed: number;
 }): GameState {
-  const biz = getBusiness(opts.businessId);
+  const biz = businessFor(opts.businessId, opts.tier);
   const seedForSetup = opts.seed || 1;
   const setupRng = makeRng(seedForSetup);
 

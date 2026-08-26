@@ -320,8 +320,11 @@ export const LEMONADE: BusinessDef = {
   unitNamePlural: 'cups',
   placeName: 'stand',
   // Savings alone must always cover startup, or the all-savings path is not
-  // playable and the financing choice stops being a real choice.
-  savings: { rookie: 35, pro: 55, tycoon: 210 },
+  // playable and the financing choice stops being a real choice. It also has to
+  // leave enough behind to STOCK the first week: Tycoon puts a market two and a
+  // half times the size in front of the stand, and $30 of working capital could
+  // not buy enough cups to sell into it.
+  savings: { rookie: 35, pro: 55, tycoon: 430 },
   startupCost: { rookie: 25, pro: 45, tycoon: 180 },
   startupBuys: 'A table, a pitcher, a cooler and a sign.',
   startingEquipmentValue: { rookie: 20, pro: 38, tycoon: 150 },

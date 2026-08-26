@@ -46,6 +46,22 @@ export interface TierConfig {
    * Rookie, so it has to move with the tier.
    */
   eventScale: number;
+  /**
+   * How much bigger the market is at this tier.
+   *
+   * Every tier used to run the SAME footfall and then pile bigger bills on top
+   * of it. That is not a harder version of the business, it is the same business
+   * with a tax: the Tycoon food truck carried a $120k build and a $910-a-week
+   * loan against a hundred-odd meals a week, and no way of playing it made a
+   * dollar. A $120k truck is not a $24k trailer with worse luck — it is a bigger
+   * operation in a bigger city, and the footfall has to say so.
+   */
+  trafficScale: number;
+  /** Serving capacity, which has to move with traffic or every extra customer
+   *  is just a longer line. */
+  capacityScale: number;
+  /** What labour costs. Bigger city, bigger wage. */
+  wageScale: number;
 }
 
 export const TIERS: Record<Tier, TierConfig> = {
@@ -69,6 +85,9 @@ export const TIERS: Record<Tier, TierConfig> = {
     unitCostScale: 0.5,
     spoilScale: 0.5,
     eventScale: 0.3,
+    trafficScale: 1,
+    capacityScale: 1,
+    wageScale: 1,
   },
   pro: {
     id: 'pro',
@@ -90,6 +109,9 @@ export const TIERS: Record<Tier, TierConfig> = {
     unitCostScale: 1,
     spoilScale: 1,
     eventScale: 1,
+    trafficScale: 1,
+    capacityScale: 1,
+    wageScale: 1,
   },
   tycoon: {
     id: 'tycoon',
@@ -111,5 +133,8 @@ export const TIERS: Record<Tier, TierConfig> = {
     unitCostScale: 1.6,
     spoilScale: 1.1,
     eventScale: 2.5,
+    trafficScale: 2.6,
+    capacityScale: 2.6,
+    wageScale: 1.6,
   },
 };

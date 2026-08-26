@@ -73,6 +73,10 @@ export interface EventEffects {
   /** Permanent, unlike the Mod fields: gear kept and capacity gained. */
   equipment: number;
   capacity: number;
+  /** The card that destroyed the most stock, so the recap can name it. A player
+   *  who ordered for a heat wave and served twenty-five needs to be told what
+   *  happened to the rest, next to the number, not left to infer it. */
+  stockLostTo?: string;
   /** Some choices ground the business for the week. */
   locksLocation: boolean;
   /** One per card played, so the recap can name which card cost what. */
@@ -83,8 +87,20 @@ export interface EventEffects {
 export function resolveEventChoices(
   events: GameEvent[],
   choices: Record<string, string>,
-  /** Tier scaling for cash and stock swings. Multipliers are never scaled. */
+  /** Tier scaling for MONEY. Multipliers are never scaled. */
   scale = 1,
+  /**
+   * Tier scaling for PHYSICAL things — portions, covers, seats at the window.
+   *
+   * These used to ride the money multiplier, which is a different quantity
+   * entirely. A cooler failing and losing eighty portions became a 200-portion
+   * wipeout at Tycoon while the truck still only stocked 225 for the week: Jeff
+   * lost 200 of 225 to one card, served 25, and turned 299 people away. Stock
+   * belongs to the SIZE of the operation, so it scales with the market the tier
+   * puts in front of you — a bigger truck loses a bigger cooler's worth, and it
+   * stings exactly as much as it did at Pro.
+   */
+  unitScale = 1,
   /** Unused now every card is written for one business. Kept so callers that
    *  pass it still compile. */
   _biz?: BusinessDef,
@@ -103,18 +119,25 @@ export function resolveEventChoices(
     lines: [],
   };
 
+  let worstStockLoss = 0;
+
   for (const event of events) {
     const chosenId = choices[event.id];
     const choice = event.choices.find((c) => c.id === chosenId) ?? event.choices[0];
     out.cash += Math.round((choice.cash ?? 0) * scale * 100) / 100;
     out.reputation += choice.reputation ?? 0;
-    out.inventory += Math.round((choice.inventory ?? 0) * scale);
+    const stockChange = Math.round((choice.inventory ?? 0) * unitScale);
+    out.inventory += stockChange;
+    if (stockChange < worstStockLoss) {
+      worstStockLoss = stockChange;
+      out.stockLostTo = event.title;
+    }
     out.demandMod *= choice.demandMod ?? 1;
     out.unitCostMod *= choice.unitCostMod ?? 1;
     out.priceMod *= choice.priceMod ?? 1;
     out.capacityMod *= choice.capacityMod ?? 1;
     out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
-    out.capacity += Math.round((choice.capacity ?? 0) * scale);
+    out.capacity += Math.round((choice.capacity ?? 0) * unitScale);
     out.locksLocation = out.locksLocation || Boolean(choice.locksLocation);
     out.lines.push({
       emoji: event.emoji,

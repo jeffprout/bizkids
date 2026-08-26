@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState, WeekDecisions } from '../../engine/types';
-import { getBusiness } from '../../config/businesses';
+import { businessFor } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { Hud } from '../components/Hud';
 import { StandArt } from '../components/StandArt';
@@ -27,7 +27,7 @@ export function Week({
   onMenu: () => void;
   onGoals: () => void;
 }) {
-  const biz = getBusiness(state.businessId);
+  const biz = businessFor(state.businessId, state.tier);
   const tier = TIERS[state.tier];
 
   const [price, setPrice] = useState(state.price);
@@ -734,7 +734,7 @@ function EventCard({
   const event = state.pendingEvents.find((e) => e.id === eventId);
   if (!event) return null;
   const scale = TIERS[state.tier].eventScale;
-  const units = getBusiness(state.businessId).unitNamePlural;
+  const units = businessFor(state.businessId, state.tier).unitNamePlural;
   return (
     <motion.div
       className="event-card"
