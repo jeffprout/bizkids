@@ -78,6 +78,10 @@ export function sanitizeRun(input: GameState): GameState {
       // Added when the recap started valuing the sales a sell-out missed. A run
       // open across that deploy has no price on its last result.
       price: num(s.lastResult.price, s.price),
+      // Treats became a batch bought up front. A run open across that deploy has
+      // a last result from before batches existed.
+      sideWasted: Math.max(0, Math.round(num(s.lastResult.sideWasted, 0))),
+      sideBatchSize: Math.max(0, Math.round(num(s.lastResult.sideBatchSize, 0))),
       eventLines: lines.map((l) => ({
         emoji: typeof l?.emoji === 'string' ? l.emoji : '⚡',
         text: typeof l?.text === 'string' ? l.text : '',

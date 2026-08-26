@@ -169,45 +169,63 @@ const MARKETING: MarketingChannel[] = [
  * "would you like fries with that" lesson. Attach rates are deliberately modest.
  */
 const SIDE_PRODUCTS: SideProduct[] = [
-  {
-    id: 'cookies',
-    name: 'Cookies',
-    emoji: '🍪',
-    unitCost: 0.3,
-    price: 1,
-    attachRate: 0.35,
-    reputationBonus: 0.03,
-    blurb: 'Baked at home. Most people take one.',
-  },
+  // Batches are priced at roughly what the old per-unit cost worked out to, so a
+  // busy week earns about what it always did. The difference is the quiet week:
+  // the money is spent before anyone shows up, and break-even is a number a
+  // player can actually work out from the card.
+  //
+  // Break-even, in customers = batchCost / price / attachRate:
+  //   Lollipops  $5 / $0.50 / 0.45 =  23 customers
+  //   Cookies   $12 / $1.00 / 0.35 =  35
+  //   Gummies   $11 / $1.00 / 0.30 =  37
+  //   Brownies  $17 / $2.00 / 0.22 =  39
+  //
+  // A front yard averaging two dozen customers cannot carry a batch of brownies.
+  // A soccer field in season carries any of them. Same lesson as the canopy:
+  // a fixed cost is a different decision at a different size.
   {
     id: 'lollipops',
     name: 'Lollipops',
     emoji: '🍭',
-    unitCost: 0.08,
+    batchCost: 5,
+    batchSize: 60,
     price: 0.5,
     attachRate: 0.45,
     reputationBonus: 0.02,
-    blurb: 'Cheap, cheerful, and kids always say yes.',
+    blurb: 'Cheap to make and kids always say yes. Hard to lose money on.',
+  },
+  {
+    id: 'cookies',
+    name: 'Cookies',
+    emoji: '🍪',
+    batchCost: 12,
+    batchSize: 40,
+    price: 1,
+    attachRate: 0.35,
+    reputationBonus: 0.03,
+    blurb: 'Baked at home the night before. Most people take one.',
   },
   {
     id: 'gummies',
     name: 'Gummy Bags',
     emoji: '🐻',
-    unitCost: 0.22,
+    batchCost: 11,
+    batchSize: 50,
     price: 1,
     attachRate: 0.3,
-    blurb: 'Small bags of gummy bears.',
+    blurb: 'Bagged up in advance. Keeps well, but you buy the whole box.',
   },
   {
     id: 'brownies',
     name: 'Brownies',
     emoji: '🍫',
-    unitCost: 0.55,
+    batchCost: 17,
+    batchSize: 30,
     price: 2,
     attachRate: 0.22,
     reputationBonus: 0.05,
     tiers: ['pro', 'tycoon'],
-    blurb: 'Pricey to make, but the best margin per sale.',
+    blurb: 'Expensive to bake, best money per sale. Needs a crowd to pay off.',
   },
 ];
 

@@ -87,7 +87,8 @@ export function Recap({
    */
   const wasted = money(r.spoilageCost);
   const missedSales = money(r.lostToStockout * r.price);
-  const judgedWell = r.spoilage === 0 && r.lostToStockout === 0 && r.served > 0;
+  const judgedWell =
+    r.spoilage === 0 && r.lostToStockout === 0 && r.sideWasted === 0 && r.served > 0;
 
   // A gentle nudge to stop, never a nag and never a timer.
   const goodStoppingPoint = state.week % 4 === 1 && state.week > 1;
@@ -115,7 +116,11 @@ export function Recap({
         )}
       </div>
 
-      {(r.spoilage > 0 || r.lostToStockout > 0 || r.lostToCapacity > 0 || judgedWell) && (
+      {(r.spoilage > 0 ||
+        r.lostToStockout > 0 ||
+        r.lostToCapacity > 0 ||
+        r.sideWasted > 0 ||
+        judgedWell) && (
         <div className="card card-tight judgement">
           <h3 style={{ margin: '0 0 2px' }}>🎯 How close was your order?</h3>
           {r.spoilage > 0 && (
@@ -136,6 +141,12 @@ export function Recap({
               </span>
             </div>
           )}
+          {r.sideWasted > 0 && (
+            <div className="ledger">
+              <span>🍭 Baked too many — treats binned</span>
+              <span className="out">{r.sideWasted} of {r.sideBatchSize}</span>
+            </div>
+          )}
           {r.lostToCapacity > 0 && (
             <div className="ledger">
               <span>🙌 Line too long — gave up waiting</span>
@@ -153,10 +164,11 @@ export function Recap({
       <div className="recap-cols">
         <div className="card">
           <LedgerRow label="🥤 Cups sold" amount={r.served} explainId="cupsSold" showExplain={ex} />
-          {r.sideUnits > 0 && (
+          {r.sideBatchSize > 0 && (
             <LedgerRow
               label="🍭 Treats sold"
-              amount={r.sideUnits}
+              // Sold of made, because the batch was paid for either way.
+              amount={`${r.sideUnits} of ${r.sideBatchSize}`}
               explainId="treatsSold"
               showExplain={ex}
             />
@@ -207,7 +219,7 @@ export function Recap({
               )}
               {r.sideCogs > 0 && (
                 <LedgerRow
-                  label="🍭 Cost of treats sold"
+                  label={`🍭 Treat batch (${r.sideBatchSize} made)`}
                   amount={`-${dollars(r.sideCogs)}`}
                   tone="out"
                   explainId="treatCogs"

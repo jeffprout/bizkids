@@ -424,8 +424,6 @@ describe('playtest fixes', () => {
     const quality = LEMONADE.qualities.find((q) => q.id === base.qualityId)!;
     const unitCost = quality.unitCost * TIERS[base.tier].unitCostScale;
     expect(r.cogs - r.sideCogs).toBeCloseTo(r.served * unitCost, 2);
-    // And the treats really do carry their own weight.
-    expect(r.sideRevenue).toBeGreaterThan(r.sideCogs);
   });
 
   it('does not blame the player for missing a helper they already have', () => {
@@ -1217,5 +1215,65 @@ describe('hot chocolate in spring is a real choice, not a free win', () => {
     const lemonade = run('fresh', 'cloudy').served;
     const gap = Math.abs(cocoa - lemonade) / Math.max(cocoa, lemonade);
     expect(gap).toBeLessThan(0.25);
+  });
+});
+
+describe('treats are a batch, bought before the week', () => {
+  const week = (sideProductId: string | null, over: Record<string, unknown> = {}) => {
+    const base: GameState = {
+      ...start(),
+      cash: 900,
+      stage: 2,
+      inventory: 400,
+      inventoryCost: 400 * 0.42,
+      pendingEvents: [],
+      ...over,
+    } as GameState;
+    return simulateWeek(base, decide(base, { restockUnits: 0, sideProductId })).lastResult!;
+  };
+
+  it('charges the whole batch even when almost nobody comes', () => {
+    // Front yard, freezing, nobody about. The baking money is already gone.
+    const quiet = week('brownies', { locationId: 'front-yard', weather: 'cold', forecast: 'cold' });
+    const brownies = LEMONADE.sideProducts.find((sp) => sp.id === 'brownies')!;
+    expect(quiet.sideCogs).toBe(brownies.batchCost);
+    expect(quiet.sideRevenue).toBeLessThan(quiet.sideCogs);
+    expect(quiet.sideWasted).toBeGreaterThan(0);
+  });
+
+  it('pays well once the crowd is there', () => {
+    const busy = week('brownies', { locationId: 'soccer', weather: 'hot', forecast: 'hot', reputation: 5 });
+    expect(busy.sideRevenue).toBeGreaterThan(busy.sideCogs);
+  });
+
+  it('is a real decision — the same treat wins one week and loses the next', () => {
+    const quiet = week('cookies', { locationId: 'front-yard', weather: 'rain', forecast: 'rain' });
+    const busy = week('cookies', { locationId: 'soccer', weather: 'hot', forecast: 'hot', reputation: 5 });
+    expect(quiet.sideRevenue - quiet.sideCogs).toBeLessThan(0);
+    expect(busy.sideRevenue - busy.sideCogs).toBeGreaterThan(0);
+  });
+
+  it('never sells more than the batch made', () => {
+    const busy = week('brownies', { locationId: 'soccer', weather: 'hot', forecast: 'hot', reputation: 5 });
+    const brownies = LEMONADE.sideProducts.find((sp) => sp.id === 'brownies')!;
+    expect(busy.sideUnits).toBeLessThanOrEqual(brownies.batchSize);
+    expect(busy.sideUnits + busy.sideWasted).toBe(brownies.batchSize);
+  });
+
+  it('costs nothing at all when no treat is chosen', () => {
+    const none = week(null);
+    expect(none.sideCogs).toBe(0);
+    expect(none.sideRevenue).toBe(0);
+    expect(none.sideWasted).toBe(0);
+  });
+
+  it('prices every batch so the break-even is a number a child could reach', () => {
+    for (const sp of LEMONADE.sideProducts) {
+      const breakEven = Math.ceil(sp.batchCost / sp.price / sp.attachRate);
+      // Reachable at a busy spot, out of reach in a quiet front yard — which is
+      // what makes it a decision about where you are, not a free upgrade.
+      expect(breakEven, sp.name).toBeGreaterThan(15);
+      expect(breakEven, sp.name).toBeLessThan(60);
+    }
   });
 });

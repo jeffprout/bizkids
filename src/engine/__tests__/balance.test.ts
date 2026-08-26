@@ -102,3 +102,23 @@ describe('holding back the weekly bill before buying stock', () => {
     expect(worstRookie).toBeLessThanOrEqual(worstPro);
   });
 });
+
+describe('treats stay worth choosing, without being a free win', () => {
+  it('sets every batch to pay off at a busy spot and not at a quiet one', () => {
+    const scale = TIERS.pro.unitCostScale;
+    for (const sp of LEMONADE.sideProducts) {
+      const cost = sp.batchCost * scale;
+      const breakEven = cost / sp.price / sp.attachRate;
+      const bestCase = sp.batchSize * sp.price - cost;
+
+      // A front yard turns over roughly two dozen customers a week; a soccer
+      // field in season, well over a hundred. Break-even has to sit between the
+      // two, or the treat is either free money or never worth taking.
+      expect(breakEven, `${sp.name} break-even`).toBeGreaterThan(20);
+      expect(breakEven, `${sp.name} break-even`).toBeLessThan(45);
+
+      // And the upside has to be worth the money going out on Sunday.
+      expect(bestCase, `${sp.name} best case`).toBeGreaterThan(cost);
+    }
+  });
+});

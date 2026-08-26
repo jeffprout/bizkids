@@ -529,22 +529,32 @@ export function Week({
                 has four options to fit under it on a phone. */}
             {state.lastResult && state.lastResult.sideUnits > 0 ? (
               <p className="muted center">
-                Last week {state.lastResult.sideUnits} of {state.lastResult.served} buyers added one,
-                worth {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after
-                costs.
+                Last week you sold {state.lastResult.sideUnits} of{' '}
+                {state.lastResult.sideBatchSize} made
+                {state.lastResult.sideWasted > 0
+                  ? ` and threw ${state.lastResult.sideWasted} out`
+                  : ''}
+                , worth{' '}
+                {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after the
+                batch.
               </p>
             ) : (
-              <p className="muted center">Sold to people already buying a drink.</p>
+              <p className="muted center">
+                You make a batch before the week starts. It costs the same whether anyone comes.
+              </p>
             )}
             {sideOptions.map((sp) => {
-              const margin = (sp.price - sp.unitCost * tier.unitCostScale).toFixed(2);
+              const cost = sp.batchCost * tier.unitCostScale;
+              // How many people have to walk up before the batch pays for
+              // itself. This is the whole decision, so the card does the sum.
+              const breakEven = Math.ceil(cost / sp.price / sp.attachRate);
               return (
                 <Choice
                   key={sp.id}
                   emoji={sp.emoji}
-                  title={`${sp.name} · ${dollars(sp.price, true)}`}
+                  title={`${sp.name} · ${dollars(cost)} for ${sp.batchSize}`}
                   // Kept to one line so four options still fit a phone screen.
-                  sub={`keep $${margin} each · ${Math.round(sp.attachRate * 100)}% take one`}
+                  sub={`sells at ${dollars(sp.price, true)} · pays off past ${breakEven} customers`}
                   selected={sideProductId === sp.id}
                   onClick={() => setSideProductId(sp.id)}
                 />

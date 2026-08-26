@@ -59,11 +59,23 @@ export interface QualityDef {
 }
 
 /** A small add-on item sold to people already buying the main product. */
+/**
+ * A treat sold alongside the drink.
+ *
+ * Made in a batch, ahead of time, the way anyone actually bakes. That is the
+ * whole point: treats used to appear in exact proportion to drinks sold, with
+ * price above cost on every one, so choosing one was strictly better than not
+ * choosing one in every week forever — which is not a decision. Now the money
+ * goes out on Sunday and Tuesday decides whether it was worth it.
+ */
 export interface SideProduct {
   id: string;
   name: string;
   emoji: string;
-  unitCost: number;
+  /** What making one batch costs, paid whether or not anyone turns up. */
+  batchCost: number;
+  /** How many the batch makes. Sell more than this and the rest go unsold. */
+  batchSize: number;
   price: number;
   /** Share of served customers who add one. */
   attachRate: number;
@@ -289,6 +301,10 @@ export interface WeekResult {
   grossProfit: number;
   /** Side-item sales, and what they cost. */
   sideUnits: number;
+  /** Treats made and not sold. Baked fresh, so they do not keep. */
+  sideWasted: number;
+  /** How many the batch made, for the recap to show sold-of-made. */
+  sideBatchSize: number;
   sideRevenue: number;
   sideCogs: number;
   /** What the forecast said versus what actually happened. */

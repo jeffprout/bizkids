@@ -24,7 +24,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   treatsSold: {
     term: 'Treats sold',
     plain:
-      'How many of your drink customers also bought a snack. Nobody comes just for the treat — it rides along with a drink.',
+      'How many of the batch you made actually sold. The rest were thrown out — you baked them before you knew who was coming.',
     concept: 'Attach rate',
   },
   sales: {
@@ -49,10 +49,10 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     concept: 'Cost of goods sold',
   },
   treatCogs: {
-    term: 'Cost of treats sold',
+    term: 'Treat batch',
     plain:
-      'What the snacks themselves cost you. Keeping it apart from the drinks is how you tell whether the treats are actually worth selling.',
-    concept: 'Cost of goods sold by product line',
+      'What making the batch cost. You pay it before the week starts, so a quiet week loses money on treats and a busy one makes it back several times over.',
+    concept: 'Fixed cost vs variable cost',
   },
   avgUnitCost: {
     term: 'What a cup costs you',

@@ -1420,8 +1420,33 @@ strictly better than not picking one, in every week, forever — which means it 
 not a decision at all. It is also the exact opposite of the lesson the drinks
 teach, where you commit cash to stock before you know who is coming.
 
-Proposed but **not built** — this changes the balance of the game, so it is
-Jeff's call.
+**Built 2026-08-25.** Treats are now baked in a batch before the week starts.
+The money goes out on Sunday and Tuesday decides whether it was worth it — which
+is what every real trader with a kitchen already knows.
+
+| treat | batch | costs | sells at | pays off past |
+|---|---|---|---|---|
+| Lollipops | 60 | $5 | $0.50 | 23 customers |
+| Cookies | 40 | $12 | $1.00 | 35 customers |
+| Gummy Bags | 50 | $11 | $1.00 | 37 customers |
+| Brownies | 30 | $17 | $2.00 | 39 customers |
+
+Batches are priced at roughly what the old per-unit cost worked out to, so a busy
+week earns about what it always did. The card does the arithmetic — *"Brownies ·
+$17 for 30 · sells at $2.00 · pays off past 39 customers"* — so the decision is
+comparing one number against how many people turned up last week.
+
+Verified at both ends. A front yard on a cold, wet day: 30 brownies baked, two
+sold, twenty-eight binned, **-$13**. A soccer field in a heat wave: twenty-eight
+of thirty sold, **+$39**. Same treat, opposite answer, decided by where you stood
+— the same lesson the canopy teaches, and the same one the locations teach.
+
+The batch size caps sales as well, so at a hundred and fifty customers the
+brownies run out and the cheap high-volume lollipops start looking better. That
+was not designed in; it falls out of giving each treat a real batch.
+
+Unsold treats go into the order-judgement block at the top of the recap, beside
+the cups thrown away, because it is the same mistake in a different aisle.
 
 ---
 
