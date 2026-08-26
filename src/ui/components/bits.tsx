@@ -9,7 +9,12 @@ export const dollars = (n: number, cents = false): string => {
   // Odd cents are always shown, whatever the size of the number. Hiding them on
   // the big lines and showing them on the small ones made ledger columns fail to
   // add up on screen, which is fatal in a game about reading a ledger.
-  const body = cents || !Number.isInteger(rounded) ? rounded.toFixed(2) : rounded.toString();
+  // Grouped thousands. A lemonade stand never needed them; a food truck at
+  // $24000 is unreadable without, and this game is meant to be read.
+  const body =
+    cents || !Number.isInteger(rounded)
+      ? rounded.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : rounded.toLocaleString('en-US');
   return `${n < 0 ? '-' : ''}$${body}`;
 };
 
@@ -197,7 +202,6 @@ export function Stepper({
   );
 }
 
-
 /**
  * One line of a ledger, optionally explainable.
  *
@@ -226,7 +230,11 @@ export function LedgerRow({
       <div className={`ledger${bold ? ' total' : ''}`} title={entry?.plain}>
         <span>
           {label}
-          {entry && <span className="ledger-q" aria-hidden="true">?</span>}
+          {entry && (
+            <span className="ledger-q" aria-hidden="true">
+              ?
+            </span>
+          )}
         </span>
         <span className={tone}>{amount}</span>
       </div>

@@ -138,6 +138,12 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'Everything that left the bank besides stock: your spot, any helper you paid, any advertising you bought and any late fee.',
     concept: 'Operating expenses',
   },
+  assetPayment: {
+    term: 'Lease payment',
+    plain:
+      'What you pay every week to use the truck you do not own. It never stops, it never goes down, and when you sell the business the truck is not yours to sell.',
+    concept: 'Equity vs rental of a fixed asset',
+  },
   loanPayment: {
     term: 'Loan payment',
     plain:

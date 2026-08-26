@@ -44,20 +44,40 @@ export function StandArt({
           <rect x="-58" y="-10" width="116" height="10" rx="4" fill="#f0b877" />
           <rect x="-64" y="-16" width="128" height="10" rx="5" fill="#b9793c" />
           {/* pitcher */}
-          <rect x="-16" y="-42" width="26" height="28" rx="6" fill="#fff4c1" stroke="#e0b53c" strokeWidth="2" />
+          <rect
+            x="-16"
+            y="-42"
+            width="26"
+            height="28"
+            rx="6"
+            fill="#fff4c1"
+            stroke="#e0b53c"
+            strokeWidth="2"
+          />
           <rect x="-14" y="-30" width="22" height="14" rx="4" fill="var(--lemon)" />
           <circle cx="16" cy="-30" r="6" fill="none" stroke="#e0b53c" strokeWidth="3" />
           {/* cups */}
           <rect x="20" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />
           <rect x="32" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />
-          {stage >= 3 && <rect x="-44" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />}
+          {stage >= 3 && (
+            <rect x="-44" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />
+          )}
         </g>
 
         {/* sign */}
         {hasSign && (
           <g transform="translate(58 92)">
             <rect x="-4" y="0" width="8" height="46" fill="#a9743d" />
-            <rect x="-34" y="-30" width="68" height="34" rx="6" fill="#fff" stroke="var(--ink)" strokeWidth="3" />
+            <rect
+              x="-34"
+              y="-30"
+              width="68"
+              height="34"
+              rx="6"
+              fill="#fff"
+              stroke="var(--ink)"
+              strokeWidth="3"
+            />
             <text x="0" y="-8" textAnchor="middle" fontSize="14" fontWeight="700" fill="var(--ink)">
               LEMONADE
             </text>

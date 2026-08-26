@@ -96,11 +96,11 @@ export function useGame() {
   );
 
   const startRun = useCallback(
-    async (tier: Tier, financing: FinancingChoice) => {
+    async (businessId: string, tier: Tier, financing: FinancingChoice) => {
       if (!profile) return;
       const fresh = newGame({
         profileId: profile.id,
-        businessId: 'lemonade',
+        businessId,
         tier,
         financing,
         seed: Math.floor(Math.random() * 2 ** 31) || 7,

@@ -4,7 +4,7 @@ import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { miniGoalText } from '../../config/milestones';
-import { CashCounter, Stars } from './bits';
+import { CashCounter, Stars, dollars } from './bits';
 import { FINAL_WEEK } from '../../engine/simulateWeek';
 
 /** Always on screen, always moving: money, stars, week, weather. */
@@ -81,10 +81,10 @@ export function Hud({
         <span className="pill">
           {SEASON_INFO[state.season].emoji} {SEASON_INFO[state.season].label}
         </span>
-        {debt > 0 && <span className="pill">🏦 owe ${Math.round(debt)}</span>}
+        {debt > 0 && <span className="pill">🏦 owe {dollars(Math.round(debt))}</span>}
         {showRival && <span className="pill">😼 rival ${state.rivalPrice.toFixed(2)}</span>}
         <button className="pill pill-btn" onClick={onGoals}>
-          🎯 worth ${Math.round(worth)} · goals
+          🎯 worth {dollars(Math.round(worth))} · goals
         </button>
         <span className="pill">
           🎯 {miniGoalText(state.miniGoal)}

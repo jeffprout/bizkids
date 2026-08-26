@@ -1450,6 +1450,67 @@ the cups thrown away, because it is the same mistake in a different aisle.
 
 ---
 
+## 2026-08-26 — The food truck, and the startup asset decision
+
+Two ambiguities settled with Jeff before building. The spec's worked example
+prices the truck at $35k-$120k and calls it Tycoon; CLAUDE.md's roster calls it
+the Pro business. **It spans both** — Pro runs the same shape at about a fifth of
+the money, a used catering trailer rather than a full build, so a twelve-year-old
+meets the decision at a size they can hold. Tycoon gets the spec's figures, and
+finally has a business to launch with. And the truck ships **with** its signature
+system rather than after it, because without the acquisition choice the truck is
+the lemonade stand with different art.
+
+### The startup asset decision
+
+| route | day one | opens | every week | at the end |
+|---|---|---|---|---|
+| New build-out | $24,000 | straight away | — | worth ~$19,500 |
+| Used + refit | $12,000 | **five weeks** | — | $6,300-$15,500, unknown |
+| Lease | $3,200 | straight away | $145 | **nothing** |
+
+Building out is modelled where it hurts: demand is gated to zero, so no sales, no
+revenue, and nobody recorded as turned away either — they never came, because
+there was nothing to come to. Rent, permits, loan payments all arrive anyway. The
+week screen says so plainly rather than dealing a deck of pointless cards.
+
+The equity lesson is now literally true in the valuation, and tested: same
+trading record, and the owner's offer exceeds the leaseholder's by exactly the
+value of the truck.
+
+The used-truck condition rolls **once**, in `newGame`, and lives with the
+business for the whole run. Rolling it later would let a player reload their way
+to a good truck.
+
+### What the truck teaches that the stand cannot
+
+Three spots on the weekly-mobility mechanic the spec calls its signature: office
+park lunches (dependable, never spectacular), Friday night district (brilliant
+warm and dry, dead otherwise), and a festival pitch whose fee is paid before a
+single sale. And a menu that trades breadth against throughput — one item flies
+out of the window, an everything-menu draws a bigger queue and then serves it
+slowly.
+
+That last one needed `capacityMod` on `QualityDef`, which generalises properly:
+what you sell can change how fast you can sell it. True of a kitchen, not true of
+a lemonade stand, and now expressible either way.
+
+### Things the second business exposed
+
+Adding a business is genuinely config plus its signature system, as intended —
+but it turned up three things that were only ever right by accident:
+
+- **Money had no thousands separators.** Fine at $45, unreadable at $24000.
+- **The UI called everything a cup.** `BusinessDef` has carried `unitName` and
+  `unitNamePlural` since Phase 1 and nothing used them. Now the price card, the
+  supplies card, the menu, the ledger and the big counter all say "meal" for a
+  truck and "cup" for a stand.
+- **Tycoon's blurb still said "Coming in Phase 2."** It is here.
+
+140 tests, including fifty-week runs on all three acquisition routes.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

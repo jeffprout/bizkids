@@ -87,7 +87,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     name: 'Tycoon',
     ages: 'Ages 14+',
     emoji: '🏦',
-    blurb: 'Amortized debt, NNN leases, CAC. Coming in Phase 2.',
+    blurb: 'Real amortized loans, leases, and money that bites back.',
     maxCards: 8,
     priceStep: 0.05,
     minPrice: 0.25,

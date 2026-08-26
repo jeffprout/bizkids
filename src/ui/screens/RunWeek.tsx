@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
+import { getBusiness } from '../../config/businesses';
 import { StandArt } from '../components/StandArt';
 import { CashCounter } from '../components/bits';
 import { sfx } from '../sfx';
@@ -12,6 +13,9 @@ import { sfx } from '../sfx';
  */
 export function RunWeek({ state, onDone }: { state: GameState; onDone: () => void }) {
   const r = state.lastResult!;
+  // What this business calls what it sells, capitalised for the counter label.
+  const plural = getBusiness(state.businessId).unitNamePlural;
+  const units = `${plural[0].toUpperCase()}${plural.slice(1)}`;
   const [phase, setPhase] = useState(0);
   const [servedShown, setServedShown] = useState(0);
 
@@ -58,7 +62,8 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
         </h2>
         <p className="muted">
           {WEATHER_INFO[r.weather].label}, {temperatureFor(r.weather, r.season)}°
-          {r.forecastWasWrong && ` — not the ${WEATHER_INFO[r.forecast].label.toLowerCase()} they promised`}
+          {r.forecastWasWrong &&
+            ` — not the ${WEATHER_INFO[r.forecast].label.toLowerCase()} they promised`}
         </p>
       </div>
 
@@ -73,7 +78,7 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
       />
 
       <div className="card center">
-        <div className="hud-label">Cups sold</div>
+        <div className="hud-label">{units} sold</div>
         <div style={{ fontSize: 46, fontWeight: 800 }}>{servedShown}</div>
         {r.sideUnits > 0 && phase >= 1 && (
           <div className="pill" style={{ marginBottom: 4 }}>

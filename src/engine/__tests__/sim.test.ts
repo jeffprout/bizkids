@@ -897,6 +897,10 @@ describe('fixes from the live playtest', () => {
     // Whole dollars still read clean.
     expect(dollars(25)).toBe('$25');
     expect(dollars(-32)).toBe('-$32');
+    // A food truck deals in numbers a lemonade stand never did.
+    expect(dollars(24000)).toBe('$24,000');
+    expect(dollars(120000)).toBe('$120,000');
+    expect(dollars(1234.5)).toBe('$1,234.50');
   });
 
   it('never tells a player to buy less when they bought nothing', () => {

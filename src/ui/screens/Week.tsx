@@ -55,17 +55,20 @@ export function Week({
   const location = biz.locations.find((l) => l.id === locationId) ?? biz.locations[0];
 
   // Younger players get a shorter menu. Which options each tier sees is config.
-  const forTier = <T extends { tiers?: typeof state.tier[] }>(items: T[]) =>
+  const forTier = <T extends { tiers?: (typeof state.tier)[] }>(items: T[]) =>
     items.filter((i) => !i.tiers || i.tiers.includes(state.tier));
   const marketingOptions = forTier(biz.marketing);
   const sideOptions = forTier(biz.sideProducts);
   const employeeOptions = forTier(biz.employees);
   const facesRival = biz.rival.tiers.includes(state.tier);
   // What is on the menu right now. Hot chocolate only exists in the cold months.
-  const menuOptions = biz.qualities.filter(
-    (q) => !q.seasons || q.seasons.includes(state.season),
-  );
+  const menuOptions = biz.qualities.filter((q) => !q.seasons || q.seasons.includes(state.season));
   const seasonalOnMenu = menuOptions.some((q) => q.seasons);
+
+  // What this business calls the thing it sells. A truck sells meals, not cups,
+  // and a screen that insists otherwise reads as someone else's game.
+  const unit = biz.unitName;
+  const units = biz.unitNamePlural;
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 
@@ -147,9 +150,7 @@ export function Week({
     // could go either way — or whenever the seasonal drink is the one currently
     // being sold, so nobody is ever stuck on cocoa with no way back.
     const coldEnoughToAsk = temperatureFor(state.forecast, state.season) <= 62;
-    const sellingSeasonal = Boolean(
-      biz.qualities.find((q) => q.id === state.qualityId)?.seasons,
-    );
+    const sellingSeasonal = Boolean(biz.qualities.find((q) => q.id === state.qualityId)?.seasons);
     if (stage2 && week % 2 === 0) extras.push('quality');
     else if (seasonalOnMenu && (coldEnoughToAsk || sellingSeasonal)) extras.push('quality');
 
@@ -255,6 +256,14 @@ export function Week({
       0,
     );
 
+  /**
+   * A refit still running means there is nothing to decide: the shutters are
+   * down, no stock is worth buying, and no spot will sell a thing. Rather than
+   * deal a deck of pointless cards, say plainly what is happening and what this
+   * week costs — which is the lesson of buying something cheap and unfinished.
+   */
+  const weeksLeftShut = state.weeksToOpen ?? 0;
+
   const card = cards[Math.min(index, cards.length - 1)];
   const next = () => {
     sfx.whoosh();
@@ -275,6 +284,63 @@ export function Week({
       fireEmployeeIds: letGo,
       sideProductId,
     });
+  }
+
+  if (weeksLeftShut > 0) {
+    return (
+      <div className="stack">
+        <Hud state={state} showRival={false} onMenu={onMenu} onGoals={onGoals} />
+        <StandArt
+          stage={state.stage}
+          weather={state.forecast}
+          reputation={state.reputation}
+          hasEmployee={state.employees.length > 0}
+          hasSign={false}
+        />
+        <div className="card stack center">
+          <div style={{ fontSize: 52 }}>🔧</div>
+          <h2>Still being built</h2>
+          <p className="muted" style={{ margin: 0 }}>
+            {weeksLeftShut === 1
+              ? 'One more week of work. You open next week.'
+              : `${weeksLeftShut} more weeks of work before you can open.`}
+          </p>
+          <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
+            <span className="pill">
+              {location.emoji} {location.name}
+            </span>
+            <span className="pill">
+              🏠 {dollars(location.weeklyRent + location.weeklyFixedCosts * tier.fixedCostScale)} a
+              week
+            </span>
+            {state.assetWeekly > 0 && (
+              <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
+            )}
+          </div>
+          <p className="muted" style={{ margin: 0 }}>
+            The bills arrive anyway. That is what the cheap way in costs.
+          </p>
+          <button
+            className="btn btn-go"
+            onClick={() =>
+              onEndWeek({
+                price,
+                qualityId,
+                restockUnits: 0,
+                locationId,
+                sideProductId: null,
+                eventChoices: {},
+                buyMarketing: [],
+                hireEmployeeIds: [],
+                fireEmployeeIds: [],
+              })
+            }
+          >
+            ▶️ Get on with it
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -299,7 +365,7 @@ export function Week({
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.18 }}
       >
-          {card.startsWith('event:') && (
+        {card.startsWith('event:') && (
           <EventCard
             state={state}
             eventId={card.slice(6)}
@@ -313,7 +379,7 @@ export function Week({
 
         {card === 'price' && (
           <div className="card stack center">
-            <h2>How much per cup?</h2>
+            <h2>How much per {unit}?</h2>
             <Stepper
               value={price}
               min={tier.minPrice}
@@ -325,7 +391,8 @@ export function Week({
             <p className="muted">{priceHint(price, biz.referencePrice[state.tier])}</p>
             {facesRival && (
               <p className="muted">
-                😼 The stand across the street charges ${state.rivalPrice.toFixed(2)}.
+                😼 The rival {biz.unitName === 'meal' ? 'truck' : 'stand'} charges $
+                {state.rivalPrice.toFixed(2)}.
               </p>
             )}
             <button className="btn btn-go" onClick={next}>
@@ -349,7 +416,7 @@ export function Week({
               }}
             />
             <p>
-              {restockUnits} cups costs <b>{dollars(supplyCost, true)}</b>
+              {restockUnits} {units} costs <b>{dollars(supplyCost, true)}</b>
             </p>
             {/* Everything needed to size the order — last week's numbers, the
                 capacity, and anything decided earlier this week — as chips
@@ -358,7 +425,7 @@ export function Week({
               <span className="pill">🥤 {state.inventory} left over</span>
               {state.inventory > 0 && (
                 <span className="pill">
-                  🏷️ stock cost {dollars(state.inventoryCost / state.inventory, true)} a cup
+                  🏷️ stock cost {dollars(state.inventoryCost / state.inventory, true)} a {unit}
                 </span>
               )}
               <span className="pill">🙌 can serve {capacityAfter}</span>
@@ -415,7 +482,7 @@ export function Week({
               <Choice
                 key={q.id}
                 emoji={q.emoji}
-                title={`${q.name} · ${dollars(q.unitCost * tier.unitCostScale, true)} a cup`}
+                title={`${q.name} · ${dollars(q.unitCost * tier.unitCostScale, true)} a ${unit}`}
                 sub={q.blurb}
                 selected={qualityId === q.id}
                 onClick={() => setQualityId(q.id)}
@@ -472,7 +539,7 @@ export function Week({
                 with it is the point. Each helper is an independent yes or no. */}
             {tier.showFullPnL && (
               <p className="muted center">
-                Alone you serve {biz.soloCapacity + state.bonusCapacity} cups a week.
+                Alone you serve {biz.soloCapacity + state.bonusCapacity} {units} a week.
                 {state.lastResult
                   ? ` Last week ${state.lastResult.served + state.lastResult.lostToCapacity} wanted one.`
                   : ''}
@@ -529,14 +596,13 @@ export function Week({
                 has four options to fit under it on a phone. */}
             {state.lastResult && state.lastResult.sideUnits > 0 ? (
               <p className="muted center">
-                Last week you sold {state.lastResult.sideUnits} of{' '}
-                {state.lastResult.sideBatchSize} made
+                Last week you sold {state.lastResult.sideUnits} of {state.lastResult.sideBatchSize}{' '}
+                made
                 {state.lastResult.sideWasted > 0
                   ? ` and threw ${state.lastResult.sideWasted} out`
                   : ''}
-                , worth{' '}
-                {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after the
-                batch.
+                , worth {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)}{' '}
+                after the batch.
               </p>
             ) : (
               <p className="muted center">
@@ -600,14 +666,18 @@ export function Week({
           <div className="card stack center">
             <h2>Ready for week {state.week}?</h2>
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
-              <span className="pill">💲 {dollars(price, true)} a cup</span>
-              <span className="pill">🥤 {state.inventory + restockUnits} cups</span>
+              <span className="pill">
+                💲 {dollars(price, true)} a {unit}
+              </span>
+              <span className="pill">
+                🥤 {state.inventory + restockUnits} {units}
+              </span>
               <span className="pill">
                 {location.emoji} {location.name}
               </span>
             </div>
             <button className="btn btn-go" onClick={finish}>
-              ▶️ Open the stand!
+              ▶️ Open up!
             </button>
           </div>
         )}
@@ -638,6 +708,7 @@ function EventCard({
   const event = state.pendingEvents.find((e) => e.id === eventId);
   if (!event) return null;
   const scale = TIERS[state.tier].eventScale;
+  const units = getBusiness(state.businessId).unitNamePlural;
   return (
     <motion.div
       className="event-card"
@@ -678,9 +749,9 @@ function EventCard({
           const tags = [
             cash < 0 ? `costs ${dollars(-cash)}` : '',
             cash > 0 ? `pays ${dollars(cash)}` : '',
-            stock > 0 ? `+${stock} cups` : '',
-            stock < 0 ? `${stock} cups` : '',
-            dearer ? `cups cost ${dearer}% ${(c.unitCostMod ?? 1) > 1 ? 'more' : 'less'}` : '',
+            stock > 0 ? `+${stock} ${units}` : '',
+            stock < 0 ? `${stock} ${units}` : '',
+            dearer ? `${units} cost ${dearer}% ${(c.unitCostMod ?? 1) > 1 ? 'more' : 'less'}` : '',
             hands ? `serve ${hands}% ${(c.capacityMod ?? 1) > 1 ? 'more' : 'fewer'}` : '',
             gear ? `${gear > 0 ? '+' : '-'}${dollars(Math.abs(gear))} of gear` : '',
             seats ? `serve ${seats} more from now on` : '',
@@ -726,10 +797,9 @@ function priceHint(price: number, reference: number): string {
   // Narrow bands. The old ones only spoke up past 1.8x, so a price half again
   // as high as the going rate still read as "normal" and the player got no
   // warning until the sales came in.
-  if (price <= reference * 0.6) return 'Very cheap. Crowds, but pennies on each cup.';
+  if (price <= reference * 0.6) return 'Very cheap. Crowds, but pennies on each one.';
   if (price <= reference * 0.85) return 'A bargain. You will be busy.';
   if (price >= reference * 1.6) return 'Very pricey. Expect a lot of people to walk on by.';
   if (price >= reference * 1.15) return 'On the dear side. Fewer customers, more from each.';
   return 'A normal price around here.';
 }
-

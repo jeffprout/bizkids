@@ -25,7 +25,9 @@ export function Recap({
   // rent and permit on the recap meant neither line matched the number they
   // agreed to, and "Spot rent -$10" read as a stale value after picking a spot
   // billed at $32.
-  const spot = getBusiness(state.businessId).locations.find((l) => l.id === state.locationId);
+  const biz = getBusiness(state.businessId);
+  const units = biz.unitNamePlural;
+  const spot = biz.locations.find((l) => l.id === state.locationId);
   const spotCost = Math.round((r.rent + r.fixedCosts) * 100) / 100;
   const celebrate = r.newBadges.length > 0 || r.stagedUp;
   const [showCelebration, setShowCelebration] = useState(celebrate);
@@ -39,9 +41,16 @@ export function Recap({
   }, [celebrate, r.profit]);
 
   const overheads =
-    r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.interestPaid + r.lateFees;
+    r.rent +
+    r.fixedCosts +
+    r.assetPayment +
+    r.wages +
+    r.marketingSpend +
+    r.interestPaid +
+    r.lateFees;
   // Cash overheads exclude interest and fees, which leave with the loan payment.
-  const overheadCash = r.rent + r.fixedCosts + r.wages + r.marketingSpend + r.lateFees;
+  const overheadCash =
+    r.rent + r.fixedCosts + r.assetPayment + r.wages + r.marketingSpend + r.lateFees;
 
   // Name the card that took the money. A lumped "What happened -$30" with two
   // cards on screen leaves the player unable to tell which one did it. Only
@@ -116,54 +125,73 @@ export function Recap({
         )}
       </div>
 
-      {(r.spoilage > 0 ||
-        r.lostToStockout > 0 ||
-        r.lostToCapacity > 0 ||
-        r.sideWasted > 0 ||
-        judgedWell) && (
-        <div className="card card-tight judgement">
-          <h3 style={{ margin: '0 0 2px' }}>🎯 How close was your order?</h3>
-          {r.spoilage > 0 && (
-            <div className="ledger">
-              <span>🗑️ Made too many — thrown away</span>
-              <span className="out">
-                {r.spoilage} cups · {dollars(wasted, true)}
-              </span>
-            </div>
-          )}
-          {r.lostToStockout > 0 && (
-            <div className="ledger">
-              <span>
-                {r.served > 0 ? '🚫 Ran out — walked away empty' : '🚫 Nothing to sell — walked away'}
-              </span>
-              <span className="out">
-                {r.lostToStockout} people · about {dollars(missedSales)} not taken
-              </span>
-            </div>
-          )}
-          {r.sideWasted > 0 && (
-            <div className="ledger">
-              <span>🍭 Baked too many — treats binned</span>
-              <span className="out">{r.sideWasted} of {r.sideBatchSize}</span>
-            </div>
-          )}
-          {r.lostToCapacity > 0 && (
-            <div className="ledger">
-              <span>🙌 Line too long — gave up waiting</span>
-              <span className="out">{r.lostToCapacity} people</span>
-            </div>
-          )}
-          {judgedWell && (
-            <p style={{ margin: 0 }}>
-              <b>Nothing wasted and nobody turned away.</b> That is as close as it gets.
-            </p>
-          )}
+      {r.buildingOut && (
+        <div className="card card-tight" style={{ background: '#fff6e5' }}>
+          <p style={{ margin: 0 }}>
+            🔧 A week of building out. Nothing sold, because there was nothing to sell yet — and the
+            bills came anyway.
+          </p>
         </div>
       )}
 
+      {!r.buildingOut &&
+        (r.spoilage > 0 ||
+          r.lostToStockout > 0 ||
+          r.lostToCapacity > 0 ||
+          r.sideWasted > 0 ||
+          judgedWell) && (
+          <div className="card card-tight judgement">
+            <h3 style={{ margin: '0 0 2px' }}>🎯 How close was your order?</h3>
+            {r.spoilage > 0 && (
+              <div className="ledger">
+                <span>🗑️ Made too many — thrown away</span>
+                <span className="out">
+                  {r.spoilage} {units} · {dollars(wasted, true)}
+                </span>
+              </div>
+            )}
+            {r.lostToStockout > 0 && (
+              <div className="ledger">
+                <span>
+                  {r.served > 0
+                    ? '🚫 Ran out — walked away empty'
+                    : '🚫 Nothing to sell — walked away'}
+                </span>
+                <span className="out">
+                  {r.lostToStockout} people · about {dollars(missedSales)} not taken
+                </span>
+              </div>
+            )}
+            {r.sideWasted > 0 && (
+              <div className="ledger">
+                <span>🍭 Baked too many — treats binned</span>
+                <span className="out">
+                  {r.sideWasted} of {r.sideBatchSize}
+                </span>
+              </div>
+            )}
+            {r.lostToCapacity > 0 && (
+              <div className="ledger">
+                <span>🙌 Line too long — gave up waiting</span>
+                <span className="out">{r.lostToCapacity} people</span>
+              </div>
+            )}
+            {judgedWell && (
+              <p style={{ margin: 0 }}>
+                <b>Nothing wasted and nobody turned away.</b> That is as close as it gets.
+              </p>
+            )}
+          </div>
+        )}
+
       <div className="recap-cols">
         <div className="card">
-          <LedgerRow label="🥤 Cups sold" amount={r.served} explainId="cupsSold" showExplain={ex} />
+          <LedgerRow
+            label={`🥤 ${units[0].toUpperCase()}${units.slice(1)} sold`}
+            amount={r.served}
+            explainId="cupsSold"
+            showExplain={ex}
+          />
           {r.sideBatchSize > 0 && (
             <LedgerRow
               label="🍭 Treats sold"
@@ -210,7 +238,7 @@ export function Recap({
                   is noise on the one screen that has to read cleanly. */}
               {r.cogs - r.sideCogs > 0 && (
                 <LedgerRow
-                  label={`🍋 Cost of cups sold (${dollars(r.avgUnitCost, true)} each)`}
+                  label={`🍋 Cost of ${units} sold (${dollars(r.avgUnitCost, true)} each)`}
                   amount={`-${dollars(r.cogs - r.sideCogs)}`}
                   tone="out"
                   explainId="cogs"
@@ -257,6 +285,15 @@ export function Recap({
                   amount={`-${dollars(spotCost)}`}
                   tone="out"
                   explainId="fixedCosts"
+                  showExplain={ex}
+                />
+              )}
+              {r.assetPayment > 0 && (
+                <LedgerRow
+                  label="📄 Lease payment"
+                  amount={`-${dollars(r.assetPayment)}`}
+                  tone="out"
+                  explainId="assetPayment"
                   showExplain={ex}
                 />
               )}
@@ -531,7 +568,9 @@ export function Recap({
         </button>
       )}
 
-      {goodStoppingPoint && <p className="center muted">Good place to pause — your save is safe.</p>}
+      {goodStoppingPoint && (
+        <p className="center muted">Good place to pause — your save is safe.</p>
+      )}
     </div>
   );
 }
