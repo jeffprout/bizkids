@@ -217,8 +217,23 @@ export interface EventChoice {
   equipment?: number;
   /** Permanent change to how many cups a week you can serve. */
   capacity?: number;
-  /** Instant one-off effects applied when the choice is made. */
+  /**
+   * Instant one-off effects applied when the choice is made.
+   *
+   * `cash` is BUSINESS-SIZED money — a permit, a repair, a catering invoice —
+   * and scales with the tier, because a bigger business faces bigger bills.
+   */
   cash?: number;
+  /**
+   * Money measured in what you sell, converted at this week's actual price.
+   *
+   * Refunding one cold meal is not a business-sized bill, it is one meal. Priced
+   * in dollars it went through the tier's money multiplier and a $30 refund
+   * became $75 at Tycoon — nearly seven meals handed back for one complaint.
+   * Priced in units it is simply the price, at every tier, forever, and a card
+   * written today stays right when a business reprices tomorrow.
+   */
+  cashUnits?: number;
   reputation?: number;
   inventory?: number;
   /** Multipliers that apply to THIS week's simulation only. */

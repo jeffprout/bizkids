@@ -963,8 +963,10 @@ describe('fixes from the live playtest', () => {
     const r = next.lastResult!;
     expect(r.eventLines).toHaveLength(2);
     expect(r.eventLines.map((l) => l.title)).toEqual(['Permit Please', 'Bad Review']);
-    // -22 and -3 at Pro's 1x event scale.
-    expect(r.eventLines.map((l) => l.cash)).toEqual([-22, -3]);
+    // The permit is a bill, so it is -22 at Pro's 1x event scale. The refund is
+    // one cup handed back, so it is the price of a cup and nothing to do with
+    // the tier — the two kinds of money on a card, both landing on the line.
+    expect(r.eventLines.map((l) => l.cash)).toEqual([-22, -state.price]);
     const parts = r.eventLines.reduce((sum, l) => sum + l.cash, 0);
     expect(parts).toBeCloseTo(r.eventCash, 2);
   });

@@ -270,7 +270,8 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'free',
         label: 'Comp their meal',
-        cash: -12,
+        // The meal leaves the truck and that is the whole cost — you never had
+        // the money to lose. Charging cash on top billed the same meal twice.
         inventory: -1,
         reputation: 0.45,
         demandMod: 1.2,
@@ -291,7 +292,8 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'apologize',
         label: 'Refund and apologize',
-        cash: -30,
+        // One meal handed back, at whatever you are charging for one.
+        cashUnits: -1,
         reputation: 0.15,
         result: 'Handled properly. They came back the next week.',
       },

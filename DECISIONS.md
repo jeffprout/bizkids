@@ -7,6 +7,52 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-08-25 (later) — Two kinds of money, and a ceiling below the floor
+
+**"Why is the refund of an angry customer $75?"** Because the card was written
+`cash: -30` and Tycoon multiplied it by 2.5. Both halves of that are wrong. $30
+was already three and a half meals at Pro, for one cold meal handed back; and a
+refund is not the kind of money a tier should scale at all.
+
+There are two kinds of money on an event card and the engine only had one. A
+permit, a repair, a catering invoice is BUSINESS-SIZED and should scale with the
+tier. Giving a customer their money back is worth one order, and the price of an
+order barely moves between tiers ($9 → $11 on the truck, $1.50 → $1.75 on the
+stand) while `eventScale` moves 2.5x. Cards can now say `cashUnits` and the
+engine converts it at what the player is actually charging that week — right at
+every tier, and still right if a business is ever repriced.
+
+Both Bad Review cards became `cashUnits: -1`. Two more cards were double-billing:
+"Comp their meal" and "Give them a free cup" charged cash AND removed the item
+from stock, so comping an $11 meal cost $30 of cash plus $4.16 of food. The meal
+leaving the truck IS the cost — you never had the money to lose — which is also
+the better lesson. The cash line is gone from both.
+
+**"Supplies only go up to 600 on Tycoon. I can serve over 1000."** The stepper's
+ceiling was a hard-coded 600, written when 600 was more than any business could
+serve. The supplies card said "can serve 1,144" directly above a stepper that
+stopped at 600. It is twice serving capacity now — over-ordering has to stay
+possible, because throwing stock away is half of what the week teaches, and a
+ceiling AT capacity would quietly remove it. When the stepper does stop, it says
+which wall you hit: "all you can afford" or "more than you can serve".
+
+The arithmetic moved to `src/engine/restock.ts` where it can be tested, since it
+carries three real constraints (the money, the committed bill, the serving
+ceiling) and a rule that must never break — a business with no stock and no way
+to earn is always offered one pack.
+
+**Three capacity numbers became one.** The week screen computed serving capacity
+in two places and neither applied the menu's `capacityMod`, so the chip promised
+624 on an Everything Menu the engine would cap at 424.
+
+**`npx tsc --noEmit` checks NOTHING in this repo.** The root `tsconfig.json` is
+solution-style (`"files": []` plus references), so that command type-checks an
+empty file list and exits 0 no matter what is broken. `npm run check` (`tsc -b &&
+vitest run`) is the real gate. Found by shipping a `Cannot find name` past a
+green `--noEmit`.
+
+---
+
 ## 2026-08-25 — Tycoon was a tax, not a difficulty
 
 Jeff, playing the food truck: *"I can't make a dollar in Tycoon on the food

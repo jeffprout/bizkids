@@ -70,7 +70,20 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     decisions.eventChoices,
     tier.eventScale,
     tier.trafficScale,
+    decisions.price,
   );
+
+  /**
+   * A refund is one order handed back, so it is worth what one order costs.
+   *
+   * Money on a card comes in two kinds. A permit, a repair or a catering invoice
+   * is business-sized and scales with the tier. Giving a customer their money
+   * back is not: it is the price, and the price barely moves between tiers. Run
+   * through the money multiplier, a $30 refund became $75 at Tycoon — seven
+   * meals handed back for one cold one. Cards say `cashUnits` for that kind and
+   * it is converted here, at what the player is actually charging.
+   */
+  const unitMoney = money(ev.cashUnits * decisions.price);
 
   let cash = cashStart;
   let inventory = state.inventory;
@@ -130,12 +143,12 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 4. Instant event effects ------------------------------------------
-  cash = money(cash + ev.cash);
+  cash = money(cash + ev.cash + unitMoney);
   reputation += ev.reputation;
 
   let stockLost = 0;
   let stockLostCost = 0;
-  let eventCash = money(ev.cash);
+  let eventCash = money(ev.cash + unitMoney);
 
   if (ev.inventory > 0) {
     // A card that hands you stock is a purchase, not an expense. Its cash is
@@ -146,7 +159,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     inventory += ev.inventory;
     inventoryCost = money(inventoryCost + stockSpend);
     suppliesBought = money(suppliesBought + stockSpend);
-    eventCash = money(ev.cash + stockSpend);
+    eventCash = money(ev.cash + unitMoney + stockSpend);
   } else if (ev.inventory < 0) {
     // Stock an event destroys is a real loss, written off at what it cost.
     const before = inventory;

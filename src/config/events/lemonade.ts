@@ -288,7 +288,8 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       {
         id: 'free',
         label: 'Give them a free cup',
-        cash: -1,
+        // The cup leaves the cooler and that is the whole cost — you never had
+        // the money to lose. Charging cash on top billed the same cup twice.
         inventory: -1,
         reputation: 0.45,
         demandMod: 1.2,
@@ -309,7 +310,8 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       {
         id: 'apologize',
         label: 'Apologize, refund it',
-        cash: -3,
+        // One cup handed back, at whatever you are charging for one.
+        cashUnits: -1,
         reputation: 0.15,
         result: 'Handled well. They came back later.',
       },

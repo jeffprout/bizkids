@@ -8,6 +8,7 @@ import { StandArt } from '../components/StandArt';
 import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
 import { Choice, Stepper, dollars } from '../components/bits';
 import { priceBandFor } from '../../engine/pricing';
+import { restockBounds } from '../../engine/restock';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -112,20 +113,36 @@ export function Week({
     marketingOptions,
   ]);
 
-  // The stepper can never go past what the player can pay for, so there is no
-  // way to land on a disabled button with no obvious way out. What is left after
-  // the week's committed bill is the real budget, not the whole bank balance.
+  /**
+   * How many the business could physically put out this week, counting the
+   * helpers being hired on this very screen.
+   *
+   * Serving capacity is the honest ceiling on an order: past it, every extra
+   * one is guaranteed waste. It also has to be a ceiling the player recognises,
+   * because the same number is on the supplies card as "can serve N".
+   */
+  const servingCapacity = Math.round(
+    (biz.soloCapacity +
+      state.bonusCapacity +
+      state.employees
+        .filter((e) => !letGo.includes(e.id))
+        .reduce((sum, e) => sum + e.capacityBonus, 0) +
+      hireIds.reduce(
+        (sum, id) => sum + (employeeOptions.find((e) => e.id === id)?.capacityBonus ?? 0),
+        0,
+      )) *
+      (quality.capacityMod ?? 1),
+  );
+
   const stockBudget = Math.max(0, state.cash - committedCosts);
-  const stepsFor = (budget: number) =>
-    unitCost > 0
-      ? Math.floor(Math.floor(budget / unitCost) / tier.restockStep) * tier.restockStep
-      : 600;
-  // Reserving the bill must never leave a player with stock they cannot buy and
-  // nothing to sell. If the bank covers one order at all, one order stays on the
-  // table — going short into a week you can sell your way out of beats a dead end.
-  const floorUnits =
-    state.inventory === 0 && stepsFor(state.cash) >= tier.restockStep ? tier.restockStep : 0;
-  const restockMax = Math.max(0, Math.min(600, Math.max(stepsFor(stockBudget), floorUnits)));
+  const { max: restockMax, affordable } = restockBounds({
+    cash: state.cash,
+    committed: committedCosts,
+    unitCost,
+    step: tier.restockStep,
+    capacity: servingCapacity,
+    inventory: state.inventory,
+  });
 
   /**
    * The week's deck.
@@ -200,7 +217,6 @@ export function Week({
     locationId,
     state.locationId,
     state.stage,
-    state.employees.length,
     state.week,
     state.forecast,
     state.season,
@@ -228,28 +244,14 @@ export function Week({
       0,
     );
 
-    const capacity =
-      biz.soloCapacity +
-      state.bonusCapacity +
-      state.employees
-        .filter((e) => !letGo.includes(e.id))
-        .reduce((sum, e) => sum + e.capacityBonus, 0) +
-      hireIds.reduce(
-        (sum, id) => sum + (biz.employees.find((e) => e.id === id)?.capacityBonus ?? 0),
-        0,
-      );
-
-    const want = Math.min(baseline * (1 + lift), capacity);
+    const want = Math.min(baseline * (1 + lift), servingCapacity);
     const need = Math.round((want - state.inventory) / tier.restockStep) * tier.restockStep;
     return Math.max(0, Math.min(restockMax, need));
   }, [
     state.history,
     state.inventory,
-    state.employees,
-    state.bonusCapacity,
+    servingCapacity,
     buyMarketing,
-    hireIds,
-    letGo,
     biz,
     tier.restockStep,
     restockMax,
@@ -271,16 +273,7 @@ export function Week({
   // good. The engine has always counted it; this chip did not, so a player who
   // bought a second table watched the number sit still and reasonably concluded
   // the purchase had done nothing.
-  const capacityAfter =
-    biz.soloCapacity +
-    state.bonusCapacity +
-    state.employees
-      .filter((e) => !letGo.includes(e.id))
-      .reduce((sum, e) => sum + e.capacityBonus, 0) +
-    hireIds.reduce(
-      (sum, id) => sum + (biz.employees.find((e) => e.id === id)?.capacityBonus ?? 0),
-      0,
-    );
+  const capacityAfter = servingCapacity;
 
   /**
    * A refit still running means there is nothing to decide: the doors are
@@ -472,7 +465,12 @@ export function Week({
                 </span>
               )}
               {restockUnits >= restockMax && restockMax > 0 && (
-                <span className="pill">💳 all you can afford</span>
+                // Which wall you hit matters. "All you can afford" beside a
+                // stepper that stopped because there is nobody left to sell to
+                // is the game blaming your bank balance for its own ceiling.
+                <span className="pill">
+                  {affordable <= restockMax ? '💳 all you can afford' : '🙌 more than you can serve'}
+                </span>
               )}
             </div>
             <p className="muted">

@@ -1,4 +1,4 @@
-import type { BusinessDef, GameEvent, GameState } from './types';
+import type { GameEvent, GameState } from './types';
 import { makeRng, weightedPick } from './rng';
 
 const NO_REPEAT_WEEKS = 8;
@@ -64,6 +64,9 @@ export function drawEvents(state: GameState, pool: GameEvent[], seed: number): G
 
 export interface EventEffects {
   cash: number;
+  /** Cash owed in units of what the business sells, converted by the caller at
+   *  this week's price. Deliberately not scaled: the price already is. */
+  cashUnits: number;
   reputation: number;
   inventory: number;
   demandMod: number;
@@ -101,12 +104,16 @@ export function resolveEventChoices(
    * stings exactly as much as it did at Pro.
    */
   unitScale = 1,
-  /** Unused now every card is written for one business. Kept so callers that
-   *  pass it still compile. */
-  _biz?: BusinessDef,
+  /**
+   * What one of the things costs this week, so a choice priced in units can be
+   * turned into money for the recap's per-card line. The engine converts the
+   * total itself; this is only so the card can name its own figure.
+   */
+  unitPrice = 0,
 ): EventEffects {
   const out: EventEffects = {
     cash: 0,
+    cashUnits: 0,
     reputation: 0,
     inventory: 0,
     demandMod: 1,
@@ -125,6 +132,7 @@ export function resolveEventChoices(
     const chosenId = choices[event.id];
     const choice = event.choices.find((c) => c.id === chosenId) ?? event.choices[0];
     out.cash += Math.round((choice.cash ?? 0) * scale * 100) / 100;
+    out.cashUnits += choice.cashUnits ?? 0;
     out.reputation += choice.reputation ?? 0;
     const stockChange = Math.round((choice.inventory ?? 0) * unitScale);
     out.inventory += stockChange;
@@ -143,7 +151,8 @@ export function resolveEventChoices(
       emoji: event.emoji,
       text: choice.result,
       title: event.title,
-      cash: Math.round((choice.cash ?? 0) * scale * 100) / 100,
+      cash:
+        Math.round(((choice.cash ?? 0) * scale + (choice.cashUnits ?? 0) * unitPrice) * 100) / 100,
     });
   }
 
