@@ -7,7 +7,7 @@ import { Hud } from '../components/Hud';
 import { StandArt } from '../components/StandArt';
 import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
 import { Choice, Stepper, dollars } from '../components/bits';
-import { priceBoundsFor } from '../../engine/pricing';
+import { priceBandFor } from '../../engine/pricing';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -72,7 +72,7 @@ export function Week({
   const units = biz.unitNamePlural;
 
   // What the price control may offer, scaled to what this business charges.
-  const priceBounds = priceBoundsFor(biz.referencePrice[state.tier], tier);
+  const priceBounds = priceBandFor(biz, state.tier, tier);
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 

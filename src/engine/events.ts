@@ -1,4 +1,4 @@
-import type { GameEvent, GameState } from './types';
+import type { BusinessDef, GameEvent, GameState } from './types';
 import { makeRng, weightedPick } from './rng';
 
 const NO_REPEAT_WEEKS = 8;
@@ -83,6 +83,9 @@ export function resolveEventChoices(
   choices: Record<string, string>,
   /** Tier scaling for cash and stock swings. Multipliers are never scaled. */
   scale = 1,
+  /** Unused now every card is written for one business. Kept so callers that
+   *  pass it still compile. */
+  _biz?: BusinessDef,
 ): EventEffects {
   const out: EventEffects = {
     cash: 0,

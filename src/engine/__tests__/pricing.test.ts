@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { priceBoundsFor } from '../pricing';
+import { priceBandFor, priceBoundsFor } from '../pricing';
 import { TIERS } from '../../config/difficulty';
 import { BUSINESSES } from '../../config/businesses';
 import type { Tier } from '../types';
+import { simulateWeek } from '../simulateWeek';
+import { newGame } from '../newGame';
 
 /**
  * The price control has to work for a $1.50 cup and a $9 meal.
@@ -86,6 +88,49 @@ describe('what the price control offers', () => {
     ] as const) {
       expect(bounds.step / reference).toBeGreaterThan(0.04);
       expect(bounds.step / reference).toBeLessThan(0.2);
+    }
+  });
+
+  it('lets the player reach any price the rival can ask', () => {
+    // The rival used to snap to quarters no matter what, which is the lemonade
+    // stand's grid. On a truck stepping in dollars it would sit at $9.75 and
+    // simply could not be matched.
+    for (const biz of Object.values(BUSINESSES)) {
+      for (const tier of ['rookie', 'pro', 'tycoon'] as Tier[]) {
+        if (!biz.loanOffers[tier]?.length) continue;
+        const band = priceBandFor(biz, tier, TIERS[tier]);
+        const cents = (n: number) => Math.round(n * 100);
+        expect(cents(band.step), `${biz.id} ${tier} step`).toBeGreaterThan(0);
+        // Every price the rival can land on has to sit on the player's grid.
+        for (let p = band.min; p <= band.max + 1e-9; p += band.step) {
+          expect(cents(p) % cents(band.step), `${biz.id} ${tier} at ${p}`).toBe(0);
+        }
+      }
+    }
+  });
+
+  it('keeps a real rival on the grid over a whole run', () => {
+    let s = newGame({
+      profileId: 'grid',
+      businessId: 'truck',
+      tier: 'pro',
+      financing: { loanIds: [], savingsUsed: 15000, locationId: 'office-park', assetId: 'lease' },
+      seed: 31,
+    });
+    const band = priceBandFor(BUSINESSES.truck, 'pro', TIERS.pro);
+    const cents = (n: number) => Math.round(n * 100);
+    for (let w = 0; w < 30; w++) {
+      s = simulateWeek(s, {
+        price: s.price,
+        qualityId: s.qualityId,
+        restockUnits: 150,
+        locationId: s.locationId,
+        eventChoices: {},
+        buyMarketing: [],
+      });
+      expect(cents(s.rivalPrice) % cents(band.step), `week ${w + 1} rival $${s.rivalPrice}`).toBe(0);
+      expect(s.rivalPrice).toBeGreaterThanOrEqual(band.min);
+      expect(s.rivalPrice).toBeLessThanOrEqual(band.max);
     }
   });
 });

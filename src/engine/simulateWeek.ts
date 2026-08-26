@@ -7,6 +7,7 @@ import { forecastFor, rollWeather, seasonForWeek } from './calendar';
 import { applySpoilage, computeDemand, rivalShare } from './demand';
 import { drawEvents, resolveEventChoices } from './events';
 import { chargeWeek, money } from './loans';
+import { priceBandFor } from './pricing';
 import { makeRng, nextSeed } from './rng';
 import { sanitizeRun } from './sanitize';
 
@@ -43,7 +44,12 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const cashStart = state.cash;
   const reputationStart = state.reputation;
 
-  const ev = resolveEventChoices(state.pendingEvents, decisions.eventChoices, tier.eventScale);
+  const ev = resolveEventChoices(
+    state.pendingEvents,
+    decisions.eventChoices,
+    tier.eventScale,
+    biz,
+  );
 
   let cash = cashStart;
   let inventory = state.inventory;
@@ -424,7 +430,11 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   if (facesRival && rivalCooldown <= 0) {
     const roll = forecastRng();
     const target = price * (0.82 + roll * 0.3);
-    rivalPrice = Math.max(0.5, Math.round(target * 4) / 4);
+    // Onto the same grid the player's own control uses, so whatever the rival
+    // asks can actually be matched or undercut.
+    const grid = priceBandFor(biz, state.tier, tier);
+    rivalPrice = Math.max(grid.min, Math.round(target / grid.step) * grid.step);
+    rivalPrice = Math.min(grid.max, Math.round(rivalPrice * 100) / 100);
     rivalCooldown = biz.rival.changeEvery;
   }
 

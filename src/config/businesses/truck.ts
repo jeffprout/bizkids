@@ -326,6 +326,7 @@ export const FOOD_TRUCK: BusinessDef = {
   tagline: 'Park it where the people are.',
   unitName: 'meal',
   unitNamePlural: 'meals',
+  placeName: 'truck',
   savings: { rookie: 2600, pro: 15000, tycoon: 70000 },
   startupCost: { rookie: 2100, pro: 12000, tycoon: 60000 },
   startupBuys: 'a truck, a griddle and your first food order',
@@ -337,6 +338,14 @@ export const FOOD_TRUCK: BusinessDef = {
   loanOffers: LOAN_OFFERS,
   marketing: MARKETING,
   employees: EMPLOYEES,
+  // Quarters, because the rival prices to the quarter and a player who cannot
+  // match them is not competing. The band is narrower than the tier would give
+  // so that quarters do not mean a hundred taps end to end.
+  priceBand: {
+    rookie: { min: 3, max: 13, step: 0.25 },
+    pro: { min: 4, max: 20, step: 0.25 },
+    tycoon: { min: 5, max: 24, step: 0.25 },
+  },
   referencePrice: { rookie: 6, pro: 9, tycoon: 11 },
   defaultPrice: { rookie: 6, pro: 9, tycoon: 11 },
   // One person on a window can serve a lunch rush, not a festival.

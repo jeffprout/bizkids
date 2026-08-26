@@ -1572,6 +1572,69 @@ than claimed to look good.
 
 ---
 
+## 2026-08-26 — Two event pools, and the price grid
+
+### Every card now belongs to one business
+
+Jeff got a glowing review for his food truck thanking him for the lemonade and
+offering to hand out a free cup. Then a rival **Kid** parked outside it and he
+was asked whether to add free cookies.
+
+There was one shared "universal" pool of twenty-three cards. It was written when
+there was only a lemonade stand, so it said "your lemonade", "a free cup", "the
+stand", and cast a rival as a kid.
+
+I tried placeholders first — `{units}`, `{place}` — and Jeff was right to reject
+it: *"Its all of them. Look at them all and make completely new ones per
+business."* A card that fits every business belongs to none of them. "Someone
+opened across the street. Same thing, cheaper." is not a sentence anybody says.
+
+So there is no shared pool. Each business has its own complete set, in its own
+voice, and events moved into `config/events/` beside the business they belong to.
+
+**The concepts stay shared, because those are the curriculum.** A test asserts
+both pools cover all twenty-two of them — competition, word of mouth, service
+recovery, fixed costs, shrinkage, insurance, inventory risk and the rest — so
+adding a business cannot quietly drop a lesson. Only the telling differs:
+
+| concept | lemonade stand | food truck |
+|---|---|---|
+| Competition | "New stand across the street. Same drink, lower price." | "Another truck pulled in twenty feet away. Same menu." |
+| Word of mouth | Neighbor: "I told the whole street about your lemonade!" | Food blogger: "I put you top of my street food list." |
+| Shrinkage | Empty box, $34 lockbox | Empty till, $340 and a receipt roll |
+| Capex | The cooler cracked | The fryer quits |
+
+Money is scaled to the business — the truck turns over a couple of thousand a
+week, so a $9 problem is not a problem. There is a test for that too.
+
+The lemonade numbers are **byte-identical** to what shipped. Only its wording
+came back from the placeholder detour.
+
+**One thing worth knowing:** a save carries the event objects it was dealt, so a
+run already in progress keeps whatever cards it drew under the old code until
+they cycle. Jeff may see one or two old ones. A fresh run is clean — verified
+over eleven weeks, seven cards drawn, all seven the truck's own.
+
+Also swept: "kid" is gone from every character, and `rubbish` joined the list of
+British words the tests refuse.
+
+### The price grid
+
+Jeff: *"Price needs to go up in .25 increments if a rival is going to be at
+9.75."*
+
+Two faults, one visible. The rival snapped to quarters — `Math.round(target * 4)
+/ 4` — which is the **lemonade stand's** grid, hardcoded. On a truck stepping in
+dollars it would sit at $9.75 and simply could not be matched or undercut.
+
+Both the player's control and the rival now go through `priceBandFor`, so they
+cannot drift apart. The truck declares its own band — $4 to $20 in quarters at
+Pro — because quarters across the tier's full range would be over a hundred
+taps. A test walks a real thirty-week run and asserts the rival never lands off
+the grid.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

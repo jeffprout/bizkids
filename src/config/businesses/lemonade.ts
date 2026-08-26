@@ -318,6 +318,7 @@ export const LEMONADE: BusinessDef = {
   tagline: 'Pricing and location. The classic first business.',
   unitName: 'cup',
   unitNamePlural: 'cups',
+  placeName: 'stand',
   // Savings alone must always cover startup, or the all-savings path is not
   // playable and the financing choice stops being a real choice.
   savings: { rookie: 35, pro: 55, tycoon: 210 },

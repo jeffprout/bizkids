@@ -208,12 +208,7 @@ export interface EmployeeDef {
 }
 
 export type EventEffectKey =
-  | 'cash'
-  | 'reputation'
-  | 'demandMod'
-  | 'inventory'
-  | 'unitCostMod'
-  | 'capacityMod';
+  'cash' | 'reputation' | 'demandMod' | 'inventory' | 'unitCostMod' | 'capacityMod';
 
 export interface EventChoice {
   id: string;
@@ -485,6 +480,12 @@ export interface BusinessDef {
   /** What one unit of product is called. */
   unitName: string;
   unitNamePlural: string;
+  /**
+   * What the player calls the thing they work out of — a stand, a truck, a
+   * shop. Universal event cards use it so one card can be dealt to any
+   * business without sounding like it was written for another one.
+   */
+  placeName: string;
   /** Money the player already has, per tier. */
   savings: Record<Tier, number>;
   /** Cost to open the doors, per tier. */
@@ -507,6 +508,16 @@ export interface BusinessDef {
   marketing: MarketingChannel[];
   employees: EmployeeDef[];
   /** Price customers think is normal. The price curve pivots here. */
+  /**
+   * What the price control offers, when the tier's own multipliers do not suit.
+   *
+   * The tier says how far a player may stray from the going rate and how finely,
+   * which works for a lemonade stand. A food truck needs quarters — its rival
+   * prices to the quarter, and a player who can only move in dollars can never
+   * match or undercut them — but quarters across the tier's full range would be
+   * over a hundred taps, so it names its own band instead.
+   */
+  priceBand?: Record<Tier, { min: number; max: number; step: number }>;
   referencePrice: Record<Tier, number>;
   defaultPrice: Record<Tier, number>;
   /** Units one pair of hands can serve in a week. */

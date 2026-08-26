@@ -1,4 +1,5 @@
 import type { TierConfig } from '../config/difficulty';
+import type { BusinessDef, Tier } from './types';
 
 /**
  * Steps a price control can actually use. A price of $1.53 or $0.31 reads as a
@@ -50,3 +51,16 @@ export function priceBoundsFor(referencePrice: number, tier: TierConfig): PriceB
 }
 
 const round = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * The band for a business, preferring whatever it declares for itself.
+ *
+ * Everything that needs to agree on the price grid goes through here — the
+ * control the player taps AND the rival's pricing — so the two can never drift
+ * apart. They had: the rival snapped to quarters no matter what, which is the
+ * lemonade stand's grid, so a truck rival sat at $9.75 while the player could
+ * only reach $9 or $10.
+ */
+export function priceBandFor(biz: BusinessDef, tier: Tier, tierConfig: TierConfig): PriceBounds {
+  return biz.priceBand?.[tier] ?? priceBoundsFor(biz.referencePrice[tier], tierConfig);
+}
