@@ -233,14 +233,22 @@ export interface EventChoice {
    * already has.
    */
   priceMod?: number;
+  /**
+   * The business cannot move this week, whatever the player would prefer.
+   *
+   * A truck whose engine has just blown, and whose owner chose not to fix it,
+   * is not driving anywhere — but the very next card asked where to park.
+   * Choices that ground the business say so, and the spot card is not dealt.
+   */
+  locksLocation?: boolean;
   /** Line the mascot says after the choice. */
   result: string;
 }
 
 export interface GameEvent {
   id: string;
-  /** 'universal' events can fire for any business. */
-  pool: 'universal' | string;
+  /** Which business's pool this card belongs to. */
+  pool: string;
   character: string;
   emoji: string;
   title: string;
@@ -255,6 +263,15 @@ export interface GameEvent {
   weathers?: Weather[];
   /** Only draw when this is true of the state. Named predicates live in events.ts. */
   requires?: 'hasEmployee' | 'hasLoan' | 'hasInventory' | 'hasMarketing';
+  /**
+   * Only happens at these spots.
+   *
+   * A festival organizer auctioning the main gate pitch has nothing to say to
+   * somebody parked outside an office block, and was saying it anyway. Cards
+   * with this are dealt AFTER the spot is chosen, and drop out of the week
+   * entirely if the player picks somewhere else.
+   */
+  locations?: string[];
   weight: number;
   concept: string;
 }

@@ -166,9 +166,28 @@ export function Week({
     const offset = extras.length ? week % extras.length : 0;
     const rotated = [...extras.slice(offset), ...extras.slice(0, offset)];
 
+    // A card that grounds the business takes the spot question off the table.
+    // Asking a player who just chose not to move where they would like to move
+    // is the game arguing with itself.
+    const grounded = state.pendingEvents.some((e) => {
+      const chosen = e.choices.find((c) => c.id === eventChoices[e.id]);
+      return Boolean(chosen?.locksLocation);
+    });
+
+    /**
+     * Cards tied to a spot are dealt AFTER the spot is chosen, and only if the
+     * player actually went there. A festival organizer auctioning the main gate
+     * has nothing to say to somebody parked outside an office block.
+     */
+    const anywhere = state.pendingEvents.filter((e) => !e.locations);
+    const atThisSpot = state.pendingEvents.filter(
+      (e) => e.locations && e.locations.includes(grounded ? state.locationId : locationId),
+    );
+
     return [
-      ...state.pendingEvents.map((e) => `event:${e.id}`),
-      'location',
+      ...anywhere.map((e) => `event:${e.id}`),
+      ...(grounded ? [] : ['location']),
+      ...atThisSpot.map((e) => `event:${e.id}`),
       'price',
       ...(stage2 ? ['staff'] : []),
       ...rotated.slice(0, room),
@@ -177,6 +196,9 @@ export function Week({
     ];
   }, [
     state.pendingEvents,
+    eventChoices,
+    locationId,
+    state.locationId,
     state.stage,
     state.employees.length,
     state.week,

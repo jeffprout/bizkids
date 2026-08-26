@@ -73,6 +73,8 @@ export interface EventEffects {
   /** Permanent, unlike the Mod fields: gear kept and capacity gained. */
   equipment: number;
   capacity: number;
+  /** Some choices ground the business for the week. */
+  locksLocation: boolean;
   /** One per card played, so the recap can name which card cost what. */
   lines: { emoji: string; text: string; title: string; cash: number }[];
 }
@@ -97,6 +99,7 @@ export function resolveEventChoices(
     capacityMod: 1,
     equipment: 0,
     capacity: 0,
+    locksLocation: false,
     lines: [],
   };
 
@@ -112,6 +115,7 @@ export function resolveEventChoices(
     out.capacityMod *= choice.capacityMod ?? 1;
     out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
     out.capacity += Math.round((choice.capacity ?? 0) * scale);
+    out.locksLocation = out.locksLocation || Boolean(choice.locksLocation);
     out.lines.push({
       emoji: event.emoji,
       text: choice.result,

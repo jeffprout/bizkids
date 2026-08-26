@@ -1635,6 +1635,42 @@ the grid.
 
 ---
 
+## 2026-08-26 — Cards that contradicted the week they were dealt into
+
+Two from Jeff playing the truck, and they are the same class of fault: an event
+card is dealt without knowing anything about the week it lands in.
+
+**"My engine blew. I picked not to move. The next screen asked if I wanted to
+move."** A choice can now say `locksLocation`, and when it is taken the spot card
+is not dealt at all and the engine ignores any spot that was asked for. The truck
+is charged rent where it actually stood.
+
+**"This should only fire if I pick the festival."** The festival organizer was
+auctioning the main gate pitch to somebody parked outside an office block. Cards
+can now name the spots they belong to. Those are dealt AFTER the spot is chosen,
+and if the player parks elsewhere the card does not fire and none of its effects
+land — no bid, no cash, no line in the recap.
+
+The ordering matters and is worth stating: the spot is settled first, then which
+cards happen, then their effects. It used to be the other way round, which is
+precisely how a card could argue with the week around it.
+
+Five tests, including that a choice which pins you in place has to admit it in
+its own label.
+
+*(The $800 bid in Jeff's screenshot was correct — Tycoon's 2.5x event scale on a
+$320 card.)*
+
+### Title art, third pass
+
+From seeing it rendered rather than reasoning about the numbers. The awning sat
+ON the serving window as a yellow block; it is a band above the window now,
+angled, with its underside shaded and a strut holding it up. The pitcher was a
+yellow square and now has a handle, a spout and a lid. The ground line ran the
+full width and stuck out past the truck; it stops where the drawing does.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.

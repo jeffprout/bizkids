@@ -670,6 +670,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         id: 'skip',
         label: 'Do not move this week',
         demandMod: 0.45,
+        locksLocation: true,
         result: 'You stay put and take whoever walks past.',
       },
     ],
@@ -683,6 +684,9 @@ export const TRUCK_EVENTS: GameEvent[] = [
     line: 'Main gate pitch, Saturday. Highest bidder takes it.',
     weight: 7,
     seasons: ['spring', 'summer', 'fall'],
+    // Only at the festival. Bidding for a pitch you are not attending is not a
+    // decision, it is a non sequitur.
+    locations: ['festival'],
     concept: 'Bidding for a spot with no guarantee',
     choices: [
       {

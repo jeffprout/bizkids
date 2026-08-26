@@ -28,8 +28,6 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const tier = TIERS[state.tier];
   const rng = makeRng(state.rngSeed);
 
-  const location =
-    biz.locations.find((l) => l.id === decisions.locationId) ?? biz.locations[0];
   const picked = biz.qualities.find((q) => q.id === decisions.qualityId) ?? biz.qualities[0];
   // A seasonal product comes off the menu when its season ends, so a player who
   // stops paying attention is put back on the year-round recipe rather than
@@ -44,12 +42,30 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const cashStart = state.cash;
   const reputationStart = state.reputation;
 
-  const ev = resolveEventChoices(
-    state.pendingEvents,
-    decisions.eventChoices,
-    tier.eventScale,
-    biz,
+  /**
+   * Where the week is actually spent.
+   *
+   * A card that grounds the business overrides whatever spot was asked for —
+   * the engine is in pieces, it is not going anywhere. That is settled first,
+   * because which cards even happen depends on where the week is spent.
+   */
+  const grounded = state.pendingEvents.some((e) =>
+    e.choices.some((c) => c.id === decisions.eventChoices[e.id] && c.locksLocation),
   );
+  const location =
+    biz.locations.find((l) => l.id === (grounded ? state.locationId : decisions.locationId)) ??
+    biz.locations[0];
+
+  /**
+   * A card tied to a spot only happens at that spot. Park somewhere else and the
+   * festival organizer is not there to talk to you, so the card does not fire
+   * and none of its effects land.
+   */
+  const eventsHappening = state.pendingEvents.filter(
+    (e) => !e.locations || e.locations.includes(location.id),
+  );
+
+  const ev = resolveEventChoices(eventsHappening, decisions.eventChoices, tier.eventScale, biz);
 
   let cash = cashStart;
   let inventory = state.inventory;
@@ -98,7 +114,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   }
   employees = employees.filter((e) => !letGo.includes(e.id));
 
-  const hiring = decisions.hireEmployeeIds ?? (decisions.hireEmployeeId ? [decisions.hireEmployeeId] : []);
+  const hiring =
+    decisions.hireEmployeeIds ?? (decisions.hireEmployeeId ? [decisions.hireEmployeeId] : []);
   for (const id of hiring) {
     const hire = biz.employees.find((e) => e.id === id);
     if (hire && !employees.some((e) => e.id === hire.id)) {
@@ -154,9 +171,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // The stand across the street. Undercut them and you take share; charge well
   // over them and customers walk.
   const facesRival = biz.rival.tiers.includes(state.tier);
-  const rivalMod = facesRival
-    ? rivalShare(price, state.rivalPrice, biz.rival.sensitivity)
-    : 1;
+  const rivalMod = facesRival ? rivalShare(price, state.rivalPrice, biz.rival.sensitivity) : 1;
   /**
    * A business still being built out cannot sell anything. The doors are shut,
    * refit is half finished, and every bill — the loan, the lease, the pitch fee
@@ -566,10 +581,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
       ...state.pendingEvents.map((e) => ({ id: e.id, week })),
     ],
     pendingEvents: [] as GameEvent[],
-    discussionLog: [
-      ...state.discussionLog,
-      ...discussionFlags.map((note) => ({ week, note })),
-    ],
+    discussionLog: [...state.discussionLog, ...discussionFlags.map((note) => ({ week, note }))],
   };
 
   nextState.pendingEvents = drawEvents(nextState, pool, seedAfterSim);
@@ -596,7 +608,8 @@ function coachFor(x: {
   ref: number;
   bought: number;
 }): string {
-  if (x.emergencyAdvance > 0) return 'You ran out of money. The bank covered it — that costs extra.';
+  if (x.emergencyAdvance > 0)
+    return 'You ran out of money. The bank covered it — that costs extra.';
   if (x.missedPayment) return 'You missed a loan payment. The banker is watching.';
   if (x.stagedUp) return 'Your stand just levelled up!';
   if (x.lostToStockout > x.served * 0.2) return 'You sold out early. Buy more supplies next week.';
@@ -613,8 +626,10 @@ function coachFor(x: {
       ? 'You threw out a lot. Buy a little less next week.'
       : 'Your leftover stock went bad. Drinks do not keep — sell them or lose them.';
   }
-  if (x.forecastWasWrong && x.profit <= 0) return 'The forecast was wrong and it cost you. That happens.';
-  if (x.lostToRival > x.served * 0.25) return 'The stand across the street is cheaper. People noticed.';
+  if (x.forecastWasWrong && x.profit <= 0)
+    return 'The forecast was wrong and it cost you. That happens.';
+  if (x.lostToRival > x.served * 0.25)
+    return 'The stand across the street is cheaper. People noticed.';
   if (x.grossProfit > 0 && x.profit <= 0) return 'You sold plenty but costs ate all of it.';
   if (x.price > x.ref * 1.8) return 'High price, fewer customers. Is it worth it?';
   if (x.profit <= 0) return 'You lost money this week. Check your costs.';
