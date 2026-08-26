@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
-import { WEATHER_INFO } from '../../engine/calendar';
+import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
 import { StandArt } from '../components/StandArt';
 import { CashCounter } from '../components/bits';
 import { sfx } from '../sfx';
@@ -57,7 +57,7 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
           Week {r.week} {WEATHER_INFO[r.weather].emoji}
         </h2>
         <p className="muted">
-          {WEATHER_INFO[r.weather].label}
+          {WEATHER_INFO[r.weather].label}, {temperatureFor(r.weather, r.season)}°
           {r.forecastWasWrong && ` — not the ${WEATHER_INFO[r.forecast].label.toLowerCase()} they promised`}
         </p>
       </div>

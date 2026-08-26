@@ -1,5 +1,5 @@
 import type { GameState, Tier } from './types';
-import { getBusiness } from '../config/businesses/lemonade';
+import { getBusiness } from '../config/businesses';
 import { eventsForBusiness } from '../config/events';
 import { rollMiniGoal } from '../config/milestones';
 import { forecastFor, rollWeather, seasonForWeek } from './calendar';

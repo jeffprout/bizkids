@@ -3,7 +3,7 @@ import type { GameState, Tier, WeekDecisions } from '../engine/types';
 import type { FinancingChoice } from '../engine/newGame';
 import { newGame } from '../engine/newGame';
 import { simulateWeek } from '../engine/simulateWeek';
-import { getBusiness } from '../config/businesses/lemonade';
+import { getBusiness } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { valueBusiness } from '../engine/valuation';
 import {

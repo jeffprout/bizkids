@@ -43,6 +43,7 @@ export default function App() {
 
       {screen === 'setup' && profile && (
         <Setup
+          businessId="lemonade"
           runOutdated={game.runOutdated}
           playerName={profile.name}
           onStart={(tier, financing) => void game.startRun(tier, financing)}

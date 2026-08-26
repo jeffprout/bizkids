@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState } from '../../engine/types';
 import { TIERS } from '../../config/difficulty';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { badgeById } from '../../config/milestones';
 import { WEATHER_INFO } from '../../engine/calendar';
+import { money } from '../../engine/loans';
 import { Confetti, ExplainToggle, LedgerRow, Stars, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
@@ -72,6 +73,23 @@ export function Recap({
   const inventorySwing = r.cogs + r.spoilageCost + r.stockLostCost - r.suppliesBought;
   const principalPaid = r.loanPayment - r.interestPaid;
 
+  /**
+   * The heart of a lemonade stand, and the only question the week really asks:
+   * did you order too much or too little?
+   *
+   * Order over and you throw the difference away. Order under and people queue
+   * up, find nothing, and leave. Both are losses, and neither appears in the
+   * profit line — the money you never took cannot show up in a ledger — so a
+   * nine-year-old looking at "11 left" had no way to tell whether that was good
+   * news or bad, and 129 people turned away sat in a grey pill under the total.
+   *
+   * So it goes above the ledger, in money, before anything else.
+   */
+  const wasted = money(r.spoilageCost);
+  const missedSales = money(r.lostToStockout * r.price);
+  const judgedWell =
+    r.spoilage === 0 && r.lostToStockout === 0 && r.sideWasted === 0 && r.served > 0;
+
   // A gentle nudge to stop, never a nag and never a timer.
   const goodStoppingPoint = state.week % 4 === 1 && state.week > 1;
 
@@ -98,13 +116,59 @@ export function Recap({
         )}
       </div>
 
+      {(r.spoilage > 0 ||
+        r.lostToStockout > 0 ||
+        r.lostToCapacity > 0 ||
+        r.sideWasted > 0 ||
+        judgedWell) && (
+        <div className="card card-tight judgement">
+          <h3 style={{ margin: '0 0 2px' }}>🎯 How close was your order?</h3>
+          {r.spoilage > 0 && (
+            <div className="ledger">
+              <span>🗑️ Made too many — thrown away</span>
+              <span className="out">
+                {r.spoilage} cups · {dollars(wasted, true)}
+              </span>
+            </div>
+          )}
+          {r.lostToStockout > 0 && (
+            <div className="ledger">
+              <span>
+                {r.served > 0 ? '🚫 Ran out — walked away empty' : '🚫 Nothing to sell — walked away'}
+              </span>
+              <span className="out">
+                {r.lostToStockout} people · about {dollars(missedSales)} not taken
+              </span>
+            </div>
+          )}
+          {r.sideWasted > 0 && (
+            <div className="ledger">
+              <span>🍭 Baked too many — treats binned</span>
+              <span className="out">{r.sideWasted} of {r.sideBatchSize}</span>
+            </div>
+          )}
+          {r.lostToCapacity > 0 && (
+            <div className="ledger">
+              <span>🙌 Line too long — gave up waiting</span>
+              <span className="out">{r.lostToCapacity} people</span>
+            </div>
+          )}
+          {judgedWell && (
+            <p style={{ margin: 0 }}>
+              <b>Nothing wasted and nobody turned away.</b> That is as close as it gets.
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="recap-cols">
         <div className="card">
           <LedgerRow label="🥤 Cups sold" amount={r.served} explainId="cupsSold" showExplain={ex} />
-          {r.sideUnits > 0 && (
+          {r.sideBatchSize > 0 && (
             <LedgerRow
               label="🍭 Treats sold"
-              amount={r.sideUnits}
+              // Sold of made, because the batch was paid for either way.
+              amount={`${r.sideUnits} of ${r.sideBatchSize}`}
               explainId="treatsSold"
               showExplain={ex}
             />
@@ -142,16 +206,20 @@ export function Recap({
               {/* Revenue is split by product, so cost has to be too — otherwise
                   "cost of cups sold" quietly contains the candy and neither
                   line's margin means anything. */}
-              <LedgerRow
-                label={`🍋 Cost of cups sold (${dollars(r.avgUnitCost, true)} each)`}
-                amount={`-${dollars(r.cogs - r.sideCogs)}`}
-                tone="out"
-                explainId="cogs"
-                showExplain={ex}
-              />
+              {/* A week that sold nothing has no cost of goods. Printing "-$0"
+                  is noise on the one screen that has to read cleanly. */}
+              {r.cogs - r.sideCogs > 0 && (
+                <LedgerRow
+                  label={`🍋 Cost of cups sold (${dollars(r.avgUnitCost, true)} each)`}
+                  amount={`-${dollars(r.cogs - r.sideCogs)}`}
+                  tone="out"
+                  explainId="cogs"
+                  showExplain={ex}
+                />
+              )}
               {r.sideCogs > 0 && (
                 <LedgerRow
-                  label="🍭 Cost of treats sold"
+                  label={`🍭 Treat batch (${r.sideBatchSize} made)`}
                   amount={`-${dollars(r.sideCogs)}`}
                   tone="out"
                   explainId="treatCogs"
@@ -421,8 +489,7 @@ export function Recap({
               ? ' ⬇️'
               : ''}
         </span>
-        <span className="pill">🥤 {r.inventoryEnd} left</span>
-        {r.lostToStockout > 0 && <span className="pill">🚫 {r.lostToStockout} turned away</span>}
+        <span className="pill">🥤 {r.inventoryEnd} left for next week</span>
         {r.lostToRival > 0 && <span className="pill">😼 {r.lostToRival} went to the rival</span>}
         {/* The weekly goal joins the other chips rather than claiming a card of
             its own. It still pops, and it costs a line instead of a block —

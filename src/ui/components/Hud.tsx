@@ -1,6 +1,6 @@
 import type { GameState } from '../../engine/types';
-import { SEASON_INFO, WEATHER_INFO } from '../../engine/calendar';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { SEASON_INFO, WEATHER_INFO, temperatureFor } from '../../engine/calendar';
+import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { valueBusiness } from '../../engine/valuation';
 import { miniGoalText } from '../../config/milestones';
@@ -70,8 +70,13 @@ export function Hud({
           decision card stays above the fold. */}
       <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
         {/* The FORECAST, not the truth. Ordering against it is the bet. */}
+        {/* The forecast, with a number attached. A nine-year-old knows what 48
+            degrees feels like; "cloudy" on its own does not say whether it is a
+            lemonade day or a cocoa one. Derived from the weather, so it is the
+            same single bet, not a second one. */}
         <span className="pill">
-          {WEATHER_INFO[state.forecast].emoji} {WEATHER_INFO[state.forecast].label}?
+          {WEATHER_INFO[state.forecast].emoji} {WEATHER_INFO[state.forecast].label}{' '}
+          {temperatureFor(state.forecast, state.season)}°?
         </span>
         <span className="pill">
           {SEASON_INFO[state.season].emoji} {SEASON_INFO[state.season].label}

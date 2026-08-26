@@ -1,5 +1,5 @@
 import type { GameEvent, GameState, WeekDecisions, WeekResult } from './types';
-import { getBusiness } from '../config/businesses/lemonade';
+import { getBusiness } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { eventsForBusiness } from '../config/events';
 import { BADGES, rollMiniGoal } from '../config/milestones';
@@ -169,9 +169,16 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // Side item: a share of the people already buying a drink add one. It needs
   // no extra customers, which is the whole point of an add-on.
   const side = biz.sideProducts.find((sp) => sp.id === decisions.sideProductId);
-  const sideUnits = side ? Math.round(served * side.attachRate) : 0;
+  // Treats are baked in a batch before the week starts. The batch is paid for
+  // whether anyone turns up or not, and what does not sell is thrown out — so a
+  // quiet week loses money on treats, which is the entire reason they are a
+  // decision rather than free margin.
+  const sideWanted = side ? Math.round(served * side.attachRate) : 0;
+  const sideBatchSize = side ? side.batchSize : 0;
+  const sideUnits = Math.min(sideWanted, sideBatchSize);
+  const sideWasted = Math.max(0, sideBatchSize - sideUnits);
   const sideRevenue = money(sideUnits * (side?.price ?? 0));
-  const sideCogs = money(sideUnits * (side?.unitCost ?? 0) * tier.unitCostScale);
+  const sideCogs = money((side?.batchCost ?? 0) * tier.unitCostScale);
 
   // Stock is valued at weighted average, so a cheap box genuinely lowers what
   // every cup cost and the saving lands in gross profit.
@@ -448,6 +455,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     suppliesUnits: boughtUnits + Math.max(0, ev.inventory),
     cogs,
     avgUnitCost,
+    price,
     rent,
     fixedCosts,
     wages,
@@ -465,6 +473,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     reputationEnd: reputation,
     grossProfit,
     sideUnits,
+    sideWasted,
+    sideBatchSize,
     sideRevenue,
     sideCogs,
     forecast: state.forecast,

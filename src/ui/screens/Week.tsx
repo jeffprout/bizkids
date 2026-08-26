@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { GameState, WeekDecisions } from '../../engine/types';
-import { getBusiness } from '../../config/businesses/lemonade';
+import { getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { Hud } from '../components/Hud';
 import { StandArt } from '../components/StandArt';
-import { WEATHER_INFO } from '../../engine/calendar';
+import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
 import { Choice, Stepper, dollars } from '../components/bits';
 import { sfx } from '../sfx';
 
@@ -139,8 +139,19 @@ export function Week({
     if (stage2) extras.push('treats');
     // The menu matters most when a seasonal product is on or coming off it, so
     // it is offered every week then rather than every other week.
+    //
+    // "In season" is not the same as "worth asking about". Hot chocolate now
+    // stays on the menu from fall through spring, which is thirty-nine weeks of
+    // the year, and on a bright sixty-eight degree spring afternoon there is no
+    // decision to make. So it is offered when the thermometer says the answer
+    // could go either way — or whenever the seasonal drink is the one currently
+    // being sold, so nobody is ever stuck on cocoa with no way back.
+    const coldEnoughToAsk = temperatureFor(state.forecast, state.season) <= 62;
+    const sellingSeasonal = Boolean(
+      biz.qualities.find((q) => q.id === state.qualityId)?.seasons,
+    );
     if (stage2 && week % 2 === 0) extras.push('quality');
-    else if (seasonalOnMenu && !extras.includes('quality')) extras.push('quality');
+    else if (seasonalOnMenu && (coldEnoughToAsk || sellingSeasonal)) extras.push('quality');
 
     // Spot, price, staffing and supplies are asked EVERY week. Staffing used to
     // rotate, and only surfaced after a losing week, which left no way to swap
@@ -164,8 +175,12 @@ export function Week({
     state.stage,
     state.employees.length,
     state.week,
+    state.forecast,
+    state.season,
+    state.qualityId,
     tier.maxCards,
     seasonalOnMenu,
+    biz.qualities,
   ]);
 
   /**
@@ -379,9 +394,21 @@ export function Week({
         {card === 'quality' && (
           <div className="card stack">
             <h2 className="center">What are you selling?</h2>
+            {/* Say what it is forecast to feel like, right where the drink is
+                chosen. The whole point of keeping cocoa on the menu into spring
+                is that a grey 52-degree day is a real decision — and it only is
+                one if the player can see that it is 52 degrees. */}
             {seasonalOnMenu && (
               <p className="muted center">
-                Cold weather is here. A hot drink sells when lemonade will not.
+                {WEATHER_INFO[state.forecast].emoji} They say{' '}
+                {WEATHER_INFO[state.forecast].label.toLowerCase()} and{' '}
+                {temperatureFor(state.forecast, state.season)}° this week.{' '}
+                {/* The advice has to follow the thermometer. Telling a player a
+                    hot drink is the answer on an 88-degree day, which the card
+                    did, is worse than saying nothing. */}
+                {temperatureFor(state.forecast, state.season) <= 58
+                  ? 'A hot drink sells when lemonade will not.'
+                  : 'Warm enough that a cold drink should walk it.'}
               </p>
             )}
             {menuOptions.map((q) => (
@@ -502,22 +529,32 @@ export function Week({
                 has four options to fit under it on a phone. */}
             {state.lastResult && state.lastResult.sideUnits > 0 ? (
               <p className="muted center">
-                Last week {state.lastResult.sideUnits} of {state.lastResult.served} buyers added one,
-                worth {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after
-                costs.
+                Last week you sold {state.lastResult.sideUnits} of{' '}
+                {state.lastResult.sideBatchSize} made
+                {state.lastResult.sideWasted > 0
+                  ? ` and threw ${state.lastResult.sideWasted} out`
+                  : ''}
+                , worth{' '}
+                {dollars(state.lastResult.sideRevenue - state.lastResult.sideCogs, true)} after the
+                batch.
               </p>
             ) : (
-              <p className="muted center">Sold to people already buying a drink.</p>
+              <p className="muted center">
+                You make a batch before the week starts. It costs the same whether anyone comes.
+              </p>
             )}
             {sideOptions.map((sp) => {
-              const margin = (sp.price - sp.unitCost * tier.unitCostScale).toFixed(2);
+              const cost = sp.batchCost * tier.unitCostScale;
+              // How many people have to walk up before the batch pays for
+              // itself. This is the whole decision, so the card does the sum.
+              const breakEven = Math.ceil(cost / sp.price / sp.attachRate);
               return (
                 <Choice
                   key={sp.id}
                   emoji={sp.emoji}
-                  title={`${sp.name} · ${dollars(sp.price, true)}`}
+                  title={`${sp.name} · ${dollars(cost)} for ${sp.batchSize}`}
                   // Kept to one line so four options still fit a phone screen.
-                  sub={`keep $${margin} each · ${Math.round(sp.attachRate * 100)}% take one`}
+                  sub={`sells at ${dollars(sp.price, true)} · pays off past ${breakEven} customers`}
                   selected={sideProductId === sp.id}
                   onClick={() => setSideProductId(sp.id)}
                 />

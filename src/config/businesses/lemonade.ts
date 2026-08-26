@@ -1,4 +1,5 @@
 import type {
+  BusinessDef,
   EmployeeDef,
   SideProduct,
   LoanOffer,
@@ -8,57 +9,6 @@ import type {
   Tier,
 } from '../../engine/types';
 
-/**
- * Everything the engine needs to run one business. Adding business #11 means
- * adding one of these files — no engine changes.
- */
-export interface BusinessDef {
-  id: string;
-  name: string;
-  emoji: string;
-  tagline: string;
-  /** What one unit of product is called. */
-  unitName: string;
-  unitNamePlural: string;
-  /** Money the player already has, per tier. */
-  savings: Record<Tier, number>;
-  /** Cost to open the doors, per tier. */
-  startupCost: Record<Tier, number>;
-  /** What the startup cost buys, shown on the financing screen. */
-  startupBuys: string;
-  /** Value of the gear you own — added to the sale price at exit. */
-  startingEquipmentValue: Record<Tier, number>;
-  locations: LocationDef[];
-  qualities: QualityDef[];
-  /** Small add-on items sold alongside the main product. */
-  sideProducts: SideProduct[];
-  loanOffers: Record<Tier, LoanOffer[]>;
-  marketing: MarketingChannel[];
-  employees: EmployeeDef[];
-  /** Price customers think is normal. The price curve pivots here. */
-  referencePrice: Record<Tier, number>;
-  defaultPrice: Record<Tier, number>;
-  /** Units one pair of hands can serve in a week. */
-  soloCapacity: number;
-  /** Share of the people who walk past who actually buy something. */
-  conversionRate: number;
-  /** Share of unsold stock thrown out each week. */
-  spoilRate: number;
-  /** The stand across the street. Omitted tiers do not face one. */
-  rival: {
-    tiers: Tier[];
-    startPrice: Record<Tier, number>;
-    /** How hard customers react to the price gap. */
-    sensitivity: number;
-    /** Weeks between the rival rethinking their price. */
-    changeEvery: number;
-  };
-  /** Multiple of yearly profit a buyer will pay at exit. */
-  valuationMultiple: { low: number; high: number };
-  stageUps: { stage: 2 | 3; minTotalRevenue: number; minReputation: number; minWeek: number }[];
-  /** Curriculum concepts this business teaches, for the School Edition doc. */
-  concepts: string[];
-}
 
 const LOCATIONS: LocationDef[] = [
   {
@@ -136,8 +86,21 @@ const QUALITIES: QualityDef[] = [
     id: 'cocoa',
     name: 'Hot Chocolate',
     emoji: '☕',
-    seasons: ['fall', 'winter'],
-    seasonMods: { spring: 0.5, summer: 0.15, fall: 0.95, winter: 1.05 },
+    // On the menu from the first cold snap of fall right through to spring. It
+    // is a poor seller in a mild spring week — see seasonMods — but a cold or
+    // wet one flips it, and having it there to pick is what makes that a
+    // decision rather than a thing the game does to you.
+    seasons: ['fall', 'winter', 'spring'],
+    // Spring was 0.5, from when cocoa only existed in fall and winter. Now that
+    // it stays on the menu into spring it has to be a real choice there, and at
+    // 0.9 it is: sunny is clearly lemonade, rain and cold are clearly cocoa,
+    // and cloudy is a coin flip. Working at $1.50 a cup, where lemonade keeps
+    // $1.08 and cocoa $0.95:
+    //   sunny   cocoa 0.56  lemonade 1.35
+    //   cloudy  cocoa 0.94  lemonade 0.97   <- the interesting week
+    //   rain    cocoa 1.11  lemonade 0.49
+    //   cold    cocoa 1.45  lemonade 0.38
+    seasonMods: { spring: 0.9, summer: 0.15, fall: 0.95, winter: 1.05 },
     weatherMods: { hot: 0.15, sunny: 0.65, cloudy: 1.1, rain: 1.3, cold: 1.7 },
     unitCost: 0.55,
     demandMod: 1,
@@ -206,45 +169,63 @@ const MARKETING: MarketingChannel[] = [
  * "would you like fries with that" lesson. Attach rates are deliberately modest.
  */
 const SIDE_PRODUCTS: SideProduct[] = [
-  {
-    id: 'cookies',
-    name: 'Cookies',
-    emoji: '🍪',
-    unitCost: 0.3,
-    price: 1,
-    attachRate: 0.35,
-    reputationBonus: 0.03,
-    blurb: 'Baked at home. Most people take one.',
-  },
+  // Batches are priced at roughly what the old per-unit cost worked out to, so a
+  // busy week earns about what it always did. The difference is the quiet week:
+  // the money is spent before anyone shows up, and break-even is a number a
+  // player can actually work out from the card.
+  //
+  // Break-even, in customers = batchCost / price / attachRate:
+  //   Lollipops  $5 / $0.50 / 0.45 =  23 customers
+  //   Cookies   $12 / $1.00 / 0.35 =  35
+  //   Gummies   $11 / $1.00 / 0.30 =  37
+  //   Brownies  $17 / $2.00 / 0.22 =  39
+  //
+  // A front yard averaging two dozen customers cannot carry a batch of brownies.
+  // A soccer field in season carries any of them. Same lesson as the canopy:
+  // a fixed cost is a different decision at a different size.
   {
     id: 'lollipops',
     name: 'Lollipops',
     emoji: '🍭',
-    unitCost: 0.08,
+    batchCost: 5,
+    batchSize: 60,
     price: 0.5,
     attachRate: 0.45,
     reputationBonus: 0.02,
-    blurb: 'Cheap, cheerful, and kids always say yes.',
+    blurb: 'Cheap to make and kids always say yes. Hard to lose money on.',
+  },
+  {
+    id: 'cookies',
+    name: 'Cookies',
+    emoji: '🍪',
+    batchCost: 12,
+    batchSize: 40,
+    price: 1,
+    attachRate: 0.35,
+    reputationBonus: 0.03,
+    blurb: 'Baked at home the night before. Most people take one.',
   },
   {
     id: 'gummies',
     name: 'Gummy Bags',
     emoji: '🐻',
-    unitCost: 0.22,
+    batchCost: 11,
+    batchSize: 50,
     price: 1,
     attachRate: 0.3,
-    blurb: 'Small bags of gummy bears.',
+    blurb: 'Bagged up in advance. Keeps well, but you buy the whole box.',
   },
   {
     id: 'brownies',
     name: 'Brownies',
     emoji: '🍫',
-    unitCost: 0.55,
+    batchCost: 17,
+    batchSize: 30,
     price: 2,
     attachRate: 0.22,
     reputationBonus: 0.05,
     tiers: ['pro', 'tycoon'],
-    blurb: 'Pricey to make, but the best margin per sale.',
+    blurb: 'Expensive to bake, best money per sale. Needs a crowd to pay off.',
   },
 ];
 
@@ -378,13 +359,3 @@ export const LEMONADE: BusinessDef = {
     'Valuation multiples',
   ],
 };
-
-export const BUSINESSES: Record<string, BusinessDef> = {
-  lemonade: LEMONADE,
-};
-
-export function getBusiness(id: string): BusinessDef {
-  const b = BUSINESSES[id];
-  if (!b) throw new Error(`Unknown business: ${id}`);
-  return b;
-}

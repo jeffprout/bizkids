@@ -59,11 +59,23 @@ export interface QualityDef {
 }
 
 /** A small add-on item sold to people already buying the main product. */
+/**
+ * A treat sold alongside the drink.
+ *
+ * Made in a batch, ahead of time, the way anyone actually bakes. That is the
+ * whole point: treats used to appear in exact proportion to drinks sold, with
+ * price above cost on every one, so choosing one was strictly better than not
+ * choosing one in every week forever — which is not a decision. Now the money
+ * goes out on Sunday and Tuesday decides whether it was worth it.
+ */
 export interface SideProduct {
   id: string;
   name: string;
   emoji: string;
-  unitCost: number;
+  /** What making one batch costs, paid whether or not anyone turns up. */
+  batchCost: number;
+  /** How many the batch makes. Sell more than this and the rest go unsold. */
+  batchSize: number;
   price: number;
   /** Share of served customers who add one. */
   attachRate: number;
@@ -263,6 +275,8 @@ export interface WeekResult {
   cogs: number;
   /** What a cup of stock cost on average this week. */
   avgUnitCost: number;
+  /** What a cup actually sold for, after any event that moved the price. */
+  price: number;
   rent: number;
   /** Costs that arrive whether or not you sell a thing. */
   fixedCosts: number;
@@ -287,6 +301,10 @@ export interface WeekResult {
   grossProfit: number;
   /** Side-item sales, and what they cost. */
   sideUnits: number;
+  /** Treats made and not sold. Baked fresh, so they do not keep. */
+  sideWasted: number;
+  /** How many the batch made, for the recap to show sold-of-made. */
+  sideBatchSize: number;
   sideRevenue: number;
   sideCogs: number;
   /** What the forecast said versus what actually happened. */
@@ -388,4 +406,61 @@ export interface GameState {
   /** Set when the run has ended (sold or week 50 passed in classic mode). */
   offerAvailable: boolean;
   discussionLog: { week: number; note: string }[];
+}
+
+/**
+ * Everything the engine needs to run one business. Adding business #11 means
+ * adding one config file — no engine changes.
+ *
+ * This lives here, with the engine's other contracts, rather than inside any
+ * one business. A business file should import the shape it has to satisfy; it
+ * should not be the place the shape is defined, or the second business would
+ * have to import the first.
+ */
+export interface BusinessDef {
+  id: string;
+  name: string;
+  emoji: string;
+  tagline: string;
+  /** What one unit of product is called. */
+  unitName: string;
+  unitNamePlural: string;
+  /** Money the player already has, per tier. */
+  savings: Record<Tier, number>;
+  /** Cost to open the doors, per tier. */
+  startupCost: Record<Tier, number>;
+  /** What the startup cost buys, shown on the financing screen. */
+  startupBuys: string;
+  /** Value of the gear you own — added to the sale price at exit. */
+  startingEquipmentValue: Record<Tier, number>;
+  locations: LocationDef[];
+  qualities: QualityDef[];
+  /** Small add-on items sold alongside the main product. */
+  sideProducts: SideProduct[];
+  loanOffers: Record<Tier, LoanOffer[]>;
+  marketing: MarketingChannel[];
+  employees: EmployeeDef[];
+  /** Price customers think is normal. The price curve pivots here. */
+  referencePrice: Record<Tier, number>;
+  defaultPrice: Record<Tier, number>;
+  /** Units one pair of hands can serve in a week. */
+  soloCapacity: number;
+  /** Share of the people who walk past who actually buy something. */
+  conversionRate: number;
+  /** Share of unsold stock thrown out each week. */
+  spoilRate: number;
+  /** The stand across the street. Omitted tiers do not face one. */
+  rival: {
+    tiers: Tier[];
+    startPrice: Record<Tier, number>;
+    /** How hard customers react to the price gap. */
+    sensitivity: number;
+    /** Weeks between the rival rethinking their price. */
+    changeEvery: number;
+  };
+  /** Multiple of yearly profit a buyer will pay at exit. */
+  valuationMultiple: { low: number; high: number };
+  stageUps: { stage: 2 | 3; minTotalRevenue: number; minReputation: number; minWeek: number }[];
+  /** Curriculum concepts this business teaches, for the School Edition doc. */
+  concepts: string[];
 }

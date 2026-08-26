@@ -1,5 +1,5 @@
 import type { GameState } from './types';
-import { getBusiness } from '../config/businesses/lemonade';
+import { getBusiness } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { money } from './loans';
 
@@ -75,6 +75,13 @@ export function sanitizeRun(input: GameState): GameState {
     const lines = Array.isArray(s.lastResult.eventLines) ? s.lastResult.eventLines : [];
     s.lastResult = {
       ...s.lastResult,
+      // Added when the recap started valuing the sales a sell-out missed. A run
+      // open across that deploy has no price on its last result.
+      price: num(s.lastResult.price, s.price),
+      // Treats became a batch bought up front. A run open across that deploy has
+      // a last result from before batches existed.
+      sideWasted: Math.max(0, Math.round(num(s.lastResult.sideWasted, 0))),
+      sideBatchSize: Math.max(0, Math.round(num(s.lastResult.sideBatchSize, 0))),
       eventLines: lines.map((l) => ({
         emoji: typeof l?.emoji === 'string' ? l.emoji : '⚡',
         text: typeof l?.text === 'string' ? l.text : '',

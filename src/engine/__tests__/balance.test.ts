@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { newGame } from '../newGame';
 import { simulateWeek, FINAL_WEEK } from '../simulateWeek';
 import { valueBusiness } from '../valuation';
-import { LEMONADE } from '../../config/businesses/lemonade';
+import { LEMONADE } from '../../config/businesses';
+import { SEASON_INFO, WEATHER_INFO } from '../calendar';
 import { TIERS } from '../../config/difficulty';
 import type { GameState, Tier } from '../types';
 
@@ -28,10 +29,20 @@ function playRun(tier: Tier, seed: number, reserveBill: boolean) {
       [...LEMONADE.locations]
         .sort((a, b) => b.baseTraffic * b.seasonMods[s.season] - a.baseTraffic * a.seasonMods[s.season])
         .find((l) => costOf(l) <= s.cash * 0.2) ?? LEMONADE.locations[0];
-    const quality =
-      LEMONADE.qualities.find((q) => q.seasons?.includes(s.season)) ??
-      LEMONADE.qualities.find((q) => q.id === 'classic') ??
-      LEMONADE.qualities[0];
+    // Pick the drink by what the weather is actually doing, the way a player
+    // would. Blindly grabbing whatever seasonal item exists meant selling cocoa
+    // on a warm spring afternoon, which is the wrong call and not what this
+    // probe is here to measure.
+    const onMenu = LEMONADE.qualities.filter(
+      (q) => !q.seasons || q.seasons.includes(s.season),
+    );
+    const scoreOf = (q: (typeof onMenu)[number]) => {
+      const weatherMod = q.weatherMods ? q.weatherMods[s.weather] : WEATHER_INFO[s.weather].demandMod;
+      const seasonMod = q.seasonMods ? q.seasonMods[s.season] : SEASON_INFO[s.season].demandMod;
+      const margin = LEMONADE.defaultPrice[tier] - q.unitCost * t.unitCostScale;
+      return weatherMod * seasonMod * (q.demandMod ?? 1) * margin;
+    };
+    const quality = onMenu.reduce((best, q) => (scoreOf(q) > scoreOf(best) ? q : best));
     const unitCost = quality.unitCost * t.unitCostScale;
 
     const budget = reserveBill ? Math.max(0, s.cash - costOf(loc)) : s.cash;
@@ -89,5 +100,25 @@ describe('holding back the weekly bill before buying stock', () => {
     const worstRookie = Math.max(...rookie.map((r) => r.losing));
     const worstPro = Math.max(...pro.map((r) => r.losing));
     expect(worstRookie).toBeLessThanOrEqual(worstPro);
+  });
+});
+
+describe('treats stay worth choosing, without being a free win', () => {
+  it('sets every batch to pay off at a busy spot and not at a quiet one', () => {
+    const scale = TIERS.pro.unitCostScale;
+    for (const sp of LEMONADE.sideProducts) {
+      const cost = sp.batchCost * scale;
+      const breakEven = cost / sp.price / sp.attachRate;
+      const bestCase = sp.batchSize * sp.price - cost;
+
+      // A front yard turns over roughly two dozen customers a week; a soccer
+      // field in season, well over a hundred. Break-even has to sit between the
+      // two, or the treat is either free money or never worth taking.
+      expect(breakEven, `${sp.name} break-even`).toBeGreaterThan(20);
+      expect(breakEven, `${sp.name} break-even`).toBeLessThan(45);
+
+      // And the upside has to be worth the money going out on Sunday.
+      expect(bestCase, `${sp.name} best case`).toBeGreaterThan(cost);
+    }
   });
 });

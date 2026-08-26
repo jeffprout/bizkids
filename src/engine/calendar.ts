@@ -28,6 +28,28 @@ export const WEATHER_INFO: Record<Weather, { label: string; emoji: string; deman
   cold: { label: 'Freezing', emoji: '🥶', demandMod: 0.35 },
 };
 
+/**
+ * What the thermometer says, in Fahrenheit.
+ *
+ * Derived from the weather and the season, never rolled on its own. A second
+ * uncertain number would mean two things to forecast and two things to be wrong
+ * about; this is the same weather said in a unit a nine-year-old already owns.
+ *
+ * The season matters as much as the sky — a sunny day in January is not a sunny
+ * day in July, and that gap is exactly what should make a hot drink look like
+ * the right call on a cool spring afternoon.
+ */
+const TEMPERATURE: Record<Season, Record<Weather, number>> = {
+  spring: { hot: 88, sunny: 68, cloudy: 57, rain: 52, cold: 38 },
+  summer: { hot: 94, sunny: 84, cloudy: 76, rain: 71, cold: 58 },
+  fall: { hot: 84, sunny: 64, cloudy: 54, rain: 49, cold: 34 },
+  winter: { hot: 70, sunny: 45, cloudy: 37, rain: 35, cold: 23 },
+};
+
+export function temperatureFor(weather: Weather, season: Season): number {
+  return TEMPERATURE[season][weather];
+}
+
 const WEATHER_ODDS: Record<Season, [Weather, number][]> = {
   spring: [['hot', 5], ['sunny', 40], ['cloudy', 30], ['rain', 22], ['cold', 3]],
   summer: [['hot', 28], ['sunny', 45], ['cloudy', 15], ['rain', 12], ['cold', 0]],

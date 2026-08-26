@@ -1284,6 +1284,172 @@ points `--prefix bizkids` at it.
 
 ---
 
+## 2026-08-25 — Live on bossmodegame.com, and the register moved out of the lemonade stand
+
+Jeff's son played it and loved it, which clears the Phase 1 playtest gate. The
+game is live at **www.bossmodegame.com** (the apex redirects to www).
+
+### Work on v2 happens on a branch
+
+`master` deploys straight to the live domain. Vercel builds every branch to its
+own preview URL, so `v2` gets somewhere to be tried on a real phone without
+anyone mid-run seeing half-finished work.
+
+The sharp edge is `SAVE_VERSION`: v2 will almost certainly change the shape of a
+save, and in-progress runs cannot cross that — a tester thirty weeks in loses the
+stand and keeps only trophies. On a branch that costs nothing; on the live domain
+it happens to everyone at once with no warning.
+
+### The business register is no longer inside the lemonade stand
+
+This was the open item blocking Phase 2b, and it needed doing before four
+businesses depend on the current shape rather than after.
+
+`BusinessDef` — the contract the engine requires of a business — lived inside
+`businesses/lemonade.ts`, along with the register of all businesses. So adding
+the food truck would have meant editing the lemonade stand, and the second
+business would have had to import the first to learn its own shape. Twelve files
+across the engine, the screens and the state layer imported the lemonade stand by
+name purely to look up whichever business was actually being played.
+
+Now:
+
+- `BusinessDef` sits in `engine/types.ts` with the engine's other contracts.
+- `config/businesses/index.ts` holds the register and `getBusiness`. It is the
+  one file a new business is wired into.
+- `lemonade.ts` contains the lemonade stand and nothing else.
+- `Setup` takes a `businessId` instead of naming one, and reads the emoji and
+  title from the business. A picker screen is the only thing still to write when
+  business #2 lands.
+
+Six tests guard it, and they read the source text rather than the runtime,
+because the coupling being prevented is an import — invisible when the code runs,
+obvious in the file. Two of them fail if anything under `/src/engine`,
+`/src/ui` or `/src/state` ever names a specific business file again.
+
+No behaviour changed. 116 tests, and a full week still plays through identically.
+
+---
+
+## 2026-08-25 — What a nine-year-old actually did with it
+
+Jeff watched his son play. Four observations, and they turned out to be one
+observation.
+
+> He kept asking "is that good?" when he saw he had leftover cups.
+> He didn't see the amount of customers he had turned away.
+> The throw away and the turned away is the core of the lemonade stand.
+
+He is right, and the game had it backwards. Ordering too much and ordering too
+little are the two ways a lemonade stand loses, and they were a pair of grey
+pills under a large and confident ledger. Worse, **neither loss appears in the
+profit line** — money you never took cannot show up in a profit and loss
+statement — so a child looking at "11 left" had no way at all to tell whether
+that was a win or a warning.
+
+So the recap now opens with it, above the ledger, in money:
+
+    🎯 How close was your order?
+    🗑️ Made too many — thrown away     205 cups · $45.10
+    🚫 Ran out — walked away empty      190 people · about $285 not taken
+    🙌 Line too long — gave up waiting  86 people
+
+When neither happened: *"Nothing wasted and nobody turned away. That is as close
+as it gets."* On a 375x667 phone the block sits between 30px and 107px — the
+first thing on the screen, above the fold, before any of the accounting. The
+ledger scrolls below it, which is the right way round: the lesson first, the
+evidence under it.
+
+### Hot chocolate through spring, and a thermometer
+
+Jeff's ask: keep cocoa on the menu from fall through spring so a cloudy day might
+tempt a player into it. Done — and it needed a rebalance to be a real choice
+rather than a trap. `seasonMods.spring` was 0.5, from when cocoa only existed in
+the cold half of the year. At 0.9, working at $1.50 a cup where lemonade keeps
+$1.08 and cocoa $0.95:
+
+| spring weather | cocoa | lemonade | |
+|---|---|---|---|
+| sunny | 0.56 | 1.35 | lemonade, clearly |
+| cloudy | 0.94 | 0.97 | **a coin flip — the interesting week** |
+| rain | 1.11 | 0.49 | cocoa |
+| cold | 1.45 | 0.38 | cocoa |
+
+He also asked whether to add a temperature gauge. **Yes — but as a label on the
+weather, never as a second variable.** A temperature rolled on its own would mean
+two things to forecast and two things to be wrong about, and the ordering bet is
+hard enough. Derived from weather *and season* it costs nothing and pays for
+itself immediately: "Cloudy" does not tell a child whether to sell cocoa;
+"Cloudy 52°" does. A sunny January and a sunny July stop looking alike.
+
+It shows on the forecast pill, on the menu card, and on the week's results.
+
+Two things fell out of that:
+
+- The menu card told players *"A hot drink sells when lemonade will not"* on an
+  88-degree day, because the line was unconditional. It now follows the
+  thermometer.
+- Cocoa on the menu for thirty-nine weeks of the year meant the menu card was
+  offered nearly every week, most of them with an obvious answer. It is now
+  offered when the forecast is 62 degrees or below — where the choice could
+  genuinely go either way — or whenever the player is already selling the
+  seasonal drink, so nobody is stuck on cocoa with no way back.
+
+Also stopped printing a "-$0" cost of goods row on a week that sold nothing, and
+"Ran out" now reads "Nothing to sell" when there was never any stock to run out
+of.
+
+### Still open: treats have no downside
+
+Jeff: *"He used the treats, but there was never an instance where the treats
+actually lost him money."*
+
+Correct, and structural. `sideUnits = round(served x attachRate)` — treats are
+made to order, in exact proportion to drinks sold, with price above cost on every
+one of them:
+
+| treat | cost | price | margin | per 100 buyers |
+|---|---|---|---|---|
+| Cookies | $0.30 | $1.00 | $0.70 | $24.50 |
+| Lollipops | $0.08 | $0.50 | $0.42 | $18.90 |
+| Gummy Bags | $0.22 | $1.00 | $0.78 | $23.40 |
+| Brownies | $0.55 | $2.00 | $1.45 | $31.90 |
+
+No stock to buy ahead, nothing to throw away, no cash at risk. Picking a treat is
+strictly better than not picking one, in every week, forever — which means it is
+not a decision at all. It is also the exact opposite of the lesson the drinks
+teach, where you commit cash to stock before you know who is coming.
+
+**Built 2026-08-25.** Treats are now baked in a batch before the week starts.
+The money goes out on Sunday and Tuesday decides whether it was worth it — which
+is what every real trader with a kitchen already knows.
+
+| treat | batch | costs | sells at | pays off past |
+|---|---|---|---|---|
+| Lollipops | 60 | $5 | $0.50 | 23 customers |
+| Cookies | 40 | $12 | $1.00 | 35 customers |
+| Gummy Bags | 50 | $11 | $1.00 | 37 customers |
+| Brownies | 30 | $17 | $2.00 | 39 customers |
+
+Batches are priced at roughly what the old per-unit cost worked out to, so a busy
+week earns about what it always did. The card does the arithmetic — *"Brownies ·
+$17 for 30 · sells at $2.00 · pays off past 39 customers"* — so the decision is
+comparing one number against how many people turned up last week.
+
+Verified at both ends. A front yard on a cold, wet day: 30 brownies baked, two
+sold, twenty-eight binned, **-$13**. A soccer field in a heat wave: twenty-eight
+of thirty sold, **+$39**. Same treat, opposite answer, decided by where you stood
+— the same lesson the canopy teaches, and the same one the locations teach.
+
+The batch size caps sales as well, so at a hundred and fifty customers the
+brownies run out and the cheap high-volume lollipops start looking better. That
+was not designed in; it falls out of giving each treat a real batch.
+
+Unsold treats go into the order-judgement block at the top of the recap, beside
+the cups thrown away, because it is the same mistake in a different aisle.
+
+---
+
 ## Open questions for Jeff
 
 1. **Spec Section 5 loan figures** — confirm the $860 → $849.88 correction.
@@ -1295,7 +1461,5 @@ points `--prefix bizkids` at it.
    sell-the-business screen as Pro. Simplify to a piggy-bank total?
 5. **Winter** is a long slow stretch (weeks 36–48) for a drinks business.
    Largely answered by the hot chocolate pivot, but still worth watching.
-6. **Before Phase 2:** move the business registry out of `businesses/lemonade.ts`
-   and `BusinessDef` into `engine/types.ts`, so adding a business is genuinely a
-   config-only change as Phase 2b requires. Small, mechanical, and much easier
-   before four businesses depend on it.
+6. ~~**Before Phase 2:** move the business registry out of
+   `businesses/lemonade.ts`.~~ **Done 2026-08-25.**
