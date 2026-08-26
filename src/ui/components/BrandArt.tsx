@@ -1,14 +1,22 @@
 /**
  * The two businesses, drawn rather than typed.
  *
- * Emoji were fine when this was a lemonade stand for nine-year-olds. Aimed at
- * middle school it reads as a toy, and a food truck emoji next to a real
- * illustration would look worse than either alone — so both are vector, in the
- * game's own palette, with flat shapes and one light source.
+ * Second pass, from seeing the first one rendered. Three things were wrong and
+ * all three were about it looking like one picture rather than three clip-art
+ * pieces pushed together:
  *
- * Deliberately still, too. The title used to spring in; things that bounce read
- * young.
+ *  - The lemon floated in mid-air between them, anchored to nothing. It now sits
+ *    on the counter where a lemon would actually be.
+ *  - The truck's wheels hung below the stand's base, so they stood on different
+ *    ground. Everything now rests on one line at y=112.
+ *  - The stand had no outline and the truck had a heavy one. Both are drawn with
+ *    the same 3px ink stroke now, which is most of what makes it read as
+ *    deliberate rather than assembled.
+ *
+ * Flat shapes, one light source, the game's own palette, and deliberately still.
  */
+const INK = '#21304a';
+
 export function BrandArt() {
   return (
     <svg
@@ -23,97 +31,87 @@ export function BrandArt() {
           <stop offset="0%" stopColor="#ffe066" />
           <stop offset="100%" stopColor="#f6b60b" />
         </linearGradient>
-        <linearGradient id="bm-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#e8eef7" />
-        </linearGradient>
       </defs>
 
-      {/* The ground both sit on, so they read as one scene. */}
-      <rect x="8" y="108" width="324" height="4" rx="2" fill="#21304a" opacity="0.12" />
+      {/* One ground line. Everything sits on it. */}
+      <rect x="6" y="112" width="328" height="3.5" rx="1.75" fill={INK} opacity="0.25" />
 
-      {/* ---- Lemonade stand ---- */}
-      <g>
+      {/* ================= Lemonade stand ================= */}
+      <g stroke={INK} strokeWidth="3" strokeLinejoin="round">
+        {/* canopy posts */}
+        <path d="M22 46 V112" />
+        <path d="M104 46 V112" />
+        {/* canopy */}
+        <path d="M10 46 L38 26 H88 L116 46 Z" fill="#58c06a" />
         {/* counter */}
-        <rect x="18" y="74" width="86" height="34" rx="4" fill="#f2f6fc" />
-        <rect x="18" y="74" width="86" height="9" rx="4" fill="#21304a" opacity="0.1" />
-        {/* stripes on the stand front */}
-        <rect x="26" y="88" width="10" height="20" fill="#ff6b6b" opacity="0.75" />
-        <rect x="46" y="88" width="10" height="20" fill="#ff6b6b" opacity="0.75" />
-        <rect x="66" y="88" width="10" height="20" fill="#ff6b6b" opacity="0.75" />
-        <rect x="86" y="88" width="10" height="20" fill="#ff6b6b" opacity="0.75" />
-        {/* posts and canopy */}
-        <rect x="20" y="40" width="5" height="36" rx="2" fill="#21304a" opacity="0.55" />
-        <rect x="97" y="40" width="5" height="36" rx="2" fill="#21304a" opacity="0.55" />
-        <path d="M12 44 L110 44 L100 30 L22 30 Z" fill="#58c06a" />
-        <path d="M12 44 L110 44 L106 38 L16 38 Z" fill="#21304a" opacity="0.14" />
-        {/* pitcher on the counter */}
-        <path
-          d="M52 56 h16 a3 3 0 0 1 3 3 v13 a3 3 0 0 1 -3 3 h-16 a3 3 0 0 1 -3 -3 v-13 a3 3 0 0 1 3 -3 z"
-          fill="url(#bm-lemon)"
-        />
-        <path
-          d="M71 61 q7 4 0 9"
-          fill="none"
-          stroke="#f6b60b"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <rect x="49" y="63" width="22" height="3" fill="#21304a" opacity="0.12" />
+        <rect x="18" y="74" width="90" height="38" rx="3" fill="#ffffff" />
+        {/* counter stripes, clipped inside by drawing them without stroke */}
+        <g stroke="none">
+          <rect x="21" y="86" width="12" height="23" fill="#ff6b6b" opacity="0.8" />
+          <rect x="45" y="86" width="12" height="23" fill="#ff6b6b" opacity="0.8" />
+          <rect x="69" y="86" width="12" height="23" fill="#ff6b6b" opacity="0.8" />
+          <rect x="93" y="86" width="12" height="23" fill="#ff6b6b" opacity="0.8" />
+        </g>
+        {/* counter lip, so the top edge reads as a surface */}
+        <path d="M18 84 H108" />
+
+        {/* pitcher, standing ON the counter */}
+        <path d="M40 58 h20 a2 2 0 0 1 2 2 v22 h-24 V60 a2 2 0 0 1 2 -2 z" fill="url(#bm-lemon)" />
+        <path d="M62 64 q8 5 0 11" fill="none" />
       </g>
 
-      {/* ---- The lemon, between the two ---- */}
-      <g transform="translate(118 52)">
-        <ellipse cx="16" cy="20" rx="17" ry="14" fill="url(#bm-lemon)" />
-        {/* the little nub at each end that makes a lemon a lemon */}
-        <path d="M-2 20 q-4 0 -4 -3 q3 -2 5 0 z" fill="#f6b60b" />
-        <path d="M34 20 q4 0 4 -3 q-3 -2 -5 0 z" fill="#f6b60b" />
-        <ellipse cx="11" cy="14" rx="6" ry="4" fill="#fff8dc" opacity="0.55" />
-        <path d="M16 6 q9 -8 17 -5 q-4 8 -15 8 z" fill="#58c06a" />
+      {/* The lemon, resting on the counter beside the pitcher. */}
+      <g transform="translate(74 62)" stroke={INK} strokeWidth="3" strokeLinejoin="round">
+        <ellipse cx="12" cy="11" rx="13" ry="10" fill="url(#bm-lemon)" />
+        {/* the nubs that make a lemon a lemon, not an egg */}
+        <path d="M-1 11 q-4 -1 -4 -3 q3 -2 5 0" fill="#f6b60b" />
+        <path d="M25 11 q4 -1 4 -3 q-3 -2 -5 0" fill="#f6b60b" />
+        <path d="M12 1 q7 -7 14 -5 q-3 7 -12 7 z" fill="#58c06a" />
       </g>
 
-      {/* ---- Food truck ---- */}
-      <g transform="translate(168 26)">
+      {/* ================= Food truck ================= */}
+      <g stroke={INK} strokeWidth="3" strokeLinejoin="round">
         {/* box body */}
-        <rect x="18" y="14" width="122" height="62" rx="7" fill="url(#bm-body)" />
-        <rect
-          x="18"
-          y="14"
-          width="122"
-          height="62"
-          rx="7"
-          fill="none"
-          stroke="#21304a"
-          strokeWidth="3"
-        />
-        {/* cab, lower and set forward */}
-        <path
-          d="M140 34 h16 a5 5 0 0 1 4 2 l11 16 a5 5 0 0 1 1 3 v19 a4 4 0 0 1 -4 4 h-28 z"
-          fill="#ff6b6b"
-        />
-        <path
-          d="M140 34 h16 a5 5 0 0 1 4 2 l11 16 a5 5 0 0 1 1 3 v19 a4 4 0 0 1 -4 4 h-28 z"
-          fill="none"
-          stroke="#21304a"
-          strokeWidth="3"
-        />
+        <rect x="152" y="42" width="120" height="54" rx="6" fill="#ffffff" />
+        {/* cab, lower than the box */}
+        <path d="M272 60 h14 a4 4 0 0 1 3 1.5 l12 15 a5 5 0 0 1 1 3 V96 h-30 z" fill="#ff6b6b" />
         {/* windshield */}
-        <path d="M145 39 h11 l9 13 h-20 z" fill="#6fc8ff" />
-        {/* serving hatch */}
-        <rect x="32" y="28" width="74" height="30" rx="3" fill="#21304a" opacity="0.82" />
-        <rect x="36" y="32" width="66" height="22" rx="2" fill="#2b8fd8" opacity="0.35" />
-        {/* hatch flap, propped open */}
-        <path d="M30 28 L108 28 L114 16 L36 16 Z" fill="#ffd43b" />
-        <path d="M30 28 L108 28 L110 24 L33 24 Z" fill="#21304a" opacity="0.16" />
-        {/* counter shelf under the hatch */}
-        <rect x="28" y="58" width="82" height="6" rx="2" fill="#21304a" opacity="0.5" />
-        {/* a stripe along the body, where a truck carries its name */}
-        <rect x="24" y="66" width="110" height="6" rx="3" fill="#58c06a" opacity="0.85" />
-        {/* wheels */}
-        <circle cx="52" cy="80" r="12" fill="#21304a" />
-        <circle cx="52" cy="80" r="5" fill="#f2f6fc" />
-        <circle cx="146" cy="80" r="12" fill="#21304a" />
-        <circle cx="146" cy="80" r="5" fill="#f2f6fc" />
+        <path d="M277 64 h9 l8 12 h-17 z" fill="#6fc8ff" strokeWidth="2.5" />
+        {/* serving window */}
+        <rect x="164" y="52" width="72" height="28" rx="2" fill="#21304a" />
+        <rect
+          x="168"
+          y="56"
+          width="64"
+          height="20"
+          rx="1"
+          fill="#2b8fd8"
+          opacity="0.45"
+          stroke="none"
+        />
+        {/* awning, propped over the window */}
+        <path d="M160 52 H242 L250 38 H168 Z" fill="#ffd43b" />
+        {/* menu board on the body, right of the window */}
+        <rect x="244" y="56" width="22" height="24" rx="2" fill="#3d5170" strokeWidth="2.5" />
+        <g stroke="#ffffff" strokeWidth="2" opacity="0.65" strokeLinecap="round">
+          <path d="M248 63 h14" />
+          <path d="M248 68 h14" />
+          <path d="M248 73 h9" />
+        </g>
+        {/* counter shelf under the window */}
+        <path d="M160 84 H240" strokeWidth="4" strokeLinecap="round" />
+        {/* roof vent, the thing that makes it a kitchen and not a van */}
+        <rect x="186" y="30" width="34" height="12" rx="3" fill="#e8eef7" />
+        {/* body stripe */}
+        <path d="M156 90 H268" stroke="#58c06a" strokeWidth="5" strokeLinecap="round" />
+      </g>
+
+      {/* wheels, sitting exactly on the ground line */}
+      <g stroke={INK} strokeWidth="3">
+        <circle cx="186" cy="101" r="11" fill={INK} />
+        <circle cx="186" cy="101" r="4" fill="#ffffff" stroke="none" />
+        <circle cx="278" cy="101" r="11" fill={INK} />
+        <circle cx="278" cy="101" r="4" fill="#ffffff" stroke="none" />
       </g>
     </svg>
   );
