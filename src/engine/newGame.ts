@@ -17,6 +17,8 @@ export interface FinancingChoice {
   /** How much of their own savings they are putting in. */
   savingsUsed: number;
   locationId: string;
+  /** Which acquisition route, for businesses that offer a choice. */
+  assetId?: string;
 }
 
 export function newGame(opts: {
@@ -27,7 +29,27 @@ export function newGame(opts: {
   seed: number;
 }): GameState {
   const biz = getBusiness(opts.businessId);
-  const startup = biz.startupCost[opts.tier];
+  const seedForSetup = opts.seed || 1;
+  const setupRng = makeRng(seedForSetup);
+
+  // How the core asset was acquired, and what that costs on day one.
+  const asset = biz.assetOptions?.find((a) => a.id === opts.financing.assetId);
+  const startup = asset ? asset.upfront[opts.tier] : biz.startupCost[opts.tier];
+
+  /**
+   * Used gear is a gamble taken before a single sale. The roll lands once, here,
+   * and then lives with the business for the whole run: it sets what the thing
+   * is actually worth and how often it breaks. Rolling it later would let a
+   * player reload their way to a good truck.
+   */
+  const conditionRoll = asset?.conditionRange ? setupRng() : undefined;
+  const conditionScale = asset?.conditionRange
+    ? asset.conditionRange.low +
+      (asset.conditionRange.high - asset.conditionRange.low) * (conditionRoll ?? 0.5)
+    : 1;
+  const equity = asset
+    ? money(asset.equity[opts.tier] * conditionScale)
+    : biz.startingEquipmentValue[opts.tier];
 
   const loans = opts.financing.loanIds
     .map((id) => biz.loanOffers[opts.tier].find((o) => o.id === id))
@@ -40,8 +62,8 @@ export function newGame(opts: {
 
   const week = 1;
   const season = seasonForWeek(week);
-  const seed = opts.seed || 1;
-  const rng = makeRng(seed);
+  const seed = seedForSetup;
+  const rng = makeRng(nextSeed(seed));
   const weather = rollWeather(season, rng());
   const forecast = forecastFor(weather, rng());
 
@@ -76,7 +98,7 @@ export function newGame(opts: {
     miniGoal: { id: 'customers', kind: 'customers', target: 25, label: '' },
     miniGoalStreak: 0,
     badges: [],
-    equipmentValue: biz.startingEquipmentValue[opts.tier],
+    equipmentValue: equity,
     bonusCapacity: 0,
     sideProductId: null,
     lastResult: null,
@@ -85,6 +107,10 @@ export function newGame(opts: {
     gameOver: false,
     soldFor: null,
     roughWeeks: 0,
+    assetId: asset?.id,
+    weeksToOpen: asset?.weeksToOpen ?? 0,
+    assetWeekly: asset ? asset.weeklyPayment[opts.tier] : 0,
+    assetCondition: conditionRoll,
     offerAvailable: false,
     discussionLog: [
       {
@@ -94,6 +120,17 @@ export function newGame(opts: {
             ? 'Started with savings only — no debt, smaller cushion'
             : `Borrowed $${borrowed} from ${loans.map((l) => l.lender).join(' and ')}`,
       },
+      ...(asset
+        ? [
+            {
+              week: 1,
+              note:
+                asset.kind === 'lease'
+                  ? `Leased the ${asset.name} — low upfront, owns nothing at the end`
+                  : `Bought the ${asset.name} for $${startup}, worth $${equity} on the books`,
+            },
+          ]
+        : []),
     ],
   };
 

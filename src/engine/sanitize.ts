@@ -30,6 +30,10 @@ export function sanitizeRun(input: GameState): GameState {
   s.equipmentValue = Math.max(0, num(s.equipmentValue, 0));
   s.bonusCapacity = Math.max(0, num(s.bonusCapacity, 0));
   s.rivalPrice = num(s.rivalPrice, 1.5);
+  // Added with the food truck. A lemonade run predating it has neither, and a
+  // NaN here would shut the doors forever or charge a lease that never existed.
+  s.weeksToOpen = Math.max(0, Math.round(num(s.weeksToOpen, 0)));
+  s.assetWeekly = Math.max(0, num(s.assetWeekly, 0));
   s.rivalCooldown = num(s.rivalCooldown, 3);
   s.weatherStreak = Math.max(1, num(s.weatherStreak, 1));
   s.miniGoalStreak = Math.max(0, num(s.miniGoalStreak, 0));
@@ -82,6 +86,8 @@ export function sanitizeRun(input: GameState): GameState {
       // a last result from before batches existed.
       sideWasted: Math.max(0, Math.round(num(s.lastResult.sideWasted, 0))),
       sideBatchSize: Math.max(0, Math.round(num(s.lastResult.sideBatchSize, 0))),
+      assetPayment: Math.max(0, num(s.lastResult.assetPayment, 0)),
+      buildingOut: Boolean(s.lastResult.buildingOut),
       eventLines: lines.map((l) => ({
         emoji: typeof l?.emoji === 'string' ? l.emoji : '⚡',
         text: typeof l?.text === 'string' ? l.text : '',

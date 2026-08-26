@@ -1,5 +1,6 @@
 import type { BusinessDef } from '../../engine/types';
 import { LEMONADE } from './lemonade';
+import { FOOD_TRUCK } from './truck';
 
 /**
  * The register of every business in the game.
@@ -15,6 +16,7 @@ import { LEMONADE } from './lemonade';
  */
 export const BUSINESSES: Record<string, BusinessDef> = {
   lemonade: LEMONADE,
+  truck: FOOD_TRUCK,
 };
 
 export function getBusiness(id: string): BusinessDef {
@@ -23,4 +25,4 @@ export function getBusiness(id: string): BusinessDef {
   return b;
 }
 
-export { LEMONADE };
+export { LEMONADE, FOOD_TRUCK };

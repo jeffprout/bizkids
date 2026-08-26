@@ -53,6 +53,13 @@ export interface QualityDef {
   unitCost: number;
   /** Multiplies demand — better product, more customers. */
   demandMod: number;
+  /**
+   * Multiplies how many can be served in a week. A wider menu draws a bigger
+   * queue and then serves it more slowly; a single item flies out of the
+   * window. Omitted means the product makes no difference to throughput, which
+   * is true of a lemonade stand and emphatically not of a kitchen.
+   */
+  capacityMod?: number;
   /** Reputation drift per week while this quality is in use. */
   reputationDrift: number;
   blurb: string;
@@ -82,6 +89,43 @@ export interface SideProduct {
   reputationBonus?: number;
   tiers?: Tier[];
   blurb: string;
+}
+
+/**
+ * How the core asset gets acquired — the truck, the cart, the ovens.
+ *
+ * Startup cost is not one number. Buying new costs the most and opens straight
+ * away. Buying used and doing it up is far cheaper, but the doors stay shut for
+ * weeks while the loan clock runs, and what turns up under the bonnet is a roll
+ * of the dice. Leasing gets you trading tomorrow for almost nothing down, and
+ * leaves you owning nothing at all when it comes time to sell.
+ *
+ * That last part is the lesson: the choice made in week 1 is still on the books
+ * in week 50, because owned assets add to the sale price and leased ones do not.
+ */
+export interface AssetOption {
+  id: string;
+  name: string;
+  emoji: string;
+  kind: 'new' | 'used' | 'lease';
+  /** Paid on day one, before any financing. */
+  upfront: Record<Tier, number>;
+  /** Weeks of build-out before a single sale. 0 opens immediately. */
+  weeksToOpen: number;
+  /** What it is worth on the books once open. Leases are worth nothing. */
+  equity: Record<Tier, number>;
+  /** Charged every week for the whole run. Only leases have one. */
+  weeklyPayment: Record<Tier, number>;
+  /**
+   * Used gear is a gamble. Its equity and reliability land somewhere in this
+   * band — sometimes a steal, sometimes rust and surprises.
+   */
+  conditionRange?: { low: number; high: number };
+  /** Multiplies the chance of a breakdown card. Below 1 is more reliable. */
+  reliability: number;
+  blurb: string;
+  /** What the player is told after the roll settles. Used gear only. */
+  conditionNotes?: { good: string; fair: string; poor: string };
 }
 
 export interface LoanOffer {
@@ -283,6 +327,10 @@ export interface WeekResult {
   wages: number;
   marketingSpend: number;
   eventCash: number;
+  /** A lease payment on the core asset, if it is leased rather than owned. */
+  assetPayment: number;
+  /** True on a week spent building out, before the doors ever opened. */
+  buildingOut: boolean;
   /** Full loan payment (principal + interest) that left the bank account. */
   loanPayment: number;
   /** Interest portion only — the part that is genuinely an expense. */
@@ -403,6 +451,18 @@ export interface GameState {
   gameOver: boolean;
   soldFor: number | null;
   roughWeeks: number;
+  /** Which acquisition route was taken, if the business offered a choice. */
+  assetId?: string;
+  /**
+   * Weeks of build-out still to run before the doors open. While this is above
+   * zero the business cannot sell a thing, and the bills arrive anyway — which
+   * is the whole cost of buying something cheap and unfinished.
+   */
+  weeksToOpen: number;
+  /** A lease payment that runs for the life of the business. */
+  assetWeekly: number;
+  /** How the used-gear roll landed, 0 to 1. Undefined when nothing was rolled. */
+  assetCondition?: number;
   /** Set when the run has ended (sold or week 50 passed in classic mode). */
   offerAvailable: boolean;
   discussionLog: { week: number; note: string }[];
@@ -433,6 +493,12 @@ export interface BusinessDef {
   startupBuys: string;
   /** Value of the gear you own — added to the sale price at exit. */
   startingEquipmentValue: Record<Tier, number>;
+  /**
+   * How the core asset can be acquired. Businesses without a meaningful asset
+   * choice — a lemonade stand is a table and a cooler — leave this out and get
+   * `startupCost` and `startingEquipmentValue` as before.
+   */
+  assetOptions?: AssetOption[];
   locations: LocationDef[];
   qualities: QualityDef[];
   /** Small add-on items sold alongside the main product. */

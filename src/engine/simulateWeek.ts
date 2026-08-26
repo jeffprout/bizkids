@@ -151,14 +151,28 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const rivalMod = facesRival
     ? rivalShare(price, state.rivalPrice, biz.rival.sensitivity)
     : 1;
-  const demandBeforeRival = breakdown.demand;
+  /**
+   * A business still being built out does not trade. The doors are shut, the
+   * refit is half finished, and every bill — the loan, the lease, the pitch fee
+   * — arrives anyway. That is the whole price of buying something cheap and
+   * unfinished, and it has to be felt rather than described.
+   *
+   * Gating demand here rather than sales means nobody is recorded as turned
+   * away either: they never came, because there was nothing to come to.
+   */
+  const buildingOut = (state.weeksToOpen ?? 0) > 0;
+  const demandBeforeRival = buildingOut ? 0 : breakdown.demand;
   const demand = Math.max(0, Math.round(demandBeforeRival * rivalMod));
   const lostToRival = Math.max(0, demandBeforeRival - demand);
 
   const employeeCapacity = employees.reduce((s, e) => s + e.capacityBonus, 0);
   const bonusCapacity = Math.max(0, state.bonusCapacity + ev.capacity);
+  // What you sell changes how fast you can serve it: one item flies out of the
+  // window, an everything-menu turns every order into a conversation.
   const capacity = Math.round(
-    (biz.soloCapacity + employeeCapacity + bonusCapacity) * ev.capacityMod,
+    (biz.soloCapacity + employeeCapacity + bonusCapacity) *
+      ev.capacityMod *
+      (quality.capacityMod ?? 1),
   );
 
   const afterCapacity = Math.min(demand, capacity);
@@ -202,8 +216,11 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // --- 6. Rent and wages --------------------------------------------------
   const rent = money(location.weeklyRent);
   const fixedCosts = money(location.weeklyFixedCosts * tier.fixedCostScale);
+  // A leased asset costs the same every week for the life of the business,
+  // whether it is trading, building out, or having a terrible July.
+  const assetPayment = money(state.assetWeekly ?? 0);
   const wages = money(employees.reduce((s, e) => s + e.weeklyWage, 0));
-  cash = money(cash - rent - fixedCosts - wages);
+  cash = money(cash - rent - fixedCosts - assetPayment - wages);
 
   // --- 7. Pay the bank ----------------------------------------------------
   let loanPayment = 0;
@@ -319,7 +336,15 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // --- 11. Score the week -------------------------------------------------
   const grossProfit = money(revenue - cogs - spoilageCost - stockLostCost);
   const profit = money(
-    grossProfit - rent - fixedCosts - wages - marketingSpend - interestPaid - lateFees + eventCash,
+    grossProfit -
+      rent -
+      fixedCosts -
+      assetPayment -
+      wages -
+      marketingSpend -
+      interestPaid -
+      lateFees +
+      eventCash,
   );
   const cashChange = money(cash - cashStart);
 
@@ -432,6 +457,11 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     miniGoalStreak,
     rngSeed: seedAfterSim,
     roughWeeks: bankerTalk ? 0 : roughWeeks,
+    assetId: state.assetId,
+    assetWeekly: state.assetWeekly ?? 0,
+    assetCondition: state.assetCondition,
+    // One week of the refit done. The doors open when this reaches zero.
+    weeksToOpen: Math.max(0, (state.weeksToOpen ?? 0) - 1),
     offerAvailable: nextWeek > FINAL_WEEK,
   };
 
@@ -456,6 +486,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     cogs,
     avgUnitCost,
     price,
+    assetPayment,
+    buildingOut,
     rent,
     fixedCosts,
     wages,
