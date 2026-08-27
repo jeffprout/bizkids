@@ -47,7 +47,8 @@ const LOCATIONS: LocationDef[] = [
     // nobody is there in July, and the field is empty all winter.
     seasonMods: { spring: 1.45, summer: 0.55, fall: 1.45, winter: 0.25 },
     blurb: 'Rent and a pricey permit. Packed in season, empty in July.',
-    volatility: 0.35,
+    // Flat 0.35 was a 2.1x spread on top of every decision. See demand.ts.
+    volatility: 0.22,
   },
 ];
 
@@ -330,6 +331,7 @@ export const LEMONADE: BusinessDef = {
   startingEquipmentValue: { rookie: 20, pro: 38, tycoon: 150 },
   locations: LOCATIONS,
   qualities: QUALITIES,
+  sideNoun: 'treat',
   sideProducts: SIDE_PRODUCTS,
   loanOffers: LOAN_OFFERS,
   marketing: MARKETING,

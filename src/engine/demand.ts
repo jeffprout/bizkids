@@ -22,6 +22,9 @@ export function reputationMod(reputation: number): number {
 export interface DemandInputs {
   state: GameState;
   location: LocationDef;
+  /** The business's own appetite curve, when it has one. A recipe still wins. */
+  bizSeasonMods?: Record<GameState['season'], number>;
+  bizWeatherMods?: Record<GameState['weather'], number>;
   quality: QualityDef;
   price: number;
   referencePrice: number;
@@ -53,19 +56,38 @@ export function computeDemand(inp: DemandInputs): DemandBreakdown {
   // Two separate seasonal effects: how thirsty people are, and how busy this
   // particular spot is at this time of year. A product with its own calendar —
   // a hot drink in January — replaces the first of those, not the second.
-  const thirstMod = quality.seasonMods
-    ? quality.seasonMods[state.season]
-    : SEASON_INFO[state.season].demandMod;
+  // Three layers, most specific first: what this recipe does in this weather,
+  // else what this KIND of business does, else the game's default curve.
+  const thirstMod =
+    quality.seasonMods?.[state.season] ??
+    inp.bizSeasonMods?.[state.season] ??
+    SEASON_INFO[state.season].demandMod;
   const seasonMod = thirstMod * location.seasonMods[state.season];
-  const weatherMod = quality.weatherMods
-    ? quality.weatherMods[state.weather]
-    : WEATHER_INFO[state.weather].demandMod;
+  const weatherMod =
+    quality.weatherMods?.[state.weather] ??
+    inp.bizWeatherMods?.[state.weather] ??
+    WEATHER_INFO[state.weather].demandMod;
   const repMod = reputationMod(state.reputation);
   const priceMod = priceCurve(price, referencePrice, elasticity);
   const qualityMod = quality.demandMod;
   const marketingMod = 1 + state.marketing.reduce((s, m) => s + m.boost, 0);
 
-  // Busy-but-swingy locations vary more week to week.
+  /**
+   * Week-to-week luck.
+   *
+   * The roll is expected to be BELL-SHAPED, not flat — see simulateWeek, which
+   * averages two draws. A flat roll made every outcome in the band equally
+   * likely, so a spot with 0.4 volatility handed out a 0.6x week as often as a
+   * 1.0x one and the same Friday in the same weather could be 500 customers or
+   * 1,000. Jeff, who has run real businesses: "I do not understand how the
+   * amount of people visiting the truck is calculated. It seems very arbitrary."
+   * He was right — no amount of planning survives a coin flip that wide, so the
+   * ordering decision, which is the whole game, could not be played well.
+   *
+   * Risk now lives where it can be READ: the season, the sky, the forecast being
+   * wrong a third of the time, and the cards. Those are all learnable. Noise is
+   * a wobble on top, not the main event.
+   */
   const swing = location.volatility;
   const noiseMod = 1 - swing + inp.noiseRoll * swing * 2;
 

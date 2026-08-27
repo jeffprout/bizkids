@@ -276,11 +276,11 @@ describe('what makes a week losable', () => {
       };
       return simulateWeek(withEvent, {
         ...decide(withEvent, { restockUnits: 0 }),
-        eventChoices: { 'health-inspector': 'fix' },
+        eventChoices: { 'health-inspector': 'close' },
       }).lastResult!.eventCash;
     };
     expect(hit('rookie')).toBeGreaterThan(hit('pro'));
-    expect(hit('pro')).toBe(-26);
+    expect(hit('pro')).toBe(-12);
   });
 
   it('gives the player a forecast that is sometimes wrong', () => {
@@ -962,7 +962,7 @@ describe('fixes from the live playtest', () => {
     );
     const r = next.lastResult!;
     expect(r.eventLines).toHaveLength(2);
-    expect(r.eventLines.map((l) => l.title)).toEqual(['Permit Please', 'Bad Review']);
+    expect(r.eventLines.map((l) => l.title)).toEqual(['Permit Please', 'Warm And Slow']);
     // The permit is a bill, so it is -22 at Pro's 1x event scale. The refund is
     // one cup handed back, so it is the price of a cup and nothing to do with
     // the tier — the two kinds of money on a card, both landing on the line.

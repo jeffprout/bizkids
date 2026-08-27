@@ -47,7 +47,11 @@ const LOCATIONS: LocationDef[] = [
     // Bars and long lines. Great when it is warm and dry, dead when it is not.
     seasonMods: { spring: 1.1, summer: 1.35, fall: 1, winter: 0.55 },
     blurb: 'Late crowds and long lines. Weather makes or breaks it.',
-    volatility: 0.4,
+    // Was 0.4 and flat, which is a 2.3x spread between a good Friday and a bad
+    // one before any decision the player made. The character of this spot is
+    // meant to come from its SEASONS — dead in winter, packed in summer, which
+    // a player can learn and plan against — not from a coin flip.
+    volatility: 0.2,
   },
   {
     id: 'festival',
@@ -59,8 +63,11 @@ const LOCATIONS: LocationDef[] = [
     weeklyRent: 260,
     weeklyFixedCosts: 90,
     seasonMods: { spring: 1.15, summer: 1.5, fall: 0.9, winter: 0.2 },
-    blurb: 'Huge crowds, huge pitch fee, paid before you sell a thing.',
-    volatility: 0.55,
+    blurb: 'Huge crowds, huge entry fee, paid before you sell a thing.',
+    // Still the swingiest spot, because paying up front for a crowd that may
+    // not come is its whole lesson — but 0.55 flat was a 3.4x spread, which is
+    // not a lesson, it is a slot machine.
+    volatility: 0.28,
   },
 ];
 
@@ -89,6 +96,34 @@ const QUALITIES: QualityDef[] = [
     capacityMod: 1,
     reputationDrift: 0.06,
     blurb: 'Four things you are good at. The normal way to run a truck.',
+  },
+  {
+    /**
+     * The counter-seasonal pivot, and the reason a freezing forecast is now a
+     * decision rather than a sentence. Cold weather empties a lunch line; the
+     * same window selling something hot in a bowl does fine. It costs more a
+     * plate and it serves slower, so it is not free money — it is a different
+     * truck for a different half of the year.
+     */
+    id: 'hot-bowls',
+    name: 'Hot Bowls',
+    emoji: '🍲',
+    // On the menu from the first cold week of fall right through spring, so the
+    // player can see it coming and can also choose to stay on burgers.
+    seasons: ['fall', 'winter', 'spring'],
+    // Against the truck's own curve below, at $11 a plate:
+    //   sunny   bowls 0.60  short menu 1.25
+    //   cloudy  bowls 1.10  short menu 1.00   <- the interesting week
+    //   rain    bowls 1.35  short menu 0.60
+    //   cold    bowls 1.70  short menu 0.50
+    seasonMods: { spring: 0.9, summer: 0.2, fall: 1.05, winter: 1.2 },
+    weatherMods: { hot: 0.25, sunny: 0.6, cloudy: 1.1, rain: 1.35, cold: 1.7 },
+    unitCost: 2.95,
+    demandMod: 1,
+    // Ladled, not griddled. A little slower than a burger.
+    capacityMod: 0.9,
+    reputationDrift: 0.06,
+    blurb: 'Chili, ramen, stew. Sells when nobody wants to eat standing up cold.',
   },
   {
     id: 'big-menu',
@@ -188,6 +223,22 @@ const SIDE_PRODUCTS: SideProduct[] = [
   },
 ];
 
+/**
+ * Jeff: "The help almost is never justified."
+ *
+ * He was right, and it was arithmetic rather than taste. Rosa cost $520 a week
+ * and added 260 plates of capacity. At about $6.40 of margin a plate she had to
+ * recover 81 plates EVERY week to break even — but capacity only binds in the
+ * busiest weeks, and at the Friday Night District that was about ten plates a
+ * week. She could not pay for herself at any spot, at any tier, under any way of
+ * playing: hiring lost money in literally every measured run.
+ *
+ * A professional line cook roughly doubles what a truck can put out; +260 next
+ * to an owner's own 240 did not say that. The wages are unchanged and realistic
+ * (about $17/hour); what changes is that they now do the work of a second pair
+ * of hands, so hiring is a real calculation — clearly right when the line is
+ * long, clearly wrong when it is not.
+ */
 const EMPLOYEES: EmployeeDef[] = [
   {
     id: 'line-cook',
@@ -195,7 +246,7 @@ const EMPLOYEES: EmployeeDef[] = [
     emoji: '👩‍🍳',
     quirk: 'Twelve years on a hot line. Nothing rattles her.',
     weeklyWage: 520,
-    capacityBonus: 260,
+    capacityBonus: 420,
     skill: 0.85,
   },
   {
@@ -204,7 +255,7 @@ const EMPLOYEES: EmployeeDef[] = [
     emoji: '🧑‍🍳',
     quirk: 'Works the window. Fast, chatty, forgets the pickles.',
     weeklyWage: 310,
-    capacityBonus: 150,
+    capacityBonus: 240,
     skill: 0.6,
   },
 ];
@@ -256,7 +307,7 @@ const MARKETING: MarketingChannel[] = [
     reputationBonus: 0.1,
     tiers: ['pro', 'tycoon'],
     blurb: 'One booked event. A guaranteed crowd, paid up front.',
-    concept: 'Contracted revenue beats hoping for footfall',
+    concept: 'Booked revenue beats hoping people walk by',
   },
 ];
 
@@ -333,7 +384,20 @@ export const FOOD_TRUCK: BusinessDef = {
   startingEquipmentValue: { rookie: 2000, pro: 11500, tycoon: 58000 },
   assetOptions: ASSETS,
   locations: LOCATIONS,
+  /**
+   * A truck sells lunch, not thirst. The game's default curve is a lemonade
+   * stand's — a heat wave worth 1.8x, freezing worth 0.35x — and inherited whole
+   * it put the truck at 0.45 x 0.35 of normal trade in a freezing winter week,
+   * with nothing on the menu that could answer.
+   *
+   * People eat lunch all year. What weather really decides is whether they will
+   * stand outside to wait for it, so rain and cold still hurt, and a heat wave
+   * is a mild positive rather than a windfall.
+   */
+  seasonMods: { spring: 1, summer: 1.2, fall: 0.95, winter: 0.68 },
+  weatherMods: { hot: 1.15, sunny: 1.25, cloudy: 1, rain: 0.6, cold: 0.5 },
   qualities: QUALITIES,
+  sideNoun: 'side',
   sideProducts: SIDE_PRODUCTS,
   loanOffers: LOAN_OFFERS,
   marketing: MARKETING,
@@ -371,6 +435,6 @@ export const FOOD_TRUCK: BusinessDef = {
     'Equity at exit',
     'Weekly mobility as a strategy',
     'Menu breadth against throughput',
-    'Fixed pitch fees against variable footfall',
+    'Fixed entry fees against foot traffic you cannot count on',
   ],
 };

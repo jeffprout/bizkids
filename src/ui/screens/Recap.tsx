@@ -27,6 +27,9 @@ export function Recap({
   // billed at $32.
   const biz = businessFor(state.businessId, state.tier);
   const units = biz.unitNamePlural;
+  // What this business calls an add-on. A stand bins treats; a truck does not.
+  const sides = `${biz.sideNoun}s`;
+  const Side = biz.sideNoun[0].toUpperCase() + biz.sideNoun.slice(1);
   const spot = biz.locations.find((l) => l.id === state.locationId);
   const spotCost = Math.round((r.rent + r.fixedCosts) * 100) / 100;
   const celebrate = r.newBadges.length > 0 || r.stagedUp;
@@ -172,7 +175,7 @@ export function Recap({
             )}
             {r.sideWasted > 0 && (
               <div className="ledger">
-                <span>🍭 Baked too many — treats binned</span>
+                <span>🍭 Made too many — {sides} thrown out</span>
                 <span className="out">
                   {r.sideWasted} of {r.sideBatchSize}
                 </span>
@@ -202,7 +205,7 @@ export function Recap({
           />
           {r.sideBatchSize > 0 && (
             <LedgerRow
-              label="🍭 Treats sold"
+              label={`🍭 ${Side}s sold`}
               // Sold of made, because the batch was paid for either way.
               amount={`${r.sideUnits} of ${r.sideBatchSize}`}
               explainId="treatsSold"
@@ -220,7 +223,7 @@ export function Recap({
                 showExplain={ex}
               />
               <LedgerRow
-                label="🍭 Treat sales"
+                label={`🍭 ${Side} sales`}
                 amount={dollars(r.sideRevenue)}
                 tone="in"
                 explainId="treatSales"
@@ -255,7 +258,7 @@ export function Recap({
               )}
               {r.sideCogs > 0 && (
                 <LedgerRow
-                  label={`🍭 Treat batch (${r.sideBatchSize} made)`}
+                  label={`🍭 ${Side} batch (${r.sideBatchSize} made)`}
                   amount={`-${dollars(r.sideCogs)}`}
                   tone="out"
                   explainId="treatCogs"

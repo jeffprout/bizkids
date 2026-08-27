@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_EVENTS, LEMONADE_EVENTS, TRUCK_EVENTS, eventsForBusiness } from '../events';
 import { BUSINESSES } from '../businesses';
+import type { EventChoice } from '../../engine/types';
 
 /**
  * Jeff got a glowing review for his food truck that thanked him for the
@@ -61,6 +62,20 @@ describe('every card belongs to exactly one business', () => {
     }
   });
 
+  it('speaks American English, idiom as well as spelling', () => {
+    // Jeff, reading his own cards: "What does 'take their pitch' mean?" and
+    // "'A truck parks up'? What does that mean?" Spelling was already checked
+    // below; the idiom was not, and a British market trader's vocabulary had
+    // walked into a game for American middle schoolers.
+    const britishisms =
+      /\b(pitch|pitches|parks? up|parked up|till|tills|footfall|car park|takeaway|rubbish|fortnight|petrol|rota)\b/i;
+    const offenders: string[] = [];
+    for (const e of ALL_EVENTS) {
+      for (const text of SAYS(e)) if (britishisms.test(text)) offenders.push(`${e.id}: "${text}"`);
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it('keeps "kid" out of it, everywhere', () => {
     // Aimed at middle school. "Rival Kid" and "Weather Kid" both read young.
     const offenders = ALL_EVENTS.filter((e) => /\bkid\b/i.test(e.character)).map(
@@ -75,6 +90,68 @@ describe('every card belongs to exactly one business', () => {
     for (const e of ALL_EVENTS) {
       for (const text of SAYS(e)) if (british.test(text)) offenders.push(`${e.id}: "${text}"`);
     }
+    expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * "Why would anyone not pick 'hand over the log'? That makes no sense."
+ *
+ * The health inspection cost $60 and GAINED reputation if you had the log, and
+ * $260 and lost reputation if you had not. Nobody picks the second, so the card
+ * was a menu with a wrong answer printed on it rather than a decision. Worse,
+ * whether the log existed was settled weeks earlier — it was not a choice the
+ * player was in a position to make at all.
+ *
+ * A choice has to beat every other choice at SOMETHING.
+ */
+describe('no card offers a choice nobody would take', () => {
+  /** Every axis a player could prefer a choice for. More is better on all of them. */
+  const axes = (c: EventChoice) => ({
+    cash: (c.cash ?? 0) + (c.cashUnits ?? 0),
+    reputation: c.reputation ?? 0,
+    demand: (c.demandMod ?? 1) * (c.capacityMod ?? 1),
+    stock: c.inventory ?? 0,
+    keeps: (c.equipment ?? 0) + (c.capacity ?? 0),
+    // A lower unit cost is better, so it is negated to point the same way.
+    unitCost: -(c.unitCostMod ?? 1),
+    price: c.priceMod ?? 1,
+  });
+
+  const dominated = (choices: EventChoice[]) =>
+    choices
+      .filter((c) => {
+        const mine = axes(c);
+        return choices.some((other) => {
+          if (other.id === c.id) return false;
+          const theirs = axes(other);
+          const keys = Object.keys(mine) as (keyof typeof mine)[];
+          return keys.every((k) => theirs[k] >= mine[k]) && keys.some((k) => theirs[k] > mine[k]);
+        });
+      })
+      .map((c) => c.id);
+
+  it('catches one, given the card exactly as Jeff saw it', () => {
+    // Kept verbatim so this guard can never quietly stop testing anything.
+    expect(
+      dominated([
+        { id: 'ready', label: 'Hand over the log', cash: -60, reputation: 0.2, result: '' },
+        { id: 'wing', label: 'You have not kept one', cash: -260, reputation: -0.3, result: '' },
+      ]),
+    ).toEqual(['wing']);
+  });
+
+  it('passes a card where each choice is better at something', () => {
+    expect(
+      dominated([
+        { id: 'cheap', label: 'Patch it', cash: -50, result: '' },
+        { id: 'proper', label: 'Fix it properly', cash: -200, equipment: 200, result: '' },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('finds none anywhere in the game', () => {
+    const offenders = ALL_EVENTS.flatMap((e) => dominated(e.choices).map((id) => `${e.id}/${id}`));
     expect(offenders).toEqual([]);
   });
 });

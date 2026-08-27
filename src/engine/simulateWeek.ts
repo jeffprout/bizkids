@@ -179,12 +179,17 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     state: { ...state, marketing, reputation },
     location,
     quality,
+    bizSeasonMods: biz.seasonMods,
+    bizWeatherMods: biz.weatherMods,
     price,
     referencePrice: biz.referencePrice[state.tier],
     elasticity: tier.elasticity,
     conversionRate: biz.conversionRate,
     eventDemandMod: ev.demandMod,
-    noiseRoll: rng(),
+    // Two draws averaged, so weeks cluster near typical and the extremes are
+    // rare rather than equally likely. One flat draw made the spot's whole
+    // volatility band uniform, which is what made demand feel arbitrary.
+    noiseRoll: (rng() + rng()) / 2,
   });
   // The stand across the street. Undercut them and you take share; charge well
   // over them and customers walk.

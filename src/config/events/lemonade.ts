@@ -172,9 +172,12 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       {
         id: 'cut',
         label: 'Drop my price',
-        cash: 0,
-        demandMod: 1.15,
-        result: 'You match them. More cups, less money each.',
+        // Dropping the price has to actually drop the PRICE. As a bare
+        // demandMod it was free customers with nothing given up, which made
+        // ignoring the rival a choice nobody would ever take. The demand curve
+        // turns the cut into extra cups by itself.
+        priceMod: 0.85,
+        result: 'You match them. More cups, less money on each one.',
       },
       {
         id: 'cookies',
@@ -302,7 +305,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     pool: 'lemonade',
     character: 'Grumpy Customer',
     emoji: '😠',
-    title: 'Bad Review',
+    title: 'Warm And Slow',
     line: 'My cup was warm and the line was too long!',
     weight: 6,
     concept: 'Service recovery',
@@ -324,9 +327,11 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       {
         id: 'argue',
         label: 'Argue back',
-        reputation: -0.4,
-        demandMod: 0.9,
-        result: 'They tell everyone. That stings.',
+        // A public row draws a crowd. That is why people pick it, and why it is
+        // a trap. With no upside it was not a trap, just a button to avoid.
+        demandMod: 1.12,
+        reputation: -0.5,
+        result: 'Everyone reads it. Nobody comes out of it looking good.',
       },
     ],
   },
@@ -335,7 +340,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     pool: 'lemonade',
     character: 'Regular Customer',
     emoji: '🥤',
-    title: 'Bad Review',
+    title: 'Too Watery',
     line: 'This tastes like lemon-flavored water. Did you skimp?',
     weight: 6,
     concept: 'Quality perception',
@@ -356,9 +361,12 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       },
       {
         id: 'blame',
-        label: 'Blame the recipe',
+        label: 'Blame the mix you bought',
+        // The store does refund a weak box. Money for standing is a real trade.
+        // Losing standing for nothing at all was not a choice.
+        cash: 5,
         reputation: -0.3,
-        result: 'Passing the buck reads badly.',
+        result: 'The store refunds the weak box. It still reads badly.',
       },
     ],
   },
@@ -375,6 +383,8 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       {
         id: 'explain',
         label: 'Explain your costs',
+        // Said at the table, to somebody with a line waiting behind them.
+        capacityMod: 0.97,
         reputation: 0.12,
         result: 'You show them the lemon receipts. Fair enough, they say.',
       },
@@ -399,7 +409,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     pool: 'lemonade',
     character: 'Parent',
     emoji: '🙍',
-    title: 'Bad Review',
+    title: 'Nobody Looked Up',
     line: 'Whoever served me barely looked up from their phone.',
     weight: 6,
     minStage: 2,
@@ -409,20 +419,17 @@ export const LEMONADE_EVENTS: GameEvent[] = [
       {
         id: 'coach',
         label: 'Talk to your helper',
+        // The chat happens while people are waiting, so it costs some service.
+        // Free reputation made ignoring it a choice nobody would ever take.
+        capacityMod: 0.95,
         reputation: 0.18,
-        result: 'An awkward chat, but service picks up.',
+        result: 'An awkward chat mid-shift, but service picks up.',
       },
       {
         id: 'ignore',
         label: 'Ignore it',
         reputation: -0.12,
         result: 'You let it go. The habit stays.',
-      },
-      {
-        id: 'defend',
-        label: 'Defend your helper',
-        reputation: -0.2,
-        result: 'Loyal, but the customer is not coming back.',
       },
     ],
   },
@@ -441,7 +448,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         label: 'Clean it properly',
         cash: -6,
         reputation: 0.2,
-        result: 'A scrub and a bin. The stand looks sharp again.',
+        result: 'A scrub and a fresh coat. The stand looks sharp again.',
       },
       {
         id: 'ignore',
@@ -587,18 +594,22 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     concept: 'Compliance costs',
     choices: [
       {
-        id: 'fix',
-        label: 'Fix it properly',
-        cash: -26,
+        // The same fake choice the truck inspector had: one option cost less
+        // AND gained reputation, so nobody would ever take the other one.
+        // Closing to fix it has to cost what closing actually costs — the day.
+        id: 'close',
+        label: 'Close today and fix it',
+        cash: -12,
+        demandMod: 0.45,
         reputation: 0.15,
-        result: 'Passed on the recheck. Money gone, licence safe.',
+        result: 'Shut for the afternoon, passed the recheck. The day is gone.',
       },
       {
         id: 'fine',
-        label: 'Take the fine',
+        label: 'Stay open, take the fine',
         cash: -40,
         reputation: -0.25,
-        result: 'A bigger fine and a note on your record.',
+        result: 'You sell all day, and the fine lands with a note on your record.',
       },
     ],
   },
@@ -782,8 +793,10 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         id: 'clean',
         label: 'Clean up fast',
         cash: -2,
-        inventory: -12,
-        result: 'You lose some stock but reopen quickly.',
+        // Straight in and you save most of it. Leaving the mess for the photo
+        // costs you the rest, which is the trade — there was not one before.
+        inventory: -5,
+        result: 'Straight back up. You save most of what was on the table.',
       },
       {
         id: 'photo',

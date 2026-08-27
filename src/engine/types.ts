@@ -536,6 +536,26 @@ export interface BusinessDef {
   assetOptions?: AssetOption[];
   locations: LocationDef[];
   qualities: QualityDef[];
+  /**
+   * How much people want this KIND of thing by season and by sky, before any
+   * particular recipe changes it.
+   *
+   * Left out, a business inherits the game's default curve — which was written
+   * for a lemonade stand, where a heat wave is worth 1.8x and freezing is worth
+   * 0.35x. That is thirst, not appetite. People still eat lunch in January, so a
+   * food truck that inherits it spends every winter week at 0.45 x 0.35 = a
+   * sixth of normal trade, and has no way to answer.
+   *
+   * A recipe may still override both — that is what a hot drink in January is.
+   */
+  seasonMods?: Record<Season, number>;
+  weatherMods?: Record<Weather, number>;
+  /**
+   * What this business calls an add-on, in the singular. A stand sells a treat;
+   * a truck sells a side. The screen used to say "Sell a treat too?" and offer
+   * "Just drinks" to a food truck, which is somebody else's game.
+   */
+  sideNoun: string;
   /** Small add-on items sold alongside the main product. */
   sideProducts: SideProduct[];
   loanOffers: Record<Tier, LoanOffer[]>;

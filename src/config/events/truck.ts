@@ -150,7 +150,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     pool: 'truck',
     character: 'The Competition',
     emoji: '😼',
-    title: 'A Truck Parks Up',
+    title: 'A Rival Pulls In',
     line: 'Another truck pulled in twenty feet away. Same menu.',
     weight: 8,
     concept: 'Competition',
@@ -158,8 +158,11 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'cut',
         label: 'Undercut them',
-        demandMod: 1.15,
-        result: 'You take the price fight. More plates, less on each.',
+        // A price fight has to actually move the PRICE. As a bare demandMod it
+        // was free customers with nothing given up — not a price fight, a gift.
+        // The demand curve turns the cut into extra plates by itself.
+        priceMod: 0.85,
+        result: 'You take the price fight. More plates, less on each one.',
       },
       {
         id: 'combo',
@@ -189,18 +192,18 @@ export const TRUCK_EVENTS: GameEvent[] = [
     choices: [
       {
         id: 'take',
-        label: 'Take their pitch',
+        label: 'Just take their customers',
         demandMod: 1.4,
-        result: 'Their whole lunch crowd is yours now.',
+        result: 'Their whole lunch crowd is yours now, and it cost you nothing.',
       },
       {
         id: 'buy',
-        label: 'Buy the griddle',
+        label: 'Buy the griddle too',
         cash: -320,
         equipment: 320,
         capacity: 60,
         demandMod: 1.4,
-        result: 'A second griddle for good. You can put out more every week.',
+        result: 'Their crowd AND a second griddle. More out the window every week from now on.',
       },
     ],
   },
@@ -284,7 +287,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     pool: 'truck',
     character: 'Angry Customer',
     emoji: '😠',
-    title: 'Bad Review',
+    title: 'Cold And Slow',
     line: 'Twenty minutes in line and it came out cold!',
     weight: 6,
     concept: 'Service recovery',
@@ -306,9 +309,12 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'argue',
         label: 'Reply angrily',
-        reputation: -0.4,
-        demandMod: 0.9,
-        result: 'Arguing in public has never once helped anybody.',
+        // A public row draws a crowd. That is exactly why people pick it, and
+        // exactly why it is a trap. With no upside at all it was not a trap —
+        // it was a button with no reason on earth to press it.
+        demandMod: 1.12,
+        reputation: -0.5,
+        result: 'Everyone reads it. Nobody comes out of it looking good.',
       },
     ],
   },
@@ -317,7 +323,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     pool: 'truck',
     character: 'Regular Customer',
     emoji: '🍽️',
-    title: 'Bad Review',
+    title: 'Smaller Plates',
     line: 'Portions have shrunk. Same price though, I notice.',
     weight: 6,
     concept: 'Quality perception',
@@ -339,8 +345,11 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'blame',
         label: 'Blame the supplier',
+        // They do credit you for the short cases. Money for standing is a real
+        // trade and a real lesson. Losing standing for nothing was neither.
+        cash: 45,
         reputation: -0.3,
-        result: 'Passing the buck reads badly in public.',
+        result: 'They credit you for the short cases. It still reads badly.',
       },
     ],
   },
@@ -357,6 +366,8 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'explain',
         label: 'Explain your costs',
+        // Said at the window, to somebody with a line waiting behind them.
+        capacityMod: 0.97,
         reputation: 0.12,
         result: 'You walk them through the invoice. Fair enough, they say.',
       },
@@ -381,7 +392,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     pool: 'truck',
     character: 'Regular Customer',
     emoji: '🙍',
-    title: 'Bad Review',
+    title: 'Nobody Looked Up',
     line: 'Whoever was on the window barely looked at me.',
     weight: 6,
     minStage: 2,
@@ -391,20 +402,18 @@ export const TRUCK_EVENTS: GameEvent[] = [
       {
         id: 'talk',
         label: 'Have a word',
+        // The conversation happens in the middle of service, so it costs some
+        // service. Free reputation made leaving it alone a choice nobody would
+        // ever take, which is the same fault as the inspection card.
+        capacityMod: 0.95,
         reputation: 0.18,
-        result: 'A quiet conversation. The window is friendlier all week.',
+        result: 'A quiet word mid-shift. The window is friendlier all week.',
       },
       {
         id: 'ignore',
         label: 'Leave it',
         reputation: -0.12,
         result: 'Nothing changes, because nothing was said.',
-      },
-      {
-        id: 'blame',
-        label: 'Blame the rush',
-        reputation: -0.2,
-        result: 'The customer does not care how busy you were.',
       },
     ],
   },
@@ -512,18 +521,18 @@ export const TRUCK_EVENTS: GameEvent[] = [
     ],
   },
   {
-    id: 'truck-till',
+    id: 'truck-register',
     pool: 'truck',
-    character: 'Empty Till',
+    character: 'The Cash Drawer',
     emoji: '💸',
-    title: 'The Till Is Short',
+    title: 'The Money Is Short',
     line: 'Four hundred went through that window. It is not here.',
     weight: 6,
     concept: 'Shrinkage and controls',
     choices: [
       {
         id: 'lockbox',
-        label: 'Fit a proper till',
+        label: 'Fit a locking register',
         cash: -340,
         equipment: 120,
         result: 'A locking drawer and a receipt roll. It will not happen twice.',
@@ -683,10 +692,10 @@ export const TRUCK_EVENTS: GameEvent[] = [
     character: 'Festival Organizer',
     emoji: '🎟️',
     title: 'The Good Slot Is Up',
-    line: 'Main gate pitch, Saturday. Highest bidder takes it.',
+    line: 'Main gate spot, Saturday. Highest bidder takes it.',
     weight: 7,
     seasons: ['spring', 'summer', 'fall'],
-    // Only at the festival. Bidding for a pitch you are not attending is not a
+    // Only at the festival. Bidding for a spot you are not attending is not a
     // decision, it is a non sequitur.
     locations: ['festival'],
     concept: 'Bidding for a spot with no guarantee',
@@ -706,7 +715,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         demandMod: 1.15,
         result: 'You get a corner near the bins. Some people find you.',
       },
-      { id: 'pass', label: 'Skip it', result: 'You keep the money and your usual pitch.' },
+      { id: 'pass', label: 'Skip it', result: 'You keep the money and the spot you already have.' },
     ],
   },
   {
@@ -715,23 +724,35 @@ export const TRUCK_EVENTS: GameEvent[] = [
     character: 'Health Inspector',
     emoji: '📋',
     title: 'Surprise Inspection',
-    line: 'Routine check. Let me see your temperature log.',
+    line: 'Your cooler is running warm. I can shut you today or write it up.',
     weight: 7,
     concept: 'Compliance is a cost of doing business',
+    /**
+     * This card used to ask whether you had kept a temperature log — $60 if you
+     * had, $260 and a reputation hit if you had not. Nobody picks the second
+     * one, because it is not a choice: whether the log exists was decided weeks
+     * ago, and the card was really a menu with a wrong answer printed on it.
+     *
+     * A real inspection costs you either way, and in the present tense. Close
+     * and fix it and most of the week's trade is gone; stay open and take the
+     * write-up and you pay in cash and in your rating. That is the lesson —
+     * compliance is bought with time or with money, never with neither.
+     */
     choices: [
       {
-        id: 'ready',
-        label: 'Hand over the log',
-        cash: -60,
+        id: 'close',
+        label: 'Close today and fix it',
+        cash: -120,
+        demandMod: 0.4,
         reputation: 0.2,
-        result: 'Everything in order. A small fee and a clean sticker.',
+        result: 'Shut by noon, fixed by dark. Most of the week is gone.',
       },
       {
-        id: 'wing',
-        label: 'You have not kept one',
+        id: 'writeup',
+        label: 'Stay open, take the write-up',
         cash: -260,
         reputation: -0.3,
-        result: 'A fine and a warning. Keep the log next time.',
+        result: 'You trade all week and the fine lands with the rating.',
       },
     ],
   },

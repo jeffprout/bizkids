@@ -7,6 +7,67 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-08-25 (third pass) — Demand was not arbitrary, it was invisible
+
+Jeff, losing interest: *"It is almost impossible to make money... I don't
+understand how the amount of people visiting the truck is calculated. It seems
+very arbitrary but slightly tied to weather. The locations are almost the same
+results. The help almost is never justified."* Then, with a screenshot: *"I just
+had a heat wave so I hired a helper and stocked up and only sold 285 meals at a
+festival. I mean... WTF."*
+
+Every one of those was a real defect. The balance guard added earlier this
+session did not catch any of them, because **it plays with an oracle** — it calls
+`computeDemand` to decide how much to order, which no human can do. It proved the
+economics can work, not that the game can be played. A second probe was written
+that can only see what the SCREEN shows, and it told a very different story.
+
+**Week 35 reconstructed.** Fall, Festival Pitch, heat wave, five stars, $90 of
+advertising: 700 foot traffic x 0.3 conversion x 0.72 season x 1.8 heat x 1.35
+stars x 1.3 advertising = **about 478 expected**. He got 285. The festival's
+week-to-week luck was a FLAT +/-55%, so the honest range that week was 215 to
+740. He ordered 630 and threw away 224 — $470 of food, against a net profit of
+$19.20. Nothing was broken. He simply had no way to know, and neither would
+anyone.
+
+**The noise was flat, and far too wide.** `noiseMod` was uniform over the spot's
+whole volatility band, so a 0.6x week was exactly as likely as a normal one. Two
+draws are averaged now, which clusters weeks near typical and makes the extremes
+rare, and the bands came down: festival 0.55 -> 0.28, night district 0.4 -> 0.2,
+soccer field 0.35 -> 0.22. Risk now lives where it can be READ — the season, the
+sky, the forecast being wrong a third of the time, and the cards.
+
+**The screen now says what to expect.** `engine/expectDemand.ts` runs the same
+model the week will run, against the FORECAST rather than the truth, and the
+supplies card shows "Expect about 242-360 meals" plus the two or three things
+moving it most ("▲ rain", "▼ the rival"). Four separate forces were moving that
+number — season, sky, rival price, luck — and not one was on screen. It updates
+live as the price, the menu, the spot and the advertising are chosen.
+
+**The suggested order was systematically too high.** It was "best of the last
+three weeks", which orders for your BEST week every week. It now sits at the
+newsvendor point — where one more portion costs about what it earns, computed
+from the real margin and the real spoilage rate — nudged toward what the run has
+actually been seeing.
+
+**FOR JEFF — the help now does a second person's work.** Rosa cost $520 a week
+and added 260 plates. At ~$6.40 of margin she had to recover 81 plates every
+week, but capacity only binds in the busiest weeks — about ten a week at the
+Friday Night District. She could not pay for herself at any spot, at any tier,
+under any play: hiring lost money in every single measured run. Wages are
+unchanged and realistic (~$17/hour); Rosa now adds 420 and Dev 240. Hiring is
+now clearly right at the festival (+$10k over 30 weeks at Tycoon) and still
+clearly wrong at the office park, which is the decision it was meant to be.
+
+**Measured, following the game's own advice, 30 weeks, six seeds:** Tycoon
+festival $60k solo / $70k with staff, night district $51k, office park $17k. Red
+weeks down from 15-29% to 10-19%. The spots are no longer "almost the same".
+
+**Also:** the menu prompt offered a food truck "a hot drink sells when lemonade
+will not".
+
+---
+
 ## 2026-08-25 (later) — Two kinds of money, and a ceiling below the floor
 
 **"Why is the refund of an angry customer $75?"** Because the card was written

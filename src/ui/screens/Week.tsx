@@ -9,6 +9,7 @@ import { WEATHER_INFO, temperatureFor } from '../../engine/calendar';
 import { Choice, Stepper, dollars } from '../components/bits';
 import { priceBandFor } from '../../engine/pricing';
 import { restockBounds } from '../../engine/restock';
+import { expectDemand } from '../../engine/expectDemand';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -134,6 +135,30 @@ export function Week({
       (quality.capacityMod ?? 1),
   );
 
+  /**
+    * How many people to expect, from the same model that will run the week.
+    *
+    * The screen used to show only what happened LAST week and leave the player
+    * to guess this one. Four separate things move the number — the season, the
+    * sky, the rival's price and plain luck — and none of them were on screen, so
+    * ordering stock, which is the decision the whole game is built around, was a
+    * guess. Jeff: "I don't understand how the amount of people visiting the
+    * truck is calculated. It seems very arbitrary."
+    */
+  const marketingLift = buyMarketing.reduce(
+    (sum, id) => sum + (marketingOptions.find((m) => m.id === id)?.boost ?? 0),
+    0,
+  );
+  const expected = expectDemand({
+    state,
+    biz,
+    tier,
+    price,
+    qualityId,
+    locationId,
+    extraMarketingBoost: marketingLift,
+  });
+
   const stockBudget = Math.max(0, state.cash - committedCosts);
   const { max: restockMax, affordable } = restockBounds({
     cash: state.cash,
@@ -233,26 +258,30 @@ export function Week({
    */
   const suggestedRestock = useMemo(() => {
     const recent = state.history.slice(-3);
-    // Best of the last three weeks, so one rained-out week does not suggest
-    // ordering nothing — a stand that orders nothing sells nothing forever.
-    const baseline = recent.length
-      ? Math.max(20, ...recent.map((h) => h.served + h.lostToStockout))
-      : 60;
-
-    const lift = buyMarketing.reduce(
-      (sum, id) => sum + (biz.marketing.find((m) => m.id === id)?.boost ?? 0),
-      0,
-    );
-
-    const want = Math.min(baseline * (1 + lift), servingCapacity);
+    /**
+     * What the model says to order this week, not what happened last week.
+     *
+     * This was "best of the last three weeks", which sounds safe and is not: it
+     * orders for your BEST week every week, so a normal week throws the
+     * difference away. Worse, hiring made it worse — more hands lifted the
+     * capacity cap, so the suggestion climbed to the peak and the extra waste
+     * ate the helper's wages. Hiring lost money at every spot and every tier,
+     * which is exactly what Jeff found: "the help is almost never justified."
+     *
+     * Last week still matters, as a sanity check against a model that has not
+     * caught up with a run's real trade, so the suggestion is nudged toward it.
+     */
+    const seen = recent.length
+      ? Math.max(...recent.map((h) => h.served + h.lostToStockout))
+      : expected.order;
+    const want = Math.min((expected.order * 2 + seen) / 3, servingCapacity);
     const need = Math.round((want - state.inventory) / tier.restockStep) * tier.restockStep;
     return Math.max(0, Math.min(restockMax, need));
   }, [
     state.history,
     state.inventory,
     servingCapacity,
-    buyMarketing,
-    biz,
+    expected.order,
     tier.restockStep,
     restockMax,
   ]);
@@ -440,6 +469,22 @@ export function Week({
             {/* Everything needed to size the order — last week's numbers, the
                 capacity, and anything decided earlier this week — as chips
                 rather than a stack of sentences, so the card clears the fold. */}
+            {/* The estimate, and the two or three things moving it. This is the
+                whole reason the ordering decision is playable rather than a
+                guess — see engine/expectDemand.ts. */}
+            <p style={{ margin: '2px 0 0' }}>
+              <b>
+                Expect about {expected.low}–{expected.high} {units}
+              </b>
+            </p>
+            {expected.drivers.length > 0 && (
+              <p className="muted" style={{ margin: 0, fontSize: '0.85em' }}>
+                {expected.drivers
+                  .slice(0, 3)
+                  .map((d) => `${d.mult >= 1 ? '▲' : '▼'} ${d.label}`)
+                  .join('  ·  ')}
+              </p>
+            )}
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
               <span className="pill">🥤 {state.inventory} left over</span>
               {state.inventory > 0 && (
@@ -497,9 +542,12 @@ export function Week({
                 {/* The advice has to follow the thermometer. Telling a player a
                     hot drink is the answer on an 88-degree day, which the card
                     did, is worse than saying nothing. */}
+                {/* Named from the config, not written for the stand. This line
+                    offered a food truck "a hot drink sells when lemonade will
+                    not" — somebody else's game again. */}
                 {temperatureFor(state.forecast, state.season) <= 58
-                  ? 'A hot drink sells when lemonade will not.'
-                  : 'Warm enough that a cold drink should walk it.'}
+                  ? `Something hot sells when the usual ${units} will not.`
+                  : `Warm enough that the usual ${units} should walk it.`}
               </p>
             )}
             {menuOptions.map((q) => (
@@ -614,7 +662,7 @@ export function Week({
 
         {card === 'treats' && (
           <div className="card stack">
-            <h2 className="center">Sell a treat too?</h2>
+            <h2 className="center">Sell a {biz.sideNoun} too?</h2>
             {/* One line, not two. Once there is a real number from last week it
                 says everything the generic sentence did and more, and the card
                 has four options to fit under it on a phone. */}
@@ -652,7 +700,7 @@ export function Week({
             })}
             <Choice
               emoji="🚫"
-              title="Just drinks"
+              title={`No ${biz.sideNoun} this week`}
               selected={!sideProductId}
               onClick={() => setSideProductId(null)}
             />
