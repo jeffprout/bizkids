@@ -7,6 +7,48 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-08-25 (fourth pass) — No more British idiom
+
+Jeff: *"No more British idiom. Not sure how that even happened."*
+
+**How it happened:** the copy was written in a British register, and the only
+guard checked SPELLING. Spelling is the easy half — nothing in the game ever said
+"colour" — while the vocabulary walked straight in. A market trader's "pitch", a
+"till" instead of a register, a truck that "parks up", "footfall", "proper" as an
+intensifier, "reads badly", "put it down to experience", and — in a game whose
+owner sells insurance for a living — "Liability Cover" instead of coverage.
+
+**The bigger miss:** the first guard, written earlier the same day, read only
+EVENT CARDS. That is exactly how the location named **"Festival Pitch"** survived
+it. The word was on screen every single week, on a card the test never looked at.
+The new guard in `americanEnglish.test.ts` walks every string a player can read —
+cards, location names, menu names, side items, staff, marketing, loans, asset
+options, badges and the glossary — and it is proven non-vacuous by reintroducing
+"Festival Pitch" and watching it fail.
+
+Fixed: Festival Pitch -> **Festival Grounds**; the till -> a locking register;
+"sixty covers" -> sixty lunches; "a meal deal" -> a combo; "fair enough, they
+say" -> they get it; "have a word" -> talk to them; "reads badly" -> looks bad;
+"a corner near the bins" -> by the dumpsters; "grey" -> gray; "Passer-by" ->
+Passerby; "four weeks shut" -> four weeks closed; "afterwards" -> after that;
+"Annualised" -> Annualized; and every "proper/properly" as an intensifier.
+
+**The glossary was written entirely for the lemonade stand.** A food truck owner
+tapping the "?" beside "Cost of meals sold" was told what the lemons, cups and
+ice cost. Every entry is now business-neutral — which is the right call here and
+NOT a retreat to the placeholder approach Jeff rejected for event cards. A card
+is somebody speaking and belongs to one business; a definition of gross profit is
+the same idea whatever is being sold. Guarded by its own test.
+
+**Also found on the way:** four cards per business still shared the title "Bad
+Review", which reads as the same card over and over. They are now Cold And Slow,
+Smaller Plates, Too Expensive, Grease On The Window, Nobody Looked Up, Warm And
+Slow, Too Watery, Sticky Table. A test that hooked on `title === 'Bad Review'`
+broke, and was re-pointed at the `concept` tag — what a card teaches is durable,
+what it is called is not.
+
+---
+
 ## 2026-08-25 (third pass) — Demand was not arbitrary, it was invisible
 
 Jeff, losing interest: *"It is almost impossible to make money... I don't

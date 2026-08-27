@@ -55,7 +55,7 @@ const LOCATIONS: LocationDef[] = [
   },
   {
     id: 'festival',
-    name: 'Festival Pitch',
+    name: 'Festival Grounds',
     emoji: '🎪',
     baseTraffic: 700,
     // The entry fee is the lesson: enormous traffic you have to pay for up
@@ -165,7 +165,7 @@ const ASSETS: AssetOption[] = [
     // between a steal and a very expensive mistake.
     conditionRange: { low: 0.55, high: 1.35 },
     reliability: 1.6,
-    blurb: 'Half the money, four weeks shut, and you find out what you bought.',
+    blurb: 'Half the money, four weeks closed, and you find out what you bought.',
     conditionNotes: {
       good: 'Barely used. Whoever sold this had no idea what they had.',
       fair: 'Honest miles. It runs, and it will need watching.',

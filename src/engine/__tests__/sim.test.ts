@@ -391,7 +391,19 @@ describe('playtest fixes', () => {
   });
 
   it('gives every bad review an ignore option that only stings a little', () => {
-    const reviews = ALL_EVENTS.filter((e) => e.title === 'Bad Review');
+    // Found by what the card TEACHES, not by its title. Eight cards used to
+    // share the title "Bad Review" — four per business — which read as the same
+    // card over and over, so they were given distinct names and this hook broke.
+    // The concept tag is the durable handle: it is what the card is for, and it
+    // does not move when the wording does.
+    const COMPLAINTS = [
+      'Service recovery',
+      'Quality perception',
+      'Price perception',
+      'Managing people',
+      'Presentation',
+    ];
+    const reviews = ALL_EVENTS.filter((e) => COMPLAINTS.includes(e.concept));
     expect(reviews.length).toBeGreaterThanOrEqual(4);
     for (const review of reviews) {
       const ignore = review.choices.find((c) => c.id === 'ignore');

@@ -532,7 +532,7 @@ export function Week({
             <h2 className="center">What are you selling?</h2>
             {/* Say what it is forecast to feel like, right where the drink is
                 chosen. The whole point of keeping cocoa on the menu into spring
-                is that a grey 52-degree day is a real decision — and it only is
+                is that a gray 52-degree day is a real decision — and it only is
                 one if the player can see that it is 52 degrees. */}
             {seasonalOnMenu && (
               <p className="muted center">

@@ -1,6 +1,13 @@
 /**
  * Plain-English explanations for the numbers on screen.
  *
+ * Written for ANY business, not for the lemonade stand. This was all cups,
+ * lemons, ice and front yards — so a food truck owner tapping the "?" beside
+ * "Cost of meals sold" was told what the lemons cost. Unlike the event cards,
+ * which each business writes for itself because they are somebody speaking,
+ * these are definitions of accounting terms: the same idea whatever is being
+ * sold, so they are said in words that fit all of them.
+ *
  * Two jobs. It answers "what is this?" for a player mid-game, and — because
  * every entry is tagged with the concept it teaches — it is the raw material for
  * the curriculum map the School Edition ships (spec Section 12).
@@ -17,14 +24,14 @@ export interface GlossaryEntry {
 
 export const GLOSSARY: Record<string, GlossaryEntry> = {
   cupsSold: {
-    term: 'Cups sold',
-    plain: 'How many people actually bought a drink from you this week.',
+    term: 'Units sold',
+    plain: 'How many people actually bought something from you this week.',
     concept: 'Units sold',
   },
   treatsSold: {
-    term: 'Treats sold',
+    term: 'Add-ons sold',
     plain:
-      'How many of the batch you made actually sold. The rest were thrown out — you baked them before you knew who was coming.',
+      'How many of the batch you made actually sold. The rest were thrown out — you made them before you knew who was coming.',
     concept: 'Attach rate',
   },
   sales: {
@@ -33,60 +40,60 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     concept: 'Revenue',
   },
   drinkSales: {
-    term: 'Drink sales',
-    plain: 'Money from the drinks alone, before treats are counted.',
+    term: 'Main sales',
+    plain: 'Money from the main thing you sell, before any add-on is counted.',
     concept: 'Revenue by product line',
   },
   treatSales: {
-    term: 'Treats',
-    plain: 'Money from the snacks people added to their drink.',
+    term: 'Add-on sales',
+    plain: 'Money from the extras people added to their order.',
     concept: 'Add-on revenue',
   },
   cogs: {
-    term: 'Cost of cups sold',
+    term: 'Cost of what you sold',
     plain:
-      'What the lemons, cups and ice cost for only the drinks you actually sold. Stock still sitting in your cooler is not counted here.',
+      'What the ingredients and supplies cost for only the things you actually sold. Stock still sitting unsold is not counted here.',
     concept: 'Cost of goods sold',
   },
   treatCogs: {
-    term: 'Treat batch',
+    term: 'Add-on batch',
     plain:
-      'What making the batch cost. You pay it before the week starts, so a quiet week loses money on treats and a busy one makes it back several times over.',
+      'What making the batch cost. You pay it before the week starts, so a quiet week loses money on it and a busy one makes it back several times over.',
     concept: 'Fixed cost vs variable cost',
   },
   avgUnitCost: {
-    term: 'What a cup costs you',
+    term: 'What one costs you',
     plain:
-      'The average cost of the stock in your cooler. Buying a cheap batch pulls this down, and every cup you sell afterwards costs you less.',
+      'The average cost of the stock you are holding. Buying a cheap batch pulls this down, and everything you sell after that costs you less.',
     concept: 'Weighted-average inventory cost',
   },
   spoilage: {
     term: 'Thrown out',
     plain:
-      'Leftover drinks that went bad before anyone bought them. You paid for these and got nothing back.',
+      'Leftovers that went bad before anyone bought them. You paid for these and got nothing back.',
     concept: 'Spoilage and waste',
   },
   stockLost: {
     term: 'Stock lost',
-    plain: 'Supplies destroyed by something that happened this week, like a batch that turned.',
+    plain: 'Supplies destroyed by something that happened this week, like a cooler failing.',
     concept: 'Inventory write-off',
   },
   grossProfit: {
     term: 'Gross profit',
     plain:
-      'Sales minus what the drinks themselves cost. It is what is left to cover everything else.',
+      'Sales minus what the things you sold cost to make. It is what is left to cover everything else.',
     concept: 'Gross profit',
   },
   fixedCosts: {
     term: 'What your spot costs',
     plain:
-      'Rent, the permit, ice and cups for the spot you picked — the whole weekly figure shown on the card when you chose it. It arrives whether you sell a hundred drinks or none. Cheaper spots cost less but fewer people walk past.',
+      'Rent, permits and the running costs of the spot you picked — the whole weekly figure shown on the card when you chose it. It arrives whether you sell a hundred or none. Cheaper spots cost less, but fewer people walk past.',
     concept: 'Fixed costs',
   },
   rent: {
     term: 'Spot rent',
     plain:
-      'What you pay for the right to set up where you did. The front yard charges no rent, but it still has running costs.',
+      'What you pay for the right to set up where you did. Some spots charge no rent at all, but they still have running costs.',
     concept: 'Fixed costs',
   },
   wages: {
@@ -96,7 +103,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   },
   marketing: {
     term: 'Advertising',
-    plain: 'What you spent telling people about the stand this week.',
+    plain: 'What you spent telling people about the business this week.',
     concept: 'Customer acquisition cost',
   },
   interest: {
@@ -129,7 +136,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   suppliesBought: {
     term: 'Supplies bought',
     plain:
-      'Cash you spent stocking up. Anything you did not sell is still yours — it is sitting in the cooler, not gone.',
+      'Cash you spent stocking up. Anything you did not sell is still yours — it is sitting in your stock, not gone.',
     concept: 'Inventory as an asset',
   },
   overheadCash: {
@@ -141,7 +148,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   assetPayment: {
     term: 'Lease payment',
     plain:
-      'What you pay every week to use the truck you do not own. It never stops, it never goes down, and when you sell the business the truck is not yours to sell.',
+      'What you pay every week to use something you do not own. It never stops, it never goes down, and when you sell the business it is not yours to sell.',
     concept: 'Equity vs rental of a fixed asset',
   },
   loanPayment: {
@@ -164,7 +171,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   inventorySwing: {
     term: 'Money in stock',
     plain:
-      'The bank pays for every cup you buy. Profit only counts the cups you sell. This line is the gap. Money that went into stock has left the bank but is still yours — it is sitting in the cooler waiting to be sold.',
+      'The bank pays for everything you buy. Profit only counts what you sell. This line is the gap. Money that went into stock has left the bank but is still yours — it is sitting on the shelf waiting to be sold.',
     concept: 'Working capital',
   },
   principalRepaid: {
@@ -187,7 +194,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   annualProfit: {
     term: 'A year of profit',
     plain: 'Your weekly profit stretched over a full year. Buyers think in years, not weeks.',
-    concept: 'Annualised earnings',
+    concept: 'Annualized earnings',
   },
   multiple: {
     term: 'Multiple',
@@ -202,7 +209,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   },
   equipmentValue: {
     term: 'Your gear',
-    plain: 'The table, cooler and sign go with the sale, so they add to the price.',
+    plain: 'Everything you own and work out of goes with the sale, so it adds to the price.',
     concept: 'Asset value',
   },
   debtPayoff: {

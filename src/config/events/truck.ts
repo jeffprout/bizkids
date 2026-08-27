@@ -81,7 +81,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         label: 'Buy a new fryer',
         cash: -450,
         equipment: 250,
-        result: 'A proper commercial unit. Expensive, and it is yours.',
+        result: 'A real commercial unit. Expensive, and it is yours.',
       },
       {
         id: 'tape',
@@ -170,7 +170,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         cash: -90,
         demandMod: 1.25,
         reputation: 0.2,
-        result: 'A meal deal beats a menu. Your line is the longer one.',
+        result: 'A combo beats a menu. Your line is the longer one.',
       },
       {
         id: 'ignore',
@@ -213,7 +213,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     character: 'Office Manager',
     emoji: '📣',
     title: 'Feed Our Whole Floor',
-    line: 'Sixty covers, Thursday, one invoice. Can you do it?',
+    line: 'Sixty lunches, Thursday, one invoice. Can you do it?',
     weight: 8,
     concept: 'Capacity and promises',
     choices: [
@@ -250,7 +250,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         inventory: 130,
         result: '130 portions for well under the usual price.',
       },
-      { id: 'skip', label: 'Not this week', result: 'You keep the cash. Fair enough.' },
+      { id: 'skip', label: 'Not this week', result: 'You keep the cash. No harm done.' },
     ],
   },
   {
@@ -298,7 +298,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         // One meal handed back, at whatever you are charging for one.
         cashUnits: -1,
         reputation: 0.15,
-        result: 'Handled properly. They came back the next week.',
+        result: 'Handled right. They came back the next week.',
       },
       {
         id: 'ignore',
@@ -349,16 +349,16 @@ export const TRUCK_EVENTS: GameEvent[] = [
         // trade and a real lesson. Losing standing for nothing was neither.
         cash: 45,
         reputation: -0.3,
-        result: 'They credit you for the short cases. It still reads badly.',
+        result: 'They credit you for the short cases. It still looks bad.',
       },
     ],
   },
   {
     id: 'truck-price-review',
     pool: 'truck',
-    character: 'Passer-by',
+    character: 'Passerby',
     emoji: '💰',
-    title: 'Bad Review',
+    title: 'Too Expensive',
     line: 'Nine dollars? Out of a truck? You are dreaming.',
     weight: 6,
     concept: 'Price perception',
@@ -369,7 +369,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         // Said at the window, to somebody with a line waiting behind them.
         capacityMod: 0.97,
         reputation: 0.12,
-        result: 'You walk them through the invoice. Fair enough, they say.',
+        result: 'You walk them through the invoice. They get it.',
       },
       {
         id: 'ignore',
@@ -383,7 +383,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         cash: -55,
         reputation: 0.2,
         demandMod: 0.95,
-        result: 'They leave happy. Word gets round that you haggle.',
+        result: 'They leave happy. Word gets around that you haggle.',
       },
     ],
   },
@@ -401,13 +401,13 @@ export const TRUCK_EVENTS: GameEvent[] = [
     choices: [
       {
         id: 'talk',
-        label: 'Have a word',
+        label: 'Talk to them',
         // The conversation happens in the middle of service, so it costs some
         // service. Free reputation made leaving it alone a choice nobody would
         // ever take, which is the same fault as the inspection card.
         capacityMod: 0.95,
         reputation: 0.18,
-        result: 'A quiet word mid-shift. The window is friendlier all week.',
+        result: 'A quiet talk mid-shift. The window is friendlier all week.',
       },
       {
         id: 'ignore',
@@ -420,9 +420,9 @@ export const TRUCK_EVENTS: GameEvent[] = [
   {
     id: 'truck-grease',
     pool: 'truck',
-    character: 'Passer-by',
+    character: 'Passerby',
     emoji: '🧽',
-    title: 'Bad Review',
+    title: 'Grease On The Window',
     line: 'There is grease running down the side of your window.',
     weight: 6,
     concept: 'Presentation',
@@ -516,7 +516,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         cash: 200,
         reputation: -0.2,
         capacityMod: 0.35,
-        result: 'You save the wage. They are quiet about it afterwards.',
+        result: 'You save the wage. They are quiet about it after that.',
       },
     ],
   },
@@ -539,7 +539,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
       },
       {
         id: 'shrug',
-        label: 'Put it down to experience',
+        label: 'Chalk it up to experience',
         cash: -220,
         reputation: -0.05,
         result: 'You take the loss and hope.',
@@ -551,7 +551,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     pool: 'truck',
     character: 'Insurance Agent',
     emoji: '📑',
-    title: 'You Need Liability Cover',
+    title: 'You Need Liability Coverage',
     line: 'A fryer, a sidewalk, a crowd. Who pays if it goes wrong?',
     weight: 6,
     concept: 'Risk and insurance',
@@ -577,7 +577,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     character: 'The Cooler',
     emoji: '🤢',
     title: 'It Failed Overnight',
-    line: 'Sat at fifty degrees for nine hours. All of it.',
+    line: 'It sat at fifty degrees for nine hours. All of it.',
     weight: 7,
     seasons: ['spring', 'summer'],
     concept: 'Inventory risk',
@@ -586,7 +586,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         id: 'dump',
         label: 'Throw it all out',
         inventory: -80,
-        result: 'Painful, and nobody got sick. That is the trade.',
+        result: 'Painful, and nobody got sick. That is the trade-off.',
       },
       {
         id: 'sell',
@@ -664,10 +664,10 @@ export const TRUCK_EVENTS: GameEvent[] = [
     choices: [
       {
         id: 'proper',
-        label: 'Proper repair',
+        label: 'Fix it right',
         cash: -900,
         equipment: 400,
-        result: 'Fixed properly. Expensive, and it holds.',
+        result: 'Fixed right. Expensive, and it holds.',
       },
       {
         id: 'bodge',
@@ -713,7 +713,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         label: 'Bid low',
         cash: -90,
         demandMod: 1.15,
-        result: 'You get a corner near the bins. Some people find you.',
+        result: 'You get a corner by the dumpsters. Some people find you.',
       },
       { id: 'pass', label: 'Skip it', result: 'You keep the money and the spot you already have.' },
     ],
@@ -724,7 +724,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     character: 'Health Inspector',
     emoji: '📋',
     title: 'Surprise Inspection',
-    line: 'Your cooler is running warm. I can shut you today or write it up.',
+    line: 'Your cooler is running warm. I can shut you down today or write it up.',
     weight: 7,
     concept: 'Compliance is a cost of doing business',
     /**
@@ -745,7 +745,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         cash: -120,
         demandMod: 0.4,
         reputation: 0.2,
-        result: 'Shut by noon, fixed by dark. Most of the week is gone.',
+        result: 'Closed by noon, fixed by dark. Most of the week is gone.',
       },
       {
         id: 'writeup',

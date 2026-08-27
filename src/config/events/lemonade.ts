@@ -94,7 +94,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         // You spend $45 and own $25 of cooler: gear is worth less the moment
         // you buy it, and the gap is the real cost of the week.
         equipment: 25,
-        result: 'A proper new cooler. Expensive, and it is yours.',
+        result: 'A real new cooler. Expensive, and it is yours.',
       },
       {
         id: 'tape',
@@ -268,7 +268,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         inventory: 90,
         result: '90 cups of supplies for well under the usual price.',
       },
-      { id: 'skip', label: 'Not this week', result: 'You keep your cash. Fair enough.' },
+      { id: 'skip', label: 'Not this week', result: 'You keep your cash. No harm done.' },
     ],
   },
   {
@@ -366,7 +366,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         // Losing standing for nothing at all was not a choice.
         cash: 5,
         reputation: -0.3,
-        result: 'The store refunds the weak box. It still reads badly.',
+        result: 'The store refunds the weak box. It still looks bad.',
       },
     ],
   },
@@ -375,7 +375,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     pool: 'lemonade',
     character: 'Neighbor',
     emoji: '💰',
-    title: 'Bad Review',
+    title: 'Too Expensive',
     line: 'Way overpriced for a paper cup of lemonade.',
     weight: 6,
     concept: 'Price perception',
@@ -386,7 +386,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         // Said at the table, to somebody with a line waiting behind them.
         capacityMod: 0.97,
         reputation: 0.12,
-        result: 'You show them the lemon receipts. Fair enough, they say.',
+        result: 'You show them the lemon receipts. They get it.',
       },
       {
         id: 'ignore',
@@ -436,16 +436,16 @@ export const LEMONADE_EVENTS: GameEvent[] = [
   {
     id: 'review-dirty',
     pool: 'lemonade',
-    character: 'Passer-by',
+    character: 'Passerby',
     emoji: '🧽',
-    title: 'Bad Review',
+    title: 'Sticky Table',
     line: 'The table was sticky and there was trash everywhere.',
     weight: 6,
     concept: 'Presentation',
     choices: [
       {
         id: 'clean',
-        label: 'Clean it properly',
+        label: 'Clean it up right',
         cash: -6,
         reputation: 0.2,
         result: 'A scrub and a fresh coat. The stand looks sharp again.',
@@ -528,7 +528,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         cash: 20,
         reputation: -0.2,
         capacityMod: 0.35,
-        result: 'You save the wage. They are quiet about it.',
+        result: 'You save the wage. They are quiet about it after that.',
       },
     ],
   },
@@ -563,7 +563,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     pool: 'lemonade',
     character: 'Insurance Agent',
     emoji: '📑',
-    title: 'You Need Liability Cover',
+    title: 'You Need Liability Coverage',
     line: 'If somebody slips on your spill, who pays for it?',
     weight: 6,
     concept: 'Risk and insurance',
@@ -602,7 +602,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         cash: -12,
         demandMod: 0.45,
         reputation: 0.15,
-        result: 'Shut for the afternoon, passed the recheck. The day is gone.',
+        result: 'Closed for the afternoon, passed the recheck. The day is gone.',
       },
       {
         id: 'fine',
@@ -635,7 +635,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         label: 'Sell it anyway',
         reputation: -0.7,
         demandMod: 0.85,
-        result: 'People noticed. That was a bad trade.',
+        result: 'People noticed. That was a bad trade-off.',
       },
     ],
   },
@@ -645,7 +645,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
     character: 'The Forecast',
     emoji: '⛈️',
     title: 'A Wet Week',
-    line: 'Grey and wet all week. Nobody is standing outside.',
+    line: 'Gray and wet all week. Nobody is standing outside.',
     weight: 7,
     weathers: ['rain', 'cloudy'],
     concept: 'Demand shocks you cannot control',
