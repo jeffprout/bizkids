@@ -39,8 +39,17 @@ function meetsRequirement(event: GameEvent, state: GameState): boolean {
 /**
  * Weighted draw for the coming week: ~60% one event, 20% two, 20% none.
  * A card cannot come back within 8 weeks.
+ *
+ * `reliability` multiplies the weight of breakdown cards. A new truck at 0.45
+ * almost never blows an engine in the first year; a rattly used one at 1.6
+ * does, which is the whole cost of buying cheap.
  */
-export function drawEvents(state: GameState, pool: GameEvent[], seed: number): GameEvent[] {
+export function drawEvents(
+  state: GameState,
+  pool: GameEvent[],
+  seed: number,
+  reliability = 1,
+): GameEvent[] {
   const rng = makeRng(seed);
   const countRoll = rng();
   const count = countRoll < 0.2 ? 0 : countRoll < 0.8 ? 1 : 2;
@@ -56,7 +65,11 @@ export function drawEvents(state: GameState, pool: GameEvent[], seed: number): G
       (e) => !blocked.has(e.id) && !drawn.some((d) => d.id === e.id) && meetsRequirement(e, state),
     );
     if (candidates.length === 0) break;
-    const picked = weightedPick(candidates, (e) => e.weight, rng());
+    const picked = weightedPick(
+      candidates,
+      (e) => e.weight * (e.breakdown ? reliability : 1),
+      rng(),
+    );
     if (picked) drawn.push(picked);
   }
   return drawn;

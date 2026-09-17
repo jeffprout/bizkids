@@ -74,6 +74,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     title: 'The Fryer Quits',
     line: 'Halfway through service the oil never comes back up.',
     weight: 8,
+    breakdown: true,
     concept: 'Capital expenditure vs deferred maintenance',
     choices: [
       {
@@ -580,6 +581,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     line: 'It sat at fifty degrees for nine hours. All of it.',
     weight: 7,
     seasons: ['spring', 'summer'],
+    breakdown: true,
     concept: 'Inventory risk',
     choices: [
       {
@@ -660,6 +662,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     title: 'The Engine Blows',
     line: 'It got you there. It is not getting you home.',
     weight: 7,
+    breakdown: true,
     concept: 'A vehicle is an asset that fails',
     choices: [
       {

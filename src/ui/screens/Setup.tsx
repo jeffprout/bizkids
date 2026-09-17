@@ -139,7 +139,7 @@ export function Setup({
           const facts = [
             // The count IS the number of shut weeks. Saying "opens in 5" beside a
               // blurb promising four weeks shut made the same fact contradict itself.
-              a.weeksToOpen > 0 ? `shut for ${a.weeksToOpen} weeks` : 'opens right away',
+              a.weeksToOpen > 0 ? `closed for ${a.weeksToOpen} weeks` : 'opens right away',
             a.weeklyPayment[tier] > 0
               ? `${dollars(a.weeklyPayment[tier])} every week`
               : `worth about ${dollars(a.equity[tier])} at the end`,
@@ -196,8 +196,8 @@ export function Setup({
       {asset && asset.weeksToOpen > 0 && (
         <div className="card card-tight" style={{ background: '#fff6e5' }}>
           <p style={{ margin: 0 }}>
-            🔧 The refit takes {asset.weeksToOpen} weeks. You pay rent and loans through all of
-            them, and sell nothing.
+            🔧 The refit takes {asset.weeksToOpen} weeks. You sell nothing, and any loan still
+            comes due.
           </p>
         </div>
       )}

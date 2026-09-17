@@ -72,7 +72,7 @@ export function Sell({
     <div className="stack">
       <div className="center">
         <div style={{ fontSize: 56 }}>🤝</div>
-        <h2>Someone wants to buy your stand.</h2>
+        <h2>Someone wants to buy your {biz.placeName}.</h2>
       </div>
 
       <div className="card">
@@ -110,7 +110,7 @@ export function Sell({
           showExplain={ex}
         />
         <LedgerRow
-          label="🥤 Plus your supplies"
+          label={`${biz.emoji} Plus your supplies`}
           amount={dollars(v.inventoryValue)}
           tone="in"
           showExplain={ex}

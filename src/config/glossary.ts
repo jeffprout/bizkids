@@ -142,7 +142,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   overheadCash: {
     term: 'Bills paid this week',
     plain:
-      'Everything that left the bank besides stock: your spot, any helper you paid, any advertising you bought and any late fee.',
+      'Everything that left the bank besides stock: your spot, a lease if you have one, any helper you paid, any advertising you bought and any late fee.',
     concept: 'Operating expenses',
   },
   assetPayment: {

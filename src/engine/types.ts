@@ -288,6 +288,12 @@ export interface GameEvent {
    */
   locations?: string[];
   weight: number;
+  /**
+   * A mechanical failure of the thing you work out of — the engine, the fryer,
+   * the cooler. Weighted by the asset's reliability so a used truck really does
+   * break more than a new one, and a poor used truck more than a good one.
+   */
+  breakdown?: boolean;
   concept: string;
 }
 
@@ -358,6 +364,11 @@ export interface WeekResult {
   assetPayment: number;
   /** True on a week spent building out, before the doors ever opened. */
   buildingOut: boolean;
+  /**
+   * What the used-gear roll actually bought, revealed on the last closed week.
+   * The player paid for a gamble in week 1; this is when they find out.
+   */
+  conditionReveal?: string;
   /** Full loan payment (principal + interest) that left the bank account. */
   loanPayment: number;
   /** Interest portion only — the part that is genuinely an expense. */

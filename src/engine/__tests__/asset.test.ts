@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { newGame } from '../newGame';
 import { simulateWeek, FINAL_WEEK } from '../simulateWeek';
 import { valueBusiness } from '../valuation';
+import { drawEvents } from '../events';
+import { conditionNoteOf, reliabilityOf } from '../asset';
 import { FOOD_TRUCK, getBusiness } from '../../config/businesses';
+import { ALL_EVENTS } from '../../config/events';
 import { TIERS } from '../../config/difficulty';
-import type { GameState, Tier, WeekDecisions } from '../types';
+import type { GameEvent, GameState, Tier, WeekDecisions } from '../types';
 
 /**
  * The Startup Asset Decision, from spec section 5.
@@ -17,13 +20,13 @@ import type { GameState, Tier, WeekDecisions } from '../types';
  * The last part is the whole lesson: the choice made in week 1 is still on the
  * books in week 50.
  */
-function open(assetId: string, tier: Tier = 'pro', seed = 4242): GameState {
+function open(assetId: string, tier: Tier = 'pro', seed = 4242, loanIds = ['cu-12000']): GameState {
   return newGame({
     profileId: 'asset',
     businessId: 'truck',
     tier,
     financing: {
-      loanIds: ['cu-12000'],
+      loanIds,
       savingsUsed: FOOD_TRUCK.savings[tier],
       locationId: 'office-park',
       assetId,
@@ -69,7 +72,7 @@ describe('the startup asset decision', () => {
     expect(open('used-refurb').cash).toBeGreaterThan(open('new-build').cash);
   });
 
-  it('sells nothing at all while the refit is running, and still charges rent', () => {
+  it('sells nothing at all while the refit is running, and still charges the loan', () => {
     let s = open('used-refurb');
     expect(s.weeksToOpen).toBe(4);
 
@@ -77,15 +80,18 @@ describe('the startup asset decision', () => {
       const before = s.cash;
       s = simulateWeek(s, decide(s));
       const r = s.lastResult!;
-      expect(r.buildingOut, `week ${w + 1} should be shut`).toBe(true);
+      expect(r.buildingOut, `week ${w + 1} should be closed`).toBe(true);
       expect(r.served).toBe(0);
       expect(r.revenue).toBe(0);
       // Nobody is recorded as turned away: they never came, because there was
       // nothing to come to.
       expect(r.lostToStockout).toBe(0);
       expect(r.lostToCapacity).toBe(0);
-      // The bills arrive regardless. That is the price of the cheap way in.
-      expect(r.rent + r.fixedCosts).toBeGreaterThan(0);
+      // A truck in the shop is not parked at Office Park. The loan still
+      // comes due — that is the price of the cheap way in.
+      expect(r.rent).toBe(0);
+      expect(r.fixedCosts).toBe(0);
+      expect(r.loanPayment).toBeGreaterThan(0);
       expect(s.cash).toBeLessThan(before);
     }
 
@@ -94,6 +100,97 @@ describe('the startup asset decision', () => {
     s = simulateWeek(s, decide(s));
     expect(s.lastResult!.buildingOut).toBe(false);
     expect(s.lastResult!.served).toBeGreaterThan(0);
+    expect(s.lastResult!.rent).toBeGreaterThan(0);
+  });
+
+  it('does not charge a parking spot when you paid cash and wait', () => {
+    let s = open('used-refurb', 'pro', 7, []);
+    const before = s.cash;
+    s = simulateWeek(s, decide(s));
+    expect(s.lastResult!.rent).toBe(0);
+    expect(s.lastResult!.fixedCosts).toBe(0);
+    expect(s.lastResult!.loanPayment).toBe(0);
+    expect(s.cash).toBe(before);
+  });
+
+  it('does not fire operating events while the doors are shut', () => {
+    const permit = ALL_EVENTS.find((e) => e.id === 'truck-parking')!;
+    let s: GameState = { ...open('used-refurb'), pendingEvents: [permit] };
+    // The closed-week screen sends no answers. The engine used to pick the
+    // first choice anyway, so a used truck would silently buy a permit.
+    s = simulateWeek(s, decide(s, { eventChoices: {} }));
+    expect(s.lastResult!.buildingOut).toBe(true);
+    expect(s.lastResult!.eventCash).toBe(0);
+    expect(s.lastResult!.eventLines).toEqual([]);
+  });
+
+  it('does not deal next week a card while the refit is still running', () => {
+    let s = open('used-refurb');
+    expect(s.pendingEvents).toEqual([]);
+    for (let w = 0; w < 3; w++) {
+      s = simulateWeek(s, decide(s));
+      expect(s.weeksToOpen, `after week ${w + 1}`).toBeGreaterThan(0);
+      expect(s.pendingEvents, `after week ${w + 1}`).toEqual([]);
+    }
+    // Last closed week: doors open next, so a card for the opening week is fine.
+    s = simulateWeek(s, decide(s));
+    expect(s.weeksToOpen).toBe(0);
+  });
+
+  it('tells you what you actually bought on the last closed week', () => {
+    const notes = FOOD_TRUCK.assetOptions!.find((a) => a.id === 'used-refurb')!.conditionNotes!;
+    const expected = new Set([notes.good, notes.fair, notes.poor]);
+    let s = open('used-refurb', 'pro', 1);
+    expect(conditionNoteOf(s)).toBeTruthy();
+    for (let w = 0; w < 3; w++) {
+      s = simulateWeek(s, decide(s));
+      expect(s.lastResult!.conditionReveal).toBeUndefined();
+    }
+    s = simulateWeek(s, decide(s));
+    expect(expected.has(s.lastResult!.conditionReveal ?? '')).toBe(true);
+    expect(s.lastResult!.coachLine).toBe(s.lastResult!.conditionReveal);
+    expect(s.discussionLog.some((d) => expected.has(d.note))).toBe(true);
+  });
+
+  it('does not ask you to serve customers while the doors are closed', () => {
+    const s = open('used-refurb');
+    expect(s.miniGoal.kind).toBe('cashEnd');
+    expect(s.miniGoal.target % 50).toBe(0);
+    expect(s.miniGoal.target).toBeLessThanOrEqual(s.cash);
+  });
+
+  it('weighs breakdowns by how reliable the truck is', () => {
+    const fake = (id: string, breakdown: boolean): GameEvent => ({
+      id,
+      pool: 'truck',
+      character: 'Test',
+      emoji: '🔧',
+      title: id,
+      line: 'Something happened.',
+      weight: 10,
+      breakdown,
+      concept: 'test',
+      choices: [
+        { id: 'a', label: 'A', result: 'ok' },
+        { id: 'b', label: 'B', result: 'ok' },
+      ],
+    });
+    const pool = [fake('steady', false), fake('breaks', true)];
+    const base = { ...open('new-build'), week: 10, pendingEvents: [], recentEventIds: [] };
+
+    const count = (reliability: number) => {
+      let hits = 0;
+      for (let i = 0; i < 400; i++) {
+        const drawn = drawEvents(base, pool, 2000 + i, reliability);
+        hits += drawn.filter((e) => e.id === 'breaks').length;
+      }
+      return hits;
+    };
+
+    const reliable = count(0.45);
+    const rattly = count(1.6);
+    expect(rattly).toBeGreaterThan(reliable);
+    expect(reliabilityOf(open('used-refurb'))).toBeGreaterThan(reliabilityOf(open('new-build')));
   });
 
   it('opens immediately when you buy new or lease', () => {

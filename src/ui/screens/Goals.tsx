@@ -41,7 +41,7 @@ export function Goals({
       <div className="center">
         <h2 style={{ margin: '2px 0' }}>🎯 What you are playing for</h2>
         <p className="muted" style={{ margin: 0 }}>
-          Build the stand up over {FINAL_WEEK} weeks, then <b>sell it for as much as you can</b>. A
+          Build the {biz.placeName} up over {FINAL_WEEK} weeks, then <b>sell it for as much as you can</b>. A
           business is worth what it earns.
         </p>
       </div>
@@ -75,7 +75,7 @@ export function Goals({
           {nextStage ? (
             <>
               <h3>🚀 Next: Stage {nextStage.stage}</h3>
-              <p className="muted">Unlocks a helper, advertising and treats.</p>
+              <p className="muted">Unlocks a helper, advertising and {biz.sideNoun}s.</p>
               <LedgerRow
                 label="Total sales"
                 amount={`${dollars(state.totals.revenue)} of ${dollars(nextStage.minTotalRevenue)}`}
@@ -159,7 +159,7 @@ export function Goals({
       </div>
 
       <button className="btn btn-go" onClick={onBack}>
-        ⬅️ Back to the stand
+        ⬅️ Back to the {biz.placeName}
       </button>
     </div>
   );

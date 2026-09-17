@@ -82,6 +82,9 @@ export function Hud({
           {SEASON_INFO[state.season].emoji} {SEASON_INFO[state.season].label}
         </span>
         {debt > 0 && <span className="pill">🏦 owe {dollars(Math.round(debt))}</span>}
+        {state.assetWeekly > 0 && (
+          <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
+        )}
         {showRival && <span className="pill">😼 rival ${state.rivalPrice.toFixed(2)}</span>}
         <button className="pill pill-btn" onClick={onGoals}>
           🎯 worth {dollars(Math.round(worth))} · goals

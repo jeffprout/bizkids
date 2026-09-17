@@ -7,6 +7,47 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-16 — Used truck was having a secret operating week
+
+Playtest of the v2 food truck: buy used, sit through four closed weeks, and the
+recap still charged a permit, dumped a cooler, or nursed a fryer along. The
+closed-week screen correctly deals no cards and sends empty answers. The engine
+then picked choice[0] on whatever had been drawn for a week the player never
+saw.
+
+Two gates, both required:
+
+1. Do not *resolve* operating cards while `weeksToOpen > 0`. Demand was already
+   zeroed; the cards were not.
+2. Do not *draw* cards for a week that will still be shut. Drawing at the end of
+   closed week 1 is what seeded the silent week 2.
+
+The used-gear roll was the other half of the same miss. `reliability` lived on
+the asset and was never read. `conditionNotes` lived on the asset and were never
+shown. The roll now does both jobs the comment always claimed: a poor truck is
+worth less *and* its breakdown cards (engine, fryer, cooler) weigh more; the
+note is revealed on the last closed week, which is when you find out what you
+bought.
+
+Propane price spikes are a market shock, not a mechanical failure of *this*
+truck, so they stay unweighted. **FOR JEFF** if you would rather propane count
+as a breakdown too.
+
+The week scene was still a lemonade stand. It is a truck now, on blocks during
+the refit. Copy that still said "the stand", "drink sales", or a soda-cup next
+to "meals" is gone. Lease sits on the operating HUD, in the supplies "bills
+due" chip, and in the bills glossary. Construction weeks only roll a cash
+mini-goal, rounded to $50 at truck scale.
+
+The pitch fee is for a curb you are standing on. A truck in the shop is not
+standing on one, so closed weeks no longer charge Office Park $95. The loan
+still comes due — that is the spec's "loan clock is already ticking." Pay cash
+and you wait for free, which is the other half of the same trade.
+
+No `SAVE_VERSION` bump: every new field is optional.
+
+---
+
 ## 2026-08-25 (fourth pass) — No more British idiom
 
 Jeff: *"No more British idiom. Not sure how that even happened."*

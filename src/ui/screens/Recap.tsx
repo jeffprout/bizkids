@@ -112,6 +112,7 @@ export function Recap({
           stagedUp={r.stagedUp}
           stage={state.stage}
           badges={r.newBadges}
+          placeName={biz.placeName}
           onClose={() => setShowCelebration(false)}
         />
       )}
@@ -131,9 +132,14 @@ export function Recap({
       {r.buildingOut && (
         <div className="card card-tight" style={{ background: '#fff6e5' }}>
           <p style={{ margin: 0 }}>
-            🔧 A week of building out. Nothing sold, because there was nothing to sell yet — and the
-            bills came anyway.
+            🔧 A week of building out. Nothing sold
+            {r.loanPayment > 0 ? ' — and the loan still came due' : ''}.
           </p>
+          {r.conditionReveal && (
+            <p style={{ margin: '8px 0 0' }}>
+              <b>{r.conditionReveal}</b>
+            </p>
+          )}
         </div>
       )}
 
@@ -198,7 +204,7 @@ export function Recap({
       <div className="recap-cols">
         <div className="card">
           <LedgerRow
-            label={`🥤 ${units[0].toUpperCase()}${units.slice(1)} sold`}
+            label={`${biz.emoji} ${units[0].toUpperCase()}${units.slice(1)} sold`}
             amount={r.served}
             explainId="cupsSold"
             showExplain={ex}
@@ -216,7 +222,7 @@ export function Recap({
           {r.sideUnits > 0 && tier.showFullPnL ? (
             <>
               <LedgerRow
-                label="💰 Drink sales"
+                label={`💰 ${biz.unitName[0].toUpperCase()}${biz.unitName.slice(1)} sales`}
                 amount={dollars(r.revenue - r.sideRevenue)}
                 tone="in"
                 explainId="drinkSales"
@@ -481,8 +487,8 @@ export function Recap({
               <LedgerRow
                 label={
                   inventorySwing > 0
-                    ? '🥤 Stock that turned back into cash'
-                    : '🥤 Money that went into stock'
+                    ? '📦 Stock that turned back into cash'
+                    : '📦 Money that went into stock'
                 }
                 amount={`${inventorySwing > 0 ? '+' : '-'}${dollars(Math.abs(inventorySwing), true)}`}
                 tone={inventorySwing > 0 ? 'in' : 'out'}
@@ -541,7 +547,9 @@ export function Recap({
               ? ' ⬇️'
               : ''}
         </span>
-        <span className="pill">🥤 {r.inventoryEnd} left for next week</span>
+        <span className="pill">
+          {biz.emoji} {r.inventoryEnd} left for next week
+        </span>
         {r.lostToRival > 0 && <span className="pill">😼 {r.lostToRival} went to the rival</span>}
         {/* The weekly goal joins the other chips rather than claiming a card of
             its own. It still pops, and it costs a line instead of a block —
@@ -594,11 +602,13 @@ function Celebration({
   stagedUp,
   stage,
   badges,
+  placeName,
   onClose,
 }: {
   stagedUp: boolean;
   stage: number;
   badges: string[];
+  placeName: string;
   onClose: () => void;
 }) {
   return (
@@ -619,7 +629,7 @@ function Celebration({
             <>
               <div style={{ fontSize: 64 }}>🚀</div>
               <h2>Stage {stage}</h2>
-              <p>Your stand grew. New decisions unlocked.</p>
+              <p>Your {placeName} grew. New decisions unlocked.</p>
             </>
           )}
           {badges.map((id) => {

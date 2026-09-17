@@ -101,13 +101,15 @@ export function Week({
     const debt = state.loans
       .filter((l) => !l.paidOff)
       .reduce((sum, l) => sum + Math.min(l.weeklyPayment, l.balance), 0);
-    return Math.round((rent + wages + ads + debt) * 100) / 100;
+    const lease = state.assetWeekly ?? 0;
+    return Math.round((rent + wages + ads + debt + lease) * 100) / 100;
   }, [
     location,
     tier.fixedCostScale,
     letGo,
     state.employees,
     state.loans,
+    state.assetWeekly,
     employeeOptions,
     hireIds,
     buyMarketing,
@@ -335,15 +337,20 @@ export function Week({
   }
 
   if (weeksLeftShut > 0) {
+    const loanDue = state.loans
+      .filter((l) => !l.paidOff)
+      .reduce((sum, l) => sum + Math.min(l.weeklyPayment, l.balance), 0);
     return (
       <div className="stack">
         <Hud state={state} showRival={false} onMenu={onMenu} onGoals={onGoals} />
         <StandArt
+          businessId={state.businessId}
           stage={state.stage}
           weather={state.forecast}
           reputation={state.reputation}
           hasEmployee={state.employees.length > 0}
-          hasSign={false}
+          hasSign={state.marketing.some((m) => m.channelId === 'sign' || m.channelId === 'wrap')}
+          buildingOut
         />
         <div className="card stack center">
           <div style={{ fontSize: 52 }}>🔧</div>
@@ -353,20 +360,18 @@ export function Week({
               ? 'One more week of work. You open next week.'
               : `${weeksLeftShut} more weeks of work before you can open.`}
           </p>
-          <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
-            <span className="pill">
-              {location.emoji} {location.name}
-            </span>
-            <span className="pill">
-              🏠 {dollars(location.weeklyRent + location.weeklyFixedCosts * tier.fixedCostScale)} a
-              week
-            </span>
-            {state.assetWeekly > 0 && (
-              <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
-            )}
-          </div>
+          {(loanDue > 0 || state.assetWeekly > 0) && (
+            <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
+              {loanDue > 0 && <span className="pill">🏦 {dollars(loanDue)} loan due</span>}
+              {state.assetWeekly > 0 && (
+                <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
+              )}
+            </div>
+          )}
           <p className="muted" style={{ margin: 0 }}>
-            The bills arrive anyway. That is what the cheap way in costs.
+            {loanDue > 0
+              ? 'No sales, and the loan still comes due. That is what buying cheap with borrowed money costs.'
+              : 'No sales until it opens. You bought time instead of paying up front.'}
           </p>
           <button
             className="btn btn-go"
@@ -395,11 +400,12 @@ export function Week({
     <div className="stack">
       <Hud state={state} showRival={facesRival} onMenu={onMenu} onGoals={onGoals} />
       <StandArt
+        businessId={state.businessId}
         stage={state.stage}
         weather={state.forecast}
         reputation={state.reputation}
         hasEmployee={state.employees.length > 0}
-        hasSign={state.marketing.some((m) => m.channelId === 'sign')}
+        hasSign={state.marketing.some((m) => m.channelId === 'sign' || m.channelId === 'wrap')}
       />
 
       <Dots count={cards.length} index={index} />
@@ -486,7 +492,9 @@ export function Week({
               </p>
             )}
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
-              <span className="pill">🥤 {state.inventory} left over</span>
+              <span className="pill">
+                {biz.emoji} {state.inventory} left over
+              </span>
               {state.inventory > 0 && (
                 <span className="pill">
                   🏷️ stock cost {dollars(state.inventoryCost / state.inventory, true)} a {unit}
@@ -742,7 +750,7 @@ export function Week({
                 💲 {dollars(price, true)} a {unit}
               </span>
               <span className="pill">
-                🥤 {state.inventory + restockUnits} {units}
+                {biz.emoji} {state.inventory + restockUnits} {units}
               </span>
               <span className="pill">
                 {location.emoji} {location.name}
