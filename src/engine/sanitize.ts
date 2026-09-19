@@ -1,6 +1,7 @@
 import type { GameState } from './types';
 import { businessFor } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
+import { eventFitsState } from './events';
 import { money } from './loans';
 
 /**
@@ -47,7 +48,9 @@ export function sanitizeRun(input: GameState): GameState {
   s.loans = Array.isArray(s.loans) ? s.loans : [];
   s.marketing = Array.isArray(s.marketing) ? s.marketing : [];
   s.employees = Array.isArray(s.employees) ? s.employees : [];
-  s.pendingEvents = Array.isArray(s.pendingEvents) ? s.pendingEvents : [];
+  s.pendingEvents = (Array.isArray(s.pendingEvents) ? s.pendingEvents : []).filter((e) =>
+    eventFitsState(e, s),
+  );
   s.recentEventIds = Array.isArray(s.recentEventIds) ? s.recentEventIds : [];
   s.discussionLog = Array.isArray(s.discussionLog) ? s.discussionLog : [];
 
