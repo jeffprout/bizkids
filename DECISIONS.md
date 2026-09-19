@@ -7,6 +7,17 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — American, not British, including the screens
+
+Jeff: this is an American game. Be sure there are no British references.
+The last ones were not on the cards. The price slider said "on the dear
+side." The banker wanted "a word." The supplier would "do you a deal."
+
+Those are American now. The guard walks the screens too, so the next
+Britishism cannot hide next to a slider.
+
+---
+
 ## 2026-09-18 — Raise prices, not "put them up"
 
 Jeff, on Heat Wave: "What does put prices up mean? You mean surge
