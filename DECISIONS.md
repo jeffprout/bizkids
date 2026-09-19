@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Weekly goals follow a typical week, not a disaster
+
+Jeff, week 43 of Tycoon: $265k in the bank, truck worth $920k, goal
+"Make $691 profit". That was last week's sick rainy write-off plus 10%.
+Goals now use the median of the last eight weeks, and the cash goal is
+"grow the pile by a good week" — not 15% of whatever is already there.
+
+---
+
 ## 2026-09-18 — A sick helper is out, not 35% of a team
 
 Jeff, week 37: helper on the payroll, 590 served, 1,325 left the line.

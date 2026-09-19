@@ -96,18 +96,23 @@ export function badgeById(id: string): Badge | undefined {
 
 /** Weekly optional goal. Something to aim at — it pays nothing. */
 export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
-  const lastServed = state.lastResult?.served ?? 20;
-  const lastProfit = state.lastResult?.profit ?? 5;
-
   // Truck-scale cash in the thousands looks silly rounded to $5. Lemonade-scale
   // cash still wants a $5 grid so a $23 target does not become $0 or $50.
   const roundCash = (n: number) =>
     n >= 500 ? Math.round(n / 50) * 50 : Math.round(n / 5) * 5;
 
+  const typicalProfit = typicalOf(state.profitHistory, 5);
+  const typicalServed = typicalOf(
+    state.history.map((h) => h.served),
+    state.lastResult?.served ?? 20,
+  );
+
   const cashGoal: MiniGoal = {
     id: 'cash',
     kind: 'cashEnd',
-    target: Math.max(20, roundCash(state.cash * 1.15)),
+    // Grow the pile by a good week, not by 15% of whatever is already in it.
+    // At $265k, 15% is $40k in seven days — not a goal, a taunt.
+    target: Math.max(20, roundCash(state.cash + Math.max(typicalProfit, 5) * 1.1)),
     label: `End the week with ${'{target}'}`,
   };
 
@@ -133,14 +138,14 @@ export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
     {
       id: 'customers',
       kind: 'customers',
-      target: Math.max(10, Math.round((lastServed * 1.1) / 5) * 5),
+      target: Math.max(10, Math.round((typicalServed * 1.1) / 5) * 5),
       label: `Serve {target} customers`,
     },
     cashGoal,
     {
       id: 'profit',
       kind: 'profit',
-      target: Math.max(5, Math.round(Math.max(5, lastProfit * 1.1))),
+      target: Math.max(5, roundCash(Math.max(typicalProfit, 5) * 1.1)),
       label: `Make {target} profit`,
     },
     {
@@ -152,6 +157,20 @@ export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
   ];
 
   return options[Math.floor(roll * options.length) % options.length];
+}
+
+/**
+ * Median of the last eight weeks, so one disaster (or one viral spike) does
+ * not set the bar. Jeff at week 43 of Tycoon was asked to make $691 because
+ * last week was a sick rainy write-off, while the truck is worth $920k.
+ */
+function typicalOf(series: number[], fallback: number): number {
+  const window = series.filter((n) => typeof n === 'number' && Number.isFinite(n)).slice(-8);
+  if (!window.length) return fallback;
+  const sorted = [...window].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return median > 0 ? median : fallback;
 }
 
 export function miniGoalText(goal: MiniGoal): string {
