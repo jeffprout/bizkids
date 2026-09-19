@@ -521,7 +521,7 @@ export function Week({
               <span className="pill">🙌 can serve {capacityAfter}</span>
               {state.lastResult && (
                 <span className="pill">
-                  ⏮️ bought {state.lastResult.suppliesUnits}, sold {state.lastResult.served}
+                  ⏮️ ordered {state.lastResult.orderedUnits}, sold {state.lastResult.served}
                   {state.lastResult.lostToStockout > 0
                     ? `, ${state.lastResult.lostToStockout} away`
                     : ''}
@@ -809,7 +809,7 @@ function EventCard({
 }) {
   const event = state.pendingEvents.find((e) => e.id === eventId);
   if (!event) return null;
-  const scale = TIERS[state.tier].eventScale;
+  const t = TIERS[state.tier];
   const units = businessFor(state.businessId, state.tier).unitNamePlural;
   return (
     <motion.div
@@ -840,10 +840,13 @@ function EventCard({
           // "Pay the extra" on the lemon-price card used to read "costs
           // nothing" while raising the cost of every cup by 35% — the one thing
           // that card exists to teach.
-          const cash = Math.round((c.cash ?? 0) * scale * 100) / 100;
-          const stock = Math.round((c.inventory ?? 0) * scale);
-          const gear = Math.round((c.equipment ?? 0) * scale * 100) / 100;
-          const seats = Math.round((c.capacity ?? 0) * scale);
+          const cash = Math.round((c.cash ?? 0) * t.eventScale * 100) / 100;
+          // Portions follow the size of the market, not the money multiplier.
+          // Tycoon used to tag a 130-meal pallet as 325 (×2.5) while the
+          // engine added 338 (×2.6), and the result still said "130".
+          const stock = Math.round((c.inventory ?? 0) * t.trafficScale);
+          const gear = Math.round((c.equipment ?? 0) * t.eventScale * 100) / 100;
+          const seats = Math.round((c.capacity ?? 0) * t.trafficScale);
           const shift = (mod: number | undefined) =>
             mod && mod !== 1 ? Math.round(Math.abs(mod - 1) * 100) : 0;
           const dearer = shift(c.unitCostMod);

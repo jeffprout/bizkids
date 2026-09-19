@@ -249,7 +249,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
         label: 'Take the pallet',
         cash: -240,
         inventory: 130,
-        result: '130 portions for well under the usual price.',
+        result: 'A whole pallet, well under the usual price.',
       },
       { id: 'skip', label: 'Not this week', result: 'You keep the cash. No harm done.' },
     ],

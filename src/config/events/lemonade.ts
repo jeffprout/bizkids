@@ -266,7 +266,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         label: 'Buy the big box',
         cash: -25,
         inventory: 90,
-        result: '90 cups of supplies for well under the usual price.',
+        result: 'A big box, well under the usual price.',
       },
       { id: 'skip', label: 'Not this week', result: 'You keep your cash. No harm done.' },
     ],

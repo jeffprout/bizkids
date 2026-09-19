@@ -110,6 +110,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const affordableUnits = unitCost > 0 ? Math.floor(Math.max(0, cash) / unitCost) : wantUnits;
   const boughtUnits = Math.min(wantUnits, affordableUnits);
   let suppliesBought = money(boughtUnits * unitCost);
+  const orderedUnits = boughtUnits;
+  const orderedSpend = suppliesBought;
   cash = money(cash - suppliesBought);
   inventory += boughtUnits;
   inventoryCost = money(inventoryCost + suppliesBought);
@@ -577,6 +579,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     revenue,
     suppliesBought,
     suppliesUnits: boughtUnits + Math.max(0, ev.inventory),
+    orderedUnits,
+    orderedSpend,
     cogs,
     avgUnitCost,
     price,

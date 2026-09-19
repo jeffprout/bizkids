@@ -3,12 +3,32 @@ import { makeRng, weightedPick } from './rng';
 
 const NO_REPEAT_WEEKS = 8;
 
-export function eventFitsState(event: GameEvent, state: GameState): boolean {
+function meetsRequirement(event: GameEvent, state: GameState): boolean {
   if (event.minStage && state.stage < event.minStage) return false;
   if (event.minOpenWeeks) {
     const openWeeks = state.history.filter((h) => !h.buildingOut).length;
     if (openWeeks < event.minOpenWeeks) return false;
   }
+  switch (event.requires) {
+    case 'hasEmployee':
+      return state.employees.length > 0;
+    case 'hasLoan':
+      return state.loans.some((l) => !l.paidOff);
+    case 'hasInventory':
+      return state.inventory > 0;
+    case 'hasMarketing':
+      return state.marketing.length > 0;
+    default:
+      return true;
+  }
+}
+
+export function eventBelongsInHand(event: GameEvent, state: GameState): boolean {
+  return meetsRequirement(event, state);
+}
+
+export function eventFitsState(event: GameEvent, state: GameState): boolean {
+  if (!meetsRequirement(event, state)) return false;
   // A cold snap in the middle of a sunny July is not a thing.
   if (event.seasons && !event.seasons.includes(state.season)) return false;
   // A weather card is dealt before the week runs, next to a forecast the player
@@ -26,18 +46,7 @@ export function eventFitsState(event: GameEvent, state: GameState): boolean {
   ) {
     return false;
   }
-  switch (event.requires) {
-    case 'hasEmployee':
-      return state.employees.length > 0;
-    case 'hasLoan':
-      return state.loans.some((l) => !l.paidOff);
-    case 'hasInventory':
-      return state.inventory > 0;
-    case 'hasMarketing':
-      return state.marketing.length > 0;
-    default:
-      return true;
-  }
+  return true;
 }
 
 /**
@@ -100,7 +109,7 @@ export interface EventEffects {
   /** Some choices ground the business for the week. */
   locksLocation: boolean;
   /** One per card played, so the recap can name which card cost what. */
-  lines: { emoji: string; text: string; title: string; cash: number }[];
+  lines: { emoji: string; text: string; title: string; cash: number; units: number }[];
 }
 
 /** Fold the player's answers to this week's cards into one set of modifiers. */
@@ -170,6 +179,7 @@ export function resolveEventChoices(
       title: event.title,
       cash:
         Math.round(((choice.cash ?? 0) * scale + (choice.cashUnits ?? 0) * unitPrice) * 100) / 100,
+      units: stockChange,
     });
   }
 

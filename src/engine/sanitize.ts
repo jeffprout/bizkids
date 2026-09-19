@@ -1,7 +1,7 @@
 import type { GameState } from './types';
 import { businessFor } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
-import { eventFitsState } from './events';
+import { eventBelongsInHand } from './events';
 import { money } from './loans';
 
 /**
@@ -49,7 +49,7 @@ export function sanitizeRun(input: GameState): GameState {
   s.marketing = Array.isArray(s.marketing) ? s.marketing : [];
   s.employees = Array.isArray(s.employees) ? s.employees : [];
   s.pendingEvents = (Array.isArray(s.pendingEvents) ? s.pendingEvents : []).filter((e) =>
-    eventFitsState(e, s),
+    eventBelongsInHand(e, s),
   );
   s.recentEventIds = Array.isArray(s.recentEventIds) ? s.recentEventIds : [];
   s.discussionLog = Array.isArray(s.discussionLog) ? s.discussionLog : [];
@@ -91,11 +91,17 @@ export function sanitizeRun(input: GameState): GameState {
       sideBatchSize: Math.max(0, Math.round(num(s.lastResult.sideBatchSize, 0))),
       assetPayment: Math.max(0, num(s.lastResult.assetPayment, 0)),
       buildingOut: Boolean(s.lastResult.buildingOut),
+      orderedUnits: Math.max(
+        0,
+        Math.round(num(s.lastResult.orderedUnits, s.lastResult.suppliesUnits)),
+      ),
+      orderedSpend: Math.max(0, num(s.lastResult.orderedSpend, s.lastResult.suppliesBought)),
       eventLines: lines.map((l) => ({
         emoji: typeof l?.emoji === 'string' ? l.emoji : '⚡',
         text: typeof l?.text === 'string' ? l.text : '',
         title: typeof l?.title === 'string' ? l.title : 'What happened',
         cash: num(l?.cash, 0),
+        units: Math.round(num(l?.units, 0)),
       })),
     };
   }

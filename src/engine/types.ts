@@ -360,6 +360,13 @@ export interface WeekResult {
   /** Cash spent buying stock this week, and how many units that bought. */
   suppliesBought: number;
   suppliesUnits: number;
+  /**
+   * What the player actually ordered on the supplies card. A pallet from a
+   * supplier is extra, and used to get lumped in so a Tycoon run that ordered
+   * 400 showed "bought 763".
+   */
+  orderedUnits: number;
+  orderedSpend: number;
   /** Cost of the units actually sold, at weighted-average cost. */
   cogs: number;
   /** What a cup of stock cost on average this week. */
@@ -427,7 +434,7 @@ export interface WeekResult {
   /** Third bad week in a row — time for a talk with the banker. */
   bankerTalk: boolean;
   /** What each event choice did, for the results animation. */
-  eventLines: { emoji: string; text: string; title: string; cash: number }[];
+  eventLines: { emoji: string; text: string; title: string; cash: number; units: number }[];
   /** One short coach line. Max one sentence. */
   coachLine: string;
   newBadges: string[];

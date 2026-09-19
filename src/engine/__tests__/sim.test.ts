@@ -701,6 +701,41 @@ describe('stock is held at what it cost', () => {
     expect(r.eventCash).toBe(0);
     expect(r.suppliesBought).toBe(25);
     expect(r.suppliesUnits).toBe(90);
+    expect(r.orderedUnits).toBe(0);
+    expect(r.orderedSpend).toBe(0);
+  });
+
+  it('does not call a Tycoon pallet the same 130 meals the card was written at', () => {
+    const pallet = ALL_EVENTS.find((e) => e.id === 'truck-pallet')!;
+    const s = {
+      ...newGame({
+        profileId: 'pallet',
+        businessId: 'truck',
+        tier: 'tycoon',
+        financing: {
+          loanIds: [],
+          savingsUsed: 70000,
+          locationId: 'office-park',
+          assetId: 'lease',
+        },
+        seed: 3,
+      }),
+      cash: 80000,
+      inventory: 0,
+      inventoryCost: 0,
+      pendingEvents: [pallet],
+    };
+    const next = simulateWeek(s, {
+      ...decide(s, { restockUnits: 400, price: 11 }),
+      eventChoices: { 'truck-pallet': 'buy' },
+    });
+    const r = next.lastResult!;
+    const t = TIERS.tycoon;
+    expect(r.orderedUnits).toBe(400);
+    expect(r.eventLines[0].units).toBe(Math.round(130 * t.trafficScale));
+    expect(r.suppliesUnits).toBe(r.orderedUnits + r.eventLines[0].units);
+    expect(r.suppliesBought).toBeCloseTo(r.orderedSpend + 240 * t.eventScale, 2);
+    expect(r.eventLines[0].text).not.toMatch(/130/);
   });
 
   it('lowers what every cup costs after a cheap batch', () => {
@@ -998,7 +1033,7 @@ describe('a run left open across the event-label update', () => {
 
     const fixed = sanitizeRun(old);
     expect(fixed.lastResult!.eventLines).toEqual([
-      { emoji: '📑', text: 'Money for nothing visible.', title: 'What happened', cash: 0 },
+      { emoji: '📑', text: 'Money for nothing visible.', title: 'What happened', cash: 0, units: 0 },
     ]);
     // Nothing is undefined, so the recap cannot print "undefined" as a label.
     for (const line of fixed.lastResult!.eventLines) {
