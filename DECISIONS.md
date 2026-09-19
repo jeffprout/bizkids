@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Preview looked empty
+
+The Vercel / GitHub preview card snapshots the HTML before React boots, so
+it captured a blank sky. The game was on the URL. A title is now in the
+HTML itself so that card is not empty, and a visitor with JS still off
+sees the name of the game.
+
+---
+
 ## 2026-09-18 — Gross on the last call to buy
 
 Jeff: on the supplies card, put expected gross income so the order is a

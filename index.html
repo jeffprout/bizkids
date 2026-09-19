@@ -9,9 +9,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="description" content="Boss Mode — start a business, run it, sell it." />
     <title>Boss Mode</title>
+    <style>
+      html, body, #root { height: 100%; margin: 0; }
+      body { background: #7ec8f0; color: #1a2433; font-family: ui-sans-serif, system-ui, sans-serif; }
+      .boot { max-width: 720px; margin: 0 auto; padding: 24px 16px; text-align: center; }
+      .boot h1 { font-size: 40px; margin: 12px 0 4px; letter-spacing: -0.04em; }
+      .boot p { margin: 0; opacity: 0.7; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot">
+        <h1>Boss Mode</h1>
+        <p>Start a business. Run it. Sell it.</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
