@@ -402,6 +402,10 @@ export interface WeekResult {
   conditionReveal?: string;
   /** Full loan payment (principal + interest) that left the bank account. */
   loanPayment: number;
+  /** Extra toward principal this week, on top of the scheduled payment. */
+  extraLoanPayment: number;
+  /** Unearned interest that dies when you pay extra or pay the loan off. */
+  extraLoanSaved: number;
   /** Interest portion only — the part that is genuinely an expense. */
   interestPaid: number;
   lateFees: number;

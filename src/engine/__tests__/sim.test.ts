@@ -223,6 +223,22 @@ describe('simulateWeek', () => {
     expect(next.loans[0].weeksRemaining).toBe(11);
   });
 
+  it('pays the loan off early when you send the extra', () => {
+    const state = {
+      ...start({
+        financing: { loanIds: ['family-60'], savingsUsed: 35, locationId: 'park' },
+      }),
+      cash: 500,
+      pendingEvents: [],
+    };
+    const quote = state.loans[0].principalBalance;
+    const next = simulateWeek(state, decide(state, { extraLoanPayment: quote, restockUnits: 0 }));
+    expect(next.loans.every((l) => l.paidOff)).toBe(true);
+    expect(next.lastResult!.extraLoanPayment).toBeGreaterThan(0);
+    expect(next.lastResult!.extraLoanSaved).toBeGreaterThan(0);
+    expect(next.lastResult!.coachLine.toLowerCase()).toMatch(/paid the loan off/);
+  });
+
   it('fronts emergency cash instead of going negative', () => {
     const state = { ...start(), cash: 0, locationId: 'soccer', inventory: 0 };
     const next = simulateWeek(state, decide(state, { restockUnits: 0, price: 5 }));

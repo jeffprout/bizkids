@@ -12,6 +12,7 @@ import { restockBounds } from '../../engine/restock';
 import { expectDemand } from '../../engine/expectDemand';
 import { resolveEventChoices } from '../../engine/events';
 import { locationsOpen, resolveLocation } from '../../engine/locations';
+import { payoffQuote } from '../../engine/loans';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -51,6 +52,7 @@ export function Week({
   const [hireIds, setHireIds] = useState<string[]>([]);
   const [letGo, setLetGo] = useState<string[]>([]);
   const [sideProductId, setSideProductId] = useState<string | null>(state.sideProductId);
+  const [extraLoan, setExtraLoan] = useState(0);
   const [index, setIndex] = useState(0);
 
   const quality =
@@ -271,6 +273,7 @@ export function Week({
       'price',
       ...(stage2 ? ['staff'] : []),
       ...rotated.slice(0, room),
+      ...(state.loans.some((l) => !l.paidOff && payoffQuote(l) > 0) ? ['loan'] : []),
       'supplies',
       'ready',
     ];
@@ -285,6 +288,7 @@ export function Week({
     state.season,
     state.qualityId,
     tier.maxCards,
+    state.loans,
     seasonalOnMenu,
     biz.qualities,
   ]);
@@ -335,6 +339,13 @@ export function Week({
       .filter((e): e is NonNullable<typeof e> => Boolean(e)),
   ];
   const rosterWages = roster.reduce((sum, e) => sum + e.weeklyWage, 0);
+  const unpaidLoans = state.loans.filter((l) => !l.paidOff);
+  const payoffDue = unpaidLoans.reduce((sum, l) => sum + payoffQuote(l), 0);
+  const interestIfHeld = unpaidLoans.reduce(
+    (sum, l) => sum + Math.max(0, l.balance - l.principalBalance),
+    0,
+  );
+  const extraStep = payoffDue >= 10000 ? 500 : payoffDue >= 1000 ? 100 : 10;
 
   const restockUnits = restockTouched ? Math.min(restock, restockMax) : suggestedRestock;
   const supplyCost = Math.round(restockUnits * unitCost * 100) / 100;
@@ -382,6 +393,7 @@ export function Week({
       hireEmployeeIds: hireIds,
       fireEmployeeIds: letGo,
       sideProductId,
+      extraLoanPayment: extraLoan,
     });
   }
 
@@ -421,6 +433,31 @@ export function Week({
               ? 'No sales, and the loan still comes due. That is what buying cheap with borrowed money costs.'
               : 'No sales until it opens. You bought time instead of paying up front.'}
           </p>
+          {payoffDue > 0 && (
+            <>
+              <p className="muted" style={{ margin: 0 }}>
+                Pay extra now and the interest stops on that part.
+              </p>
+              <Stepper
+                value={extraLoan}
+                min={0}
+                max={Math.min(payoffDue, Math.max(0, state.cash))}
+                step={extraStep}
+                format={(v) => (v <= 0 ? 'no extra' : dollars(v))}
+                onChange={setExtraLoan}
+              />
+              {state.cash >= payoffDue && (
+                <button
+                  type="button"
+                  className={`btn ${extraLoan >= payoffDue - 0.005 ? 'btn-go' : 'btn-ghost'}`}
+                  onClick={() => setExtraLoan(payoffDue)}
+                >
+                  Pay it off · {dollars(payoffDue)}
+                  {interestIfHeld > 0.5 ? ` · saves ${dollars(interestIfHeld)}` : ''}
+                </button>
+              )}
+            </>
+          )}
           <button
             className="btn btn-go"
             onClick={() =>
@@ -434,6 +471,7 @@ export function Week({
                 buyMarketing: [],
                 hireEmployeeIds: [],
                 fireEmployeeIds: [],
+                extraLoanPayment: extraLoan,
               })
             }
           >
@@ -497,6 +535,50 @@ export function Week({
                 {state.rivalPrice.toFixed(2)}.
               </p>
             )}
+            <button className="btn btn-go" onClick={next}>
+              Next ➡️
+            </button>
+          </div>
+        )}
+
+        {card === 'loan' && (
+          <div className="card stack">
+            <h2 className="center">Pay extra this week?</h2>
+            <p className="muted center">
+              You still owe {dollars(payoffDue)}
+              {interestIfHeld > 0.5 ? `, plus ${dollars(interestIfHeld)} of interest if you wait` : ''}.
+            </p>
+            <Choice
+              emoji="📅"
+              title="Keep the schedule"
+              sub="Just this week's payment."
+              selected={extraLoan <= 0}
+              onClick={() => setExtraLoan(0)}
+            />
+            <div className="center" style={{ padding: '4px 0' }}>
+              <Stepper
+                value={extraLoan}
+                min={0}
+                max={Math.min(payoffDue, Math.max(0, state.cash))}
+                step={extraStep}
+                format={(v) => (v <= 0 ? 'no extra' : `extra ${dollars(v)}`)}
+                onChange={setExtraLoan}
+              />
+            </div>
+            <Choice
+              emoji="🏁"
+              title={`Pay it off · ${dollars(payoffDue)}`}
+              sub={
+                interestIfHeld > 0.5
+                  ? `Saves ${dollars(interestIfHeld)} of interest.`
+                  : state.cash < payoffDue
+                    ? 'Not enough cash this week.'
+                    : 'Clears the debt today.'
+              }
+              selected={extraLoan >= payoffDue - 0.005 && payoffDue > 0}
+              disabled={state.cash < payoffDue}
+              onClick={() => setExtraLoan(payoffDue)}
+            />
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>

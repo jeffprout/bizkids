@@ -157,6 +157,12 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       'The whole payment to the bank. Part is interest (a cost) and part pays back what you borrowed (not a cost).',
     concept: 'Interest vs principal',
   },
+  extraLoan: {
+    term: 'Extra toward the loan',
+    plain:
+      'Money you chose to send on top of this week\'s payment. It comes off the principal, so you stop paying interest on that part. Paying the loan off early means you never pay the rest of the interest.',
+    concept: 'Early payoff saves interest',
+  },
   emergencyAdvance: {
     term: 'Emergency advance',
     plain:

@@ -8,7 +8,7 @@ import { applySpoilage, computeDemand, rivalShare } from './demand';
 import { resolveLocation } from './locations';
 import { drawEvents, resolveEventChoices } from './events';
 import { conditionNoteOf, reliabilityOf } from './asset';
-import { chargeWeek, money } from './loans';
+import { chargeWeek, money, applyExtraPayment } from './loans';
 import { priceBandFor } from './pricing';
 import { makeRng, nextSeed } from './rng';
 import { sanitizeRun } from './sanitize';
@@ -303,7 +303,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   let lateFees = 0;
   let missedPayment = false;
   let justPaidOffAny = false;
-  const loans = state.loans.map((loan) => {
+  let loans = state.loans.map((loan) => {
     if (loan.paidOff) return loan;
     const out = chargeWeek(loan, cash, tier.lateFee);
     if (out.missed) {
@@ -319,24 +319,26 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   });
 
   // Optional extra payment toward principal — early payoff saves real interest.
-  if (decisions.extraLoanPayment && decisions.extraLoanPayment > 0) {
-    let budget = Math.min(decisions.extraLoanPayment, cash);
-    for (const loan of loans) {
-      if (loan.paidOff || budget <= 0) continue;
-      const pay = Math.min(budget, loan.principalBalance);
-      loan.principalBalance = money(loan.principalBalance - pay);
-      loan.balance = money(Math.max(0, loan.balance - pay));
-      budget = money(budget - pay);
-      cash = money(cash - pay);
-      loanPayment = money(loanPayment + pay);
-      if (loan.principalBalance <= 0.005) {
-        loan.paidOff = true;
-        loan.balance = 0;
-        loan.weeksRemaining = 0;
-        justPaidOffAny = true;
-      }
+  let extraLoanPayment = 0;
+  let extraLoanSaved = 0;
+  if ((decisions.extraLoanPayment ?? 0) > 0) {
+    let budget = money(Math.min(decisions.extraLoanPayment ?? 0, cash));
+    loans = loans.map((loan) => {
+      if (loan.paidOff || budget <= 0) return loan;
+      const out = applyExtraPayment(loan, budget);
+      extraLoanPayment = money(extraLoanPayment + out.paid);
+      extraLoanSaved = money(extraLoanSaved + out.saved);
+      budget = money(budget - out.paid);
+      cash = money(cash - out.paid);
+      loanPayment = money(loanPayment + out.paid);
+      if (out.justPaidOff) justPaidOffAny = true;
+      return out.loan;
+    });
+    if (extraLoanPayment > 0) {
+      discussionFlags.push(
+        justPaidOffAny ? 'Paid the loan off early' : 'Paid extra toward the loan',
+      );
     }
-    discussionFlags.push('Paid extra toward the loan');
   }
 
   // --- 8. Spoilage --------------------------------------------------------
@@ -599,6 +601,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     marketingSpend,
     eventCash,
     loanPayment,
+    extraLoanPayment,
+    extraLoanSaved,
     interestPaid,
     lateFees,
     missedPayment,
@@ -642,6 +646,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
       lostToRival,
       grossProfit,
       emergencyAdvance,
+      justPaidOffAny,
       stagedUp,
       price,
       ref,
@@ -699,12 +704,14 @@ function coachFor(x: {
   buildingOut: boolean;
   conditionReveal?: string;
   placeName: string;
+  justPaidOffAny: boolean;
 }): string {
   if (x.emergencyAdvance > 0)
     return 'You ran out of money. The bank covered it — that costs extra.';
   if (x.missedPayment) return 'You missed a loan payment. The banker is watching.';
   if (x.conditionReveal) return x.conditionReveal;
   if (x.buildingOut) return 'Closed this week. No sales.';
+  if (x.justPaidOffAny) return 'You paid the loan off. The extra interest stops now.';
   if (x.stagedUp) return `Your ${x.placeName} just leveled up!`;
   if (x.lostToStockout > x.served * 0.2) return 'You sold out early. Buy more supplies next week.';
   if (x.lostToCapacity > x.served * 0.2) {

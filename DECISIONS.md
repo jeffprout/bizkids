@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Pay extra, or pay the loan off
+
+Jeff wanted to knock the $101k down faster than the schedule. The engine
+already took an extra payment; nothing in the week asked for one. A card
+now sits in front of supplies whenever there is a balance: keep the
+schedule, send extra, or pay it off today and keep the unearned interest.
+
+---
+
 ## 2026-09-18 — A losing streak is not a $5 goal
 
 Jeff, week 46: still "Make $5 profit" on a $907k truck. Winter had been
