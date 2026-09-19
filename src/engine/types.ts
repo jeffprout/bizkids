@@ -171,12 +171,16 @@ export interface MarketingChannel {
   tiers?: Tier[];
   name: string;
   emoji: string;
-  kind: 'oneTime' | 'weekly';
+  kind: 'oneTime' | 'weekly' | 'owned';
   cost: number;
   blurb: string;
   /** Immediate demand multiplier bonus, e.g. 0.25 = +25% customers. */
   boost: number;
-  /** Weeks the boost lasts (oneTime only); it decays linearly. */
+  /**
+   * Weeks the boost lasts. One-time campaigns decay linearly to nothing.
+   * Owned channels (a wrap, a painted sign) ignore this: they are paid once
+   * and keep working.
+   */
   durationWeeks: number;
   /** Reputation bump when it lands well. */
   reputationBonus?: number;

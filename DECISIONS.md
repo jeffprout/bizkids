@@ -7,6 +7,18 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — A wrap is paint, not a campaign
+
+Jeff: wrap the truck is always a suggestion, but the blurb says expensive
+once, then it advertises for itself.
+
+It was a 26-week decaying ad that came back for another $700 when it
+ran out. A wrap is paint on the truck. You buy it once; the boost stays;
+the card says "already paid" instead of asking again. Same treatment for
+the lemonade painted sign — that was the same lesson, also a lie.
+
+---
+
 ## 2026-09-18 — Color and a real lot
 
 Jeff: the workshop pass was too gray, and he wanted graphics that looked

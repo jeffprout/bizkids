@@ -121,6 +121,9 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     for (const channelId of decisions.buyMarketing) {
       const channel = biz.marketing.find((m) => m.id === channelId);
       if (!channel || cash < channel.cost) continue;
+      // A wrap is paint on the truck. You do not buy it twice, and a second
+      // tap this week is not a second wrap.
+      if (channel.kind === 'owned' && marketing.some((m) => m.channelId === channel.id)) continue;
       cash = money(cash - channel.cost);
       marketingSpend = money(marketingSpend + channel.cost);
       reputation += channel.reputationBonus ?? 0;
@@ -451,15 +454,20 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
       ? state.miniGoalStreak + 1
       : 0;
 
-  // Marketing decay
+  // Marketing decay. A rented campaign fades. Paint on the truck does not.
   const nextMarketing = marketing
-    .map((m) => ({ ...m, weeksLeft: m.weeksLeft - 1 }))
+    .map((m) => {
+      const channel = biz.marketing.find((c) => c.id === m.channelId);
+      if (channel?.kind === 'owned') return m;
+      return { ...m, weeksLeft: m.weeksLeft - 1 };
+    })
     .filter((m) => m.weeksLeft > 0)
     .map((m) => {
       const channel = biz.marketing.find((c) => c.id === m.channelId);
-      const total = channel?.durationWeeks ?? 1;
+      if (!channel || channel.kind === 'owned') return m;
+      const total = channel.durationWeeks ?? 1;
       // Awareness decays: the boost fades toward zero over the campaign's life.
-      return { ...m, boost: (channel?.boost ?? m.boost) * (m.weeksLeft / total) };
+      return { ...m, boost: (channel.boost ?? m.boost) * (m.weeksLeft / total) };
     });
 
   // Stage-up

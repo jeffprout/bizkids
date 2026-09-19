@@ -327,4 +327,22 @@ describe('the food truck plays', () => {
     // And the festival is nearly worthless in winter, so it cannot be camped.
     expect(festival.seasonMods.winter).toBeLessThan(office.seasonMods.winter);
   });
+
+  it('makes a truck wrap a one-time buy that keeps working', () => {
+    let s = open('new-build');
+    s = { ...s, cash: 20000, stage: 2, pendingEvents: [] };
+    s = simulateWeek(s, decide(s, { buyMarketing: ['wrap'] }));
+    expect(s.lastResult!.marketingSpend).toBe(700);
+    const wrap = s.marketing.find((m) => m.channelId === 'wrap');
+    expect(wrap).toBeTruthy();
+    const boost = wrap!.boost;
+
+    for (let w = 0; w < 8; w++) {
+      s = simulateWeek(s, decide(s, { buyMarketing: ['wrap'] }));
+      const still = s.marketing.filter((m) => m.channelId === 'wrap');
+      expect(still, `week ${w + 2}`).toHaveLength(1);
+      expect(still[0].boost, `week ${w + 2}`).toBe(boost);
+      expect(s.lastResult!.marketingSpend, `week ${w + 2}`).toBe(0);
+    }
+  });
 });

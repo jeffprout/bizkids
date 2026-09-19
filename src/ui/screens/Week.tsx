@@ -720,21 +720,25 @@ export function Week({
         {card === 'marketing' && (
           <div className="card stack">
             <h2 className="center">Tell people about it?</h2>
-            {marketingOptions.map((m) => (
-              <Choice
-                key={m.id}
-                emoji={m.emoji}
-                title={`${m.name} · ${dollars(m.cost)}`}
-                sub={m.blurb}
-                selected={buyMarketing.includes(m.id)}
-                disabled={state.cash < m.cost && !buyMarketing.includes(m.id)}
-                onClick={() =>
-                  setBuyMarketing((ids) =>
-                    ids.includes(m.id) ? ids.filter((i) => i !== m.id) : [...ids, m.id],
-                  )
-                }
-              />
-            ))}
+            {marketingOptions.map((m) => {
+              const owned =
+                m.kind === 'owned' && state.marketing.some((a) => a.channelId === m.id);
+              return (
+                <Choice
+                  key={m.id}
+                  emoji={m.emoji}
+                  title={owned ? `${m.name} · already paid` : `${m.name} · ${dollars(m.cost)}`}
+                  sub={m.blurb}
+                  selected={owned || buyMarketing.includes(m.id)}
+                  disabled={owned || (state.cash < m.cost && !buyMarketing.includes(m.id))}
+                  onClick={() =>
+                    setBuyMarketing((ids) =>
+                      ids.includes(m.id) ? ids.filter((i) => i !== m.id) : [...ids, m.id],
+                    )
+                  }
+                />
+              );
+            })}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
