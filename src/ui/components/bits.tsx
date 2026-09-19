@@ -211,9 +211,9 @@ export function Stepper({
 /**
  * One line of a ledger, optionally explainable.
  *
- * Explanations are revealed by tapping, never by hovering — the app has to work
- * the same on an iPad and a Chromebook as on a mouse. The `title` attribute is a
- * free bonus for desktop, not the mechanism.
+ * The `?` is the tap. Each line opens its own sentence — a global dump of
+ * every definition at once hid the one they were looking at. Hover `title` is
+ * a bonus on a mouse, never the mechanism: this has to work on an iPad.
  */
 export function LedgerRow({
   label,
@@ -230,26 +230,46 @@ export function LedgerRow({
   showExplain?: boolean;
   bold?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
   const entry = explainId ? explain(explainId) : undefined;
+  const revealed = Boolean(entry && (showExplain || open));
+  const body = (
+    <>
+      <span className="ledger-label">
+        <span>{label}</span>
+        {entry && (
+          <span className={`ledger-q${revealed ? ' on' : ''}`} aria-hidden="true">
+            ?
+          </span>
+        )}
+      </span>
+      <span className={tone}>{amount}</span>
+    </>
+  );
   return (
     <>
-      <div className={`ledger${bold ? ' total' : ''}`} title={entry?.plain}>
-        <span>
-          {label}
-          {entry && (
-            <span className="ledger-q" aria-hidden="true">
-              ?
-            </span>
-          )}
-        </span>
-        <span className={tone}>{amount}</span>
-      </div>
-      {showExplain && entry && <p className="ledger-note">{entry.plain}</p>}
+      {entry ? (
+        <button
+          type="button"
+          className={`ledger ledger-btn${bold ? ' total' : ''}`}
+          aria-expanded={revealed}
+          aria-label={`${entry.term}. ${revealed ? 'Hide explanation' : 'What is this?'}`}
+          onClick={() => {
+            sfx.tap();
+            setOpen((v) => !v);
+          }}
+        >
+          {body}
+        </button>
+      ) : (
+        <div className={`ledger${bold ? ' total' : ''}`}>{body}</div>
+      )}
+      {revealed && entry && <p className="ledger-note">{entry.plain}</p>}
     </>
   );
 }
 
-/** The one control that turns every explanation on this screen on or off. */
+/** Opens every explanation on the screen, for a teacher walking the ledger. */
 export function ExplainToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   return (
     <button
