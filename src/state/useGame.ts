@@ -16,6 +16,7 @@ import {
   deleteProfile,
   type Profile,
 } from '../storage/saves';
+import { hashPin } from '../storage/pin';
 import { setSoundEnabled } from '../ui/sfx';
 
 export type Screen =
@@ -52,12 +53,20 @@ export function useGame() {
     setProfiles(await listProfiles());
   }, []);
 
-  const createProfile = useCallback(async (name: string, emoji: string) => {
-    const p = newProfile(name, emoji);
+  const createProfile = useCallback(async (name: string, emoji: string, pin: string) => {
+    const draft = newProfile(name, emoji);
+    const p = { ...draft, pinHash: await hashPin(draft.id, pin) };
     setProfiles(await upsertProfile(p));
     setProfile(p);
     return p;
   }, []);
+
+  const setProfilePin = useCallback(async (p: Profile, pin: string) => {
+    const updated = { ...p, pinHash: await hashPin(p.id, pin) };
+    setProfiles(await upsertProfile(updated));
+    if (profile?.id === p.id) setProfile(updated);
+    return updated;
+  }, [profile]);
 
   const removeProfile = useCallback(async (id: string) => {
     setProfiles(await deleteProfile(id));
@@ -186,6 +195,7 @@ export function useGame() {
     setProfile,
     refreshProfiles,
     createProfile,
+    setProfilePin,
     removeProfile,
     chooseProfile,
     startRun,

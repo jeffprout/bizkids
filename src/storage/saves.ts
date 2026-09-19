@@ -44,6 +44,8 @@ export interface Profile {
   lastRecap: string;
   hasRun: boolean;
   soundOn: boolean;
+  /** SHA-256 of the 4-digit PIN. Missing on players made before PINs existed. */
+  pinHash?: string;
 }
 
 export async function listProfiles(): Promise<Profile[]> {
@@ -78,7 +80,7 @@ export async function deleteProfile(id: string): Promise<Profile[]> {
   return profiles;
 }
 
-export function newProfile(name: string, emoji: string): Profile {
+export function newProfile(name: string, emoji: string, pinHash?: string): Profile {
   return {
     id: `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
     name,
@@ -89,6 +91,7 @@ export function newProfile(name: string, emoji: string): Profile {
     lastRecap: '',
     hasRun: false,
     soundOn: true,
+    ...(pinHash ? { pinHash } : {}),
   };
 }
 

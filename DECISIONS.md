@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — A PIN, not an account
+
+There is no cloud login. Players live on this device. A 4-digit PIN on
+each new player is what stops the kid next to you opening your game.
+Old players stay unlocked until they tap the lock. Forgot it: delete
+the player. There is no email to send it to.
+
+---
+
 ## 2026-09-18 — Pay extra, or pay the loan off
 
 Jeff wanted to knock the $101k down faster than the schedule. The engine
