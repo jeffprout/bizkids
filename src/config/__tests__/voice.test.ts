@@ -116,6 +116,8 @@ describe('no card offers a choice nobody would take', () => {
     // A lower unit cost is better, so it is negated to point the same way.
     unitCost: -(c.unitCostMod ?? 1),
     price: c.priceMod ?? 1,
+    // Out sick: unpaid saves the wage, paid keeps the goodwill.
+    saveWage: c.staffOut === 'unpaid' ? 1 : 0,
   });
 
   const dominated = (choices: EventChoice[]) =>

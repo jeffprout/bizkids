@@ -176,6 +176,38 @@ describe('simulateWeek', () => {
     expect(withHelp.lastResult!.served).toBeGreaterThan(solo.lastResult!.served);
   });
 
+  it('a sick helper still costs you and does not serve', () => {
+    const sick = ALL_EVENTS.find((e) => e.id === 'employee-sick')!;
+    const base = {
+      ...start(),
+      cash: 900,
+      locationId: 'soccer',
+      reputation: 5,
+      stage: 2 as const,
+      employees: [LEMONADE.employees[0]],
+      pendingEvents: [sick],
+      inventory: 900,
+    };
+    const paid = simulateWeek(
+      base,
+      decide(base, { restockUnits: 0, price: 0.5, eventChoices: { 'employee-sick': 'paid' } }),
+    );
+    const unpaid = simulateWeek(
+      base,
+      decide(base, { restockUnits: 0, price: 0.5, eventChoices: { 'employee-sick': 'unpaid' } }),
+    );
+    const healthy = simulateWeek(
+      { ...base, pendingEvents: [] },
+      decide(base, { restockUnits: 0, price: 0.5 }),
+    );
+    expect(paid.lastResult!.wages).toBe(40);
+    expect(unpaid.lastResult!.wages).toBe(0);
+    expect(paid.lastResult!.capacity).toBe(LEMONADE.soloCapacity);
+    expect(unpaid.lastResult!.capacity).toBe(LEMONADE.soloCapacity);
+    expect(healthy.lastResult!.capacity).toBeGreaterThan(paid.lastResult!.capacity);
+    expect(paid.lastResult!.coachLine).toMatch(/helper was out/i);
+  });
+
   it('drops reputation when customers are turned away', () => {
     const state = { ...start(), cash: 200, reputation: 4, locationId: 'soccer' };
     const next = simulateWeek(state, decide(state, { restockUnits: 5, price: 0.25 }));
@@ -1096,14 +1128,16 @@ describe('what an event choice tells you it costs', () => {
           ((c.unitCostMod ?? 1) !== 1) ||
           ((c.capacityMod ?? 1) !== 1) ||
           (c.equipment ?? 0) !== 0 ||
-          (c.capacity ?? 0) !== 0;
+          (c.capacity ?? 0) !== 0 ||
+          Boolean(c.staffOut);
         const costsSomething =
           (c.cash ?? 0) !== 0 ||
           (c.inventory ?? 0) !== 0 ||
           ((c.unitCostMod ?? 1) !== 1) ||
           ((c.capacityMod ?? 1) !== 1) ||
           (c.equipment ?? 0) !== 0 ||
-          (c.capacity ?? 0) !== 0;
+          (c.capacity ?? 0) !== 0 ||
+          Boolean(c.staffOut);
         if (costsSomething && !tagged) untagged.push(`${event.title}: ${c.label}`);
       }
     }

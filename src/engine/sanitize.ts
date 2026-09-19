@@ -85,6 +85,12 @@ export function sanitizeRun(input: GameState): GameState {
       // Added when the recap started valuing the sales a sell-out missed. A run
       // open across that deploy has no price on its last result.
       price: num(s.lastResult.price, s.price),
+      capacity: Math.max(
+        0,
+        Math.round(
+          num(s.lastResult.capacity, s.lastResult.served + (s.lastResult.lostToCapacity ?? 0)),
+        ),
+      ),
       // Treats became a batch bought up front. A run open across that deploy has
       // a last result from before batches existed.
       sideWasted: Math.max(0, Math.round(num(s.lastResult.sideWasted, 0))),

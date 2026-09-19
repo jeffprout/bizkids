@@ -252,6 +252,11 @@ export interface EventChoice {
   unitCostMod?: number;
   capacityMod?: number;
   /**
+   * The helper does not work this week. 'paid' still draws the wage;
+   * 'unpaid' does not. Either way you serve with your own hands only.
+   */
+  staffOut?: 'paid' | 'unpaid';
+  /**
    * Multiplies the price actually charged this week. Use this rather than a
    * demandMod when a choice is about changing the price: the demand curve then
    * produces the drop in volume itself, and the ledger shows the higher take per
@@ -359,6 +364,8 @@ export interface WeekResult {
   demand: number;
   /** Customers actually served (limited by stock and by hands). */
   served: number;
+  /** How many you could physically hand over this week, with the hands you had. */
+  capacity: number;
   lostToStockout: number;
   lostToCapacity: number;
   revenue: number;

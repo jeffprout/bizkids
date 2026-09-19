@@ -912,6 +912,8 @@ function EventCard({
             stock < 0 ? `${stock} ${units}` : '',
             costShift ? `${units} cost ${costShift}% ${(c.unitCostMod ?? 1) > 1 ? 'more' : 'less'}` : '',
             hands ? `serve ${hands}% ${(c.capacityMod ?? 1) > 1 ? 'more' : 'fewer'}` : '',
+            c.staffOut === 'paid' ? 'you work alone · still paid' : '',
+            c.staffOut === 'unpaid' ? 'you work alone · no wage' : '',
             gear ? `${gear > 0 ? '+' : '-'}${dollars(Math.abs(gear))} of gear` : '',
             seats ? `serve ${seats} more from now on` : '',
           ].filter(Boolean);
