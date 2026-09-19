@@ -134,9 +134,9 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     concept: 'Cash flow',
   },
   suppliesBought: {
-    term: 'Supplies bought',
+    term: 'Ordered',
     plain:
-      'Cash you spent stocking up. Anything you did not sell is still yours — it is sitting in your stock, not gone.',
+      'What you tapped on the supplies card. A pallet or a bulk deal is listed separately, because you did not type that number.',
     concept: 'Inventory as an asset',
   },
   overheadCash: {

@@ -7,6 +7,19 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — A pallet is not 600 meals you typed
+
+Jeff, Tycoon recap: "I didn't buy 600 meals." The supplies line had lumped
+what he ordered with a supplier pallet. The card still said "130 portions"
+while Tycoon scaled it to a few hundred, and the choice tag used the money
+multiplier on meals.
+
+The recap now splits ordered stock from the deal. The tag uses the same
+portion scale the engine does. The result no longer names a Pro-sized
+number.
+
+---
+
 ## 2026-09-18 — Setup is photographs, not stickers
 
 Jeff: the setup pages still had elementary avatars — a chick, a lemon, a

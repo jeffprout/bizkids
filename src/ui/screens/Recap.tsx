@@ -404,10 +404,21 @@ export function Recap({
             explainId="sales"
             showExplain={ex}
           />
-          {r.suppliesBought > 0 && (
+          {r.orderedSpend > 0 && (
             <LedgerRow
-              label={`🛒 Supplies bought (${r.suppliesUnits})`}
-              amount={`-${dollars(r.suppliesBought)}`}
+              label={`🛒 Ordered (${r.orderedUnits} ${units})`}
+              amount={`-${dollars(r.orderedSpend)}`}
+              tone="out"
+              explainId="suppliesBought"
+              showExplain={ex}
+            />
+          )}
+          {r.suppliesBought - r.orderedSpend > 0.004 && (
+            <LedgerRow
+              label={`📦 ${
+                r.eventLines.find((l) => l.units > 0)?.title ?? 'A deal on stock'
+              } (${r.suppliesUnits - r.orderedUnits} ${units})`}
+              amount={`-${dollars(r.suppliesBought - r.orderedSpend)}`}
               tone="out"
               explainId="suppliesBought"
               showExplain={ex}
@@ -533,6 +544,11 @@ export function Recap({
           {r.eventLines.map((line, i) => (
             <p key={i} style={{ margin: 0 }}>
               {line.emoji} {line.text}
+              {line.units > 0
+                ? ` (+${line.units} ${units})`
+                : line.units < 0
+                  ? ` (${line.units} ${units})`
+                  : ''}
             </p>
           ))}
         </div>
