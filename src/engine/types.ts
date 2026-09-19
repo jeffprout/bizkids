@@ -276,6 +276,12 @@ export interface GameEvent {
   choices: EventChoice[];
   /** Only draw at or above this stage. */
   minStage?: Stage;
+  /**
+   * Weeks the doors have actually been open. Closed refit weeks do not count.
+   * A used truck that went viral on the morning it first unlocked the window
+   * had not been seen by anyone.
+   */
+  minOpenWeeks?: number;
   /** Only draw in these seasons. A cold snap in July is not a thing. */
   seasons?: Season[];
   /** Only draw when the week's actual weather is one of these. */

@@ -7,6 +7,18 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — You cannot go viral on opening morning
+
+Jeff, Tycoon used truck, week 5: "it said I went viral. That's impossible."
+Week 5 is the first morning the window is open. The card has no memory of
+that — it was just another draw.
+
+Fame cards now wait until the doors have been open four weeks. Closed
+refit weeks do not count. Same gate on the food-blogger list, which is
+the same lie with a different headline.
+
+---
+
 ## 2026-09-18 — The title is two businesses, not a bumper
 
 Jeff: the landing showed the tail of a truck and a table. That is not a
