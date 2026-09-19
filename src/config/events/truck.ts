@@ -262,6 +262,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     title: 'Best In The City',
     line: 'I put you top of my street food list this morning.',
     weight: 8,
+    minOpenWeeks: 4,
     concept: 'Word of mouth',
     choices: [
       {
@@ -634,6 +635,9 @@ export const TRUCK_EVENTS: GameEvent[] = [
     title: 'You Went Viral',
     line: 'Someone filmed your window. It is everywhere.',
     weight: 8,
+    // A used truck opens on week 5 after sitting in a shop. Nobody filmed a
+    // window that was not serving. Four open weeks is long enough to be seen.
+    minOpenWeeks: 4,
     concept: 'Demand you did not plan for',
     choices: [
       {

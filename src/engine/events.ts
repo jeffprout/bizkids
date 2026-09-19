@@ -5,6 +5,10 @@ const NO_REPEAT_WEEKS = 8;
 
 function meetsRequirement(event: GameEvent, state: GameState): boolean {
   if (event.minStage && state.stage < event.minStage) return false;
+  if (event.minOpenWeeks) {
+    const openWeeks = state.history.filter((h) => !h.buildingOut).length;
+    if (openWeeks < event.minOpenWeeks) return false;
+  }
   // A cold snap in the middle of a sunny July is not a thing.
   if (event.seasons && !event.seasons.includes(state.season)) return false;
   // A weather card is dealt before the week runs, next to a forecast the player

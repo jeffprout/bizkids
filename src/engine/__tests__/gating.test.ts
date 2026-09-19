@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { newGame } from '../newGame';
 import { simulateWeek } from '../simulateWeek';
+import { drawEvents } from '../events';
 import { ALL_EVENTS } from '../../config/events';
 import { FOOD_TRUCK } from '../../config/businesses';
 import type { GameState, WeekDecisions } from '../types';
@@ -116,5 +117,57 @@ describe('a card cannot contradict the week it was dealt into', () => {
         );
       }
     }
+  });
+});
+
+describe('fame does not land on a truck nobody has seen', () => {
+  const viral = card('truck-viral');
+  const blogger = card('truck-blogger');
+
+  function usedTycoon(): GameState {
+    return newGame({
+      profileId: 'viral',
+      businessId: 'truck',
+      tier: 'tycoon',
+      financing: {
+        loanIds: ['cu-60000'],
+        savingsUsed: FOOD_TRUCK.savings.tycoon,
+        locationId: 'office-park',
+        assetId: 'used-refurb',
+      },
+      seed: 7,
+    });
+  }
+
+  function play(s: GameState, weeks: number): GameState {
+    let cur = s;
+    for (let w = 0; w < weeks; w++) {
+      cur = simulateWeek(cur, decide(cur, { restockUnits: cur.weeksToOpen ? 0 : 200 }));
+    }
+    return cur;
+  }
+
+  it('does not go viral the morning a used truck first opens', () => {
+    // Four closed weeks, then the first open week is week 5 — Jeff's report.
+    const s = play(usedTycoon(), 4);
+    expect(s.week).toBe(5);
+    expect(s.weeksToOpen).toBe(0);
+    expect(s.history.every((h) => h.buildingOut)).toBe(true);
+    expect(s.pendingEvents.map((e) => e.id)).not.toContain('truck-viral');
+    expect(s.pendingEvents.map((e) => e.id)).not.toContain('truck-blogger');
+    for (let seed = 1; seed <= 40; seed++) {
+      const drawn = drawEvents(s, [viral, blogger], seed);
+      expect(drawn.map((e) => e.id), `seed ${seed}`).toEqual([]);
+    }
+  });
+
+  it('can go viral after a month of actually serving', () => {
+    const s = play(usedTycoon(), 8);
+    const openWeeks = s.history.filter((h) => !h.buildingOut).length;
+    expect(openWeeks).toBeGreaterThanOrEqual(4);
+    const hits = Array.from({ length: 40 }, (_, i) => drawEvents(s, [viral], i + 1)).filter((d) =>
+      d.some((e) => e.id === 'truck-viral'),
+    );
+    expect(hits.length).toBeGreaterThan(0);
   });
 });
