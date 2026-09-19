@@ -18,6 +18,12 @@ function meetsRequirement(event: GameEvent, state: GameState): boolean {
       return state.inventory > 0;
     case 'hasMarketing':
       return state.marketing.length > 0;
+    case 'insured':
+      return state.insured === true;
+    case 'uninsured':
+      return state.insured === false;
+    case 'notInsured':
+      return state.insured !== true;
     default:
       return true;
   }
@@ -110,6 +116,8 @@ export interface EventEffects {
   stockLostTo?: string;
   /** Some choices ground the business for the week. */
   locksLocation: boolean;
+  /** Whether a card this week bought or skipped coverage. Null means no change. */
+  insured: boolean | null;
   /** One per card played, so the recap can name which card cost what. */
   lines: { emoji: string; text: string; title: string; cash: number; units: number }[];
 }
@@ -152,6 +160,7 @@ export function resolveEventChoices(
     equipment: 0,
     capacity: 0,
     locksLocation: false,
+    insured: null,
     lines: [],
   };
 
@@ -177,6 +186,7 @@ export function resolveEventChoices(
     out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
     out.capacity += Math.round((choice.capacity ?? 0) * unitScale);
     out.locksLocation = out.locksLocation || Boolean(choice.locksLocation);
+    if (choice.setsInsured !== undefined) out.insured = choice.setsInsured;
     out.lines.push({
       emoji: event.emoji,
       text: choice.result,

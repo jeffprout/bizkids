@@ -118,6 +118,7 @@ describe('no card offers a choice nobody would take', () => {
     price: c.priceMod ?? 1,
     // Out sick: unpaid saves the wage, paid keeps the goodwill.
     saveWage: c.staffOut === 'unpaid' ? 1 : 0,
+    coverage: c.setsInsured === true ? 1 : 0,
   });
 
   const dominated = (choices: EventChoice[]) =>

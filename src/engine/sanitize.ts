@@ -36,6 +36,7 @@ export function sanitizeRun(input: GameState): GameState {
   // NaN here would shut the doors forever or charge a lease that never existed.
   s.weeksToOpen = Math.max(0, Math.round(num(s.weeksToOpen, 0)));
   s.assetWeekly = Math.max(0, num(s.assetWeekly, 0));
+  if (s.insured !== true && s.insured !== false) delete s.insured;
   s.rivalCooldown = num(s.rivalCooldown, 3);
   s.weatherStreak = Math.max(1, num(s.weatherStreak, 1));
   s.miniGoalStreak = Math.max(0, num(s.miniGoalStreak, 0));
