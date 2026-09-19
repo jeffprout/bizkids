@@ -82,6 +82,13 @@ describe('the supplies stepper', () => {
     expect(half.max).toBe(restockBounds(base).max - base.capacity);
   });
 
+  it('counts a pallet already coming as stock you do not buy again', () => {
+    const empty = restockBounds({ ...base, inventory: 0 });
+    const pallet = restockBounds({ ...base, inventory: 338 });
+    expect(pallet.max).toBeLessThan(empty.max);
+    expect(empty.max - pallet.max).toBeGreaterThanOrEqual(325);
+  });
+
   it('never lands the player on a number that is not a whole pack', () => {
     for (const cash of [137, 999, 4321, 88888]) {
       const out = restockBounds({ ...base, cash });

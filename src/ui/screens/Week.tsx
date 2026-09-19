@@ -10,6 +10,7 @@ import { Choice, Stepper, dollars } from '../components/bits';
 import { priceBandFor } from '../../engine/pricing';
 import { restockBounds } from '../../engine/restock';
 import { expectDemand } from '../../engine/expectDemand';
+import { resolveEventChoices } from '../../engine/events';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -78,6 +79,35 @@ export function Week({
 
   const unitCost = quality.unitCost * tier.unitCostScale;
 
+  const happeningEvents = useMemo(() => {
+    const grounded = state.pendingEvents.some((e) => {
+      const chosen = e.choices.find((c) => c.id === eventChoices[e.id]);
+      return Boolean(chosen?.locksLocation);
+    });
+    const loc = grounded ? state.locationId : locationId;
+    return state.pendingEvents.filter((e) => !e.locations || e.locations.includes(loc));
+  }, [state.pendingEvents, eventChoices, state.locationId, locationId]);
+
+  /**
+   * Stock a card already put in this week — a pallet, a bulk box. Only counts
+   * answers already given, so skipping the deal does not pretend the food is
+   * there.
+   */
+  const weekEventFx = useMemo(() => {
+    const answered = happeningEvents.filter((e) => eventChoices[e.id]);
+    return resolveEventChoices(
+      answered,
+      eventChoices,
+      tier.eventScale,
+      tier.trafficScale,
+      price,
+    );
+  }, [happeningEvents, eventChoices, tier.eventScale, tier.trafficScale, price]);
+
+  const incomingStock = Math.max(0, weekEventFx.inventory);
+  const incomingTitle = weekEventFx.lines.find((l) => l.units > 0)?.title ?? null;
+  const eventSpend = Math.max(0, -(weekEventFx.cash + weekEventFx.cashUnits * price));
+
   /**
    * Costs this week is already committed to by the time supplies are chosen.
    * Supplies are deliberately the last card, so the spot, the helper and the
@@ -102,7 +132,7 @@ export function Week({
       .filter((l) => !l.paidOff)
       .reduce((sum, l) => sum + Math.min(l.weeklyPayment, l.balance), 0);
     const lease = state.assetWeekly ?? 0;
-    return Math.round((rent + wages + ads + debt + lease) * 100) / 100;
+    return Math.round((rent + wages + ads + debt + lease + eventSpend) * 100) / 100;
   }, [
     location,
     tier.fixedCostScale,
@@ -114,6 +144,7 @@ export function Week({
     hireIds,
     buyMarketing,
     marketingOptions,
+    eventSpend,
   ]);
 
   /**
@@ -168,7 +199,7 @@ export function Week({
     unitCost,
     step: tier.restockStep,
     capacity: servingCapacity,
-    inventory: state.inventory,
+    inventory: state.inventory + incomingStock,
   });
 
   /**
@@ -277,11 +308,13 @@ export function Week({
       ? Math.max(...recent.map((h) => h.served + h.lostToStockout))
       : expected.order;
     const want = Math.min((expected.order * 2 + seen) / 3, servingCapacity);
-    const need = Math.round((want - state.inventory) / tier.restockStep) * tier.restockStep;
+    const need =
+      Math.round((want - state.inventory - incomingStock) / tier.restockStep) * tier.restockStep;
     return Math.max(0, Math.min(restockMax, need));
   }, [
     state.history,
     state.inventory,
+    incomingStock,
     servingCapacity,
     expected.order,
     tier.restockStep,
@@ -310,7 +343,7 @@ export function Week({
    * Demand is the crowd; stock and hands cap what you actually sell. Watching
    * the dollar figure move with the stepper is the whole reason it sits here.
    */
-  const onHand = state.inventory + restockUnits;
+  const onHand = state.inventory + restockUnits + incomingStock;
   const sellLow = Math.min(expected.low, onHand, capacityAfter);
   const sellHigh = Math.min(expected.high, onHand, capacityAfter);
   const grossLow = Math.round(sellLow * price * 100) / 100;
@@ -468,6 +501,14 @@ export function Week({
         {card === 'supplies' && (
           <div className="card stack center">
             <h2>Last call: buy supplies</h2>
+            {incomingStock > 0 && (
+              <div className="card card-tight notice">
+                <p style={{ margin: 0 }}>
+                  {incomingTitle ?? 'A deal'} already put <b>{incomingStock} {units}</b> in
+                  stock. They are paid for. Do not buy them again.
+                </p>
+              </div>
+            )}
             <Stepper
               value={restockUnits}
               min={0}
@@ -513,6 +554,11 @@ export function Week({
               <span className="pill">
                 {biz.emoji} {state.inventory} left over
               </span>
+              {incomingStock > 0 && (
+                <span className="pill">
+                  {incomingTitle ?? 'A deal'} +{incomingStock}
+                </span>
+              )}
               {state.inventory > 0 && (
                 <span className="pill">
                   🏷️ stock cost {dollars(state.inventoryCost / state.inventory, true)} a {unit}
@@ -772,7 +818,7 @@ export function Week({
                 💲 {dollars(price, true)} a {unit}
               </span>
               <span className="pill">
-                {biz.emoji} {state.inventory + restockUnits} {units}
+                {biz.emoji} {state.inventory + restockUnits + incomingStock} {units}
               </span>
               <span className="pill">
                 {location.emoji} {location.name}
