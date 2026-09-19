@@ -99,6 +99,8 @@ export interface EventEffects {
   unitCostMod: number;
   priceMod: number;
   capacityMod: number;
+  /** Helper is out this week. See EventChoice.staffOut. */
+  staffOut: 'paid' | 'unpaid' | null;
   /** Permanent, unlike the Mod fields: gear kept and capacity gained. */
   equipment: number;
   capacity: number;
@@ -146,6 +148,7 @@ export function resolveEventChoices(
     unitCostMod: 1,
     priceMod: 1,
     capacityMod: 1,
+    staffOut: null,
     equipment: 0,
     capacity: 0,
     locksLocation: false,
@@ -170,6 +173,7 @@ export function resolveEventChoices(
     out.unitCostMod *= choice.unitCostMod ?? 1;
     out.priceMod *= choice.priceMod ?? 1;
     out.capacityMod *= choice.capacityMod ?? 1;
+    if (choice.staffOut) out.staffOut = choice.staffOut;
     out.equipment += Math.round((choice.equipment ?? 0) * scale * 100) / 100;
     out.capacity += Math.round((choice.capacity ?? 0) * unitScale);
     out.locksLocation = out.locksLocation || Boolean(choice.locksLocation);

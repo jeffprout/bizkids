@@ -7,6 +7,17 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — A sick helper is out, not 35% of a team
+
+Jeff, week 37: helper on the payroll, 590 served, 1,325 left the line.
+Rosa was out sick. The card used a 0.35 capacity fudge so a Tycoon truck
+paid $832 and served like it was empty, and the recap never said why.
+
+Out sick now means you work alone. Still paid still costs the wage. The
+recap says how many you could serve.
+
+---
+
 ## 2026-09-18 — Four spots, and the packed ones cost like packed ones
 
 Jeff: more than three options, and if the lake produces significantly

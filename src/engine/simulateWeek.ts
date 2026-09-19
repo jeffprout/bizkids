@@ -232,7 +232,9 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   const demand = Math.max(0, Math.round(demandBeforeRival * rivalMod));
   const lostToRival = Math.max(0, demandBeforeRival - demand);
 
-  const employeeCapacity = employees.reduce((s, e) => s + e.capacityBonus, 0);
+  const employeeCapacity = ev.staffOut
+    ? 0
+    : employees.reduce((s, e) => s + e.capacityBonus, 0);
   const bonusCapacity = Math.max(0, state.bonusCapacity + ev.capacity);
   // What you sell changes how fast you can serve it: one item flies out of the
   // window, an everything-menu turns every order into a conversation.
@@ -291,7 +293,8 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // A leased asset costs the same every week for the life of the business,
   // whether it is open, being built out, or having a terrible July.
   const assetPayment = money(state.assetWeekly ?? 0);
-  const wages = money(employees.reduce((s, e) => s + e.weeklyWage, 0));
+  const wages =
+    ev.staffOut === 'unpaid' ? 0 : money(employees.reduce((s, e) => s + e.weeklyWage, 0));
   cash = money(cash - rent - fixedCosts - assetPayment - wages);
 
   // --- 7. Pay the bank ----------------------------------------------------
@@ -576,6 +579,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     season: state.season,
     demand,
     served,
+    capacity,
     lostToStockout,
     lostToCapacity,
     revenue,
@@ -633,6 +637,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
       spoiled,
       missedPayment,
       hasHelper: employees.length > 0,
+      staffOut: Boolean(ev.staffOut),
       forecastWasWrong: state.forecast !== state.weather,
       lostToRival,
       grossProfit,
@@ -682,6 +687,7 @@ function coachFor(x: {
   spoiled: number;
   missedPayment: boolean;
   hasHelper: boolean;
+  staffOut: boolean;
   forecastWasWrong: boolean;
   lostToRival: number;
   grossProfit: number;
@@ -702,6 +708,7 @@ function coachFor(x: {
   if (x.stagedUp) return `Your ${x.placeName} just leveled up!`;
   if (x.lostToStockout > x.served * 0.2) return 'You sold out early. Buy more supplies next week.';
   if (x.lostToCapacity > x.served * 0.2) {
+    if (x.staffOut) return 'Your helper was out. The line was on you.';
     return x.hasHelper
       ? 'Even with help the line was too long. A quieter spot or a higher price would thin it.'
       : 'The line was too long. You need another pair of hands.';

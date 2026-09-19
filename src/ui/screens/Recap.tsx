@@ -193,6 +193,14 @@ export function Recap({
                 <span className="out">{r.lostToCapacity} people</span>
               </div>
             )}
+            {r.lostToCapacity > 0 && (
+              <p className="muted" style={{ margin: 0, fontSize: '0.85em' }}>
+                You could serve {r.capacity}. {r.demand} wanted a meal.
+                {r.eventLines.some((l) => /on your own|run it alone/i.test(l.text))
+                  ? ' Your helper was out.'
+                  : ''}
+              </p>
+            )}
             {judgedWell && (
               <p style={{ margin: 0 }}>
                 <b>Nothing wasted and nobody turned away.</b> That is as close as it gets.
