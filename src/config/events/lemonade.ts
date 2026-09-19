@@ -41,7 +41,7 @@ export const LEMONADE_EVENTS: GameEvent[] = [
         label: 'Raise price today',
         priceMod: 1.3,
         reputation: -0.15,
-        result: 'You charge more. Some kids grumble, most still buy.',
+        result: 'Surge pricing. Some kids grumble, most still buy.',
       },
       {
         id: 'normal',

@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Raise prices, not "put them up"
+
+Jeff, on Heat Wave: "What does put prices up mean? You mean surge
+pricing?" Yes. Charging more because nobody wants to cook in that heat.
+The British phrasing is gone. The card now says raise prices, and the
+result names surge pricing so the word is taught, not guessed.
+
+---
+
 ## 2026-09-18 — Each `?` explains that line
 
 Jeff: the question marks no longer explain, and that is the learning.

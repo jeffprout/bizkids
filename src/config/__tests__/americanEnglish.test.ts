@@ -35,7 +35,7 @@ const BRITISH = [
   ['reads badly', 'say looks bad'],
   ['fair enough', 'say that is fair, or they get it'],
   ['have a word', 'say talk to them'],
-  ['put it down to experience', 'say chalk it up to experience'],
+  ['put prices up', 'say raise prices'],
   ['afterwards', 'say afterward or after that'],
   ['straight away', 'say right away'],
   ['whilst|amongst', 'say while, among'],
