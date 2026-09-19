@@ -123,13 +123,15 @@ export function Confetti({ pieces = 60 }: { pieces?: number }) {
 /** Big tappable choice row. Never depends on hover. */
 export function Choice({
   emoji,
+  image,
   title,
   sub,
   selected,
   onClick,
   disabled,
 }: {
-  emoji: string;
+  emoji?: string;
+  image?: string;
   title: string;
   sub?: string;
   selected?: boolean;
@@ -145,7 +147,11 @@ export function Choice({
       }}
       disabled={disabled}
     >
-      <span className="emoji">{emoji}</span>
+      {image ? (
+        <img className="choice-photo" src={image} alt="" />
+      ) : emoji ? (
+        <span className="emoji">{emoji}</span>
+      ) : null}
       <span>
         <span style={{ fontWeight: 800 }}>{title}</span>
         {sub && (

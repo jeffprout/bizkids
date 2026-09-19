@@ -70,7 +70,7 @@ export function Setup({
         {catalogue.map((b) => (
           <Choice
             key={b.id}
-            emoji={b.emoji}
+            image={b.photo}
             title={b.name}
             sub={b.tagline}
             selected={businessId === b.id}
@@ -102,7 +102,6 @@ export function Setup({
         {tiersOffered.map((t) => (
           <Choice
             key={t}
-            emoji={TIERS[t].emoji}
             title={`${TIERS[t].name} · ${TIERS[t].ages}`}
             sub={TIERS[t].blurb}
             selected={tier === t}
@@ -147,7 +146,7 @@ export function Setup({
           return (
             <Choice
               key={a.id}
-              emoji={a.emoji}
+              image={a.photo}
               title={`${a.name} · ${dollars(a.upfront[tier])}`}
               sub={`${facts.join(' · ')}. ${a.blurb}`}
               selected={assetId === a.id}
@@ -172,15 +171,15 @@ export function Setup({
     <Panel title="How will you pay for it?">
       <div className="card">
         <div className="ledger">
-          <span>{asset ? `${asset.emoji} ${asset.name}` : '🧰 Opening costs'}</span>
+          <span>{asset ? asset.name : 'Opening costs'}</span>
           <span className="out">{dollars(startup)}</span>
         </div>
         <div className="ledger">
-          <span>🐷 Your savings</span>
+          <span>Your savings</span>
           <span className="in">{dollars(savings)}</span>
         </div>
         <div className="ledger">
-          <span>🏦 Borrowed</span>
+          <span>Borrowed</span>
           <span className="in">{dollars(borrowed)}</span>
         </div>
         <div className="ledger total">
@@ -217,7 +216,6 @@ export function Setup({
         return (
           <Choice
             key={o.id}
-            emoji={o.emoji}
             title={`${o.lender} · borrow ${dollars(o.principal)}`}
             sub={`${dollars(weeklyPaymentFor(o), true)}/week for ${o.termWeeks} weeks · pay back ${dollars(total)} total`}
             selected={selected}
@@ -231,7 +229,7 @@ export function Setup({
       {loanIds.length > 0 && (
         <div className="card card-tight">
           <p style={{ margin: 0 }}>
-            🗓️ You will pay <b>{dollars(weeklyDebt, true)}</b> every week.
+            You will pay <b>{dollars(weeklyDebt, true)}</b> every week.
           </p>
         </div>
       )}

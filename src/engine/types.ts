@@ -107,6 +107,8 @@ export interface AssetOption {
   id: string;
   name: string;
   emoji: string;
+  /** Photograph on the setup card. Emoji stays for lists that have no room. */
+  photo?: string;
   kind: 'new' | 'used' | 'lease';
   /** Paid on day one, before any financing. */
   upfront: Record<Tier, number>;
@@ -531,6 +533,8 @@ export interface BusinessDef {
   id: string;
   name: string;
   emoji: string;
+  /** Photograph on the setup card, instead of the emoji. */
+  photo?: string;
   tagline: string;
   /** What one unit of product is called. */
   unitName: string;
