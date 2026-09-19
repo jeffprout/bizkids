@@ -7,6 +7,18 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — The pallet is already in stock
+
+Jeff took Pallet Price, then the supplies card still asked him to buy a
+full week as if the cooler were empty. The meals were paid for. They just
+were not on the card.
+
+The supplies screen now says how many a deal already put in stock, cuts
+the suggestion by that many, and counts them toward what you will have to
+sell.
+
+---
+
 ## 2026-09-18 — A pallet is not 600 meals you typed
 
 Jeff, Tycoon recap: "I didn't buy 600 meals." The supplies line had lumped
