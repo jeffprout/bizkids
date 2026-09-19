@@ -3,6 +3,8 @@ import { ALL_EVENTS } from '../events';
 import { BUSINESSES } from '../businesses';
 import { BADGES } from '../milestones';
 import { GLOSSARY } from '../glossary';
+import { TIERS } from '../difficulty';
+import { SEASON_INFO, WEATHER_INFO } from '../../engine/calendar';
 
 /**
  * "No more British idiom. Not sure how that even happened."
@@ -36,6 +38,9 @@ const BRITISH = [
   ['fair enough', 'say that is fair, or they get it'],
   ['have a word', 'say talk to them'],
   ['put prices up', 'say raise prices'],
+  ['wants a word|have a word|had a word', 'say wants to talk'],
+  ['do you a deal', 'say cut you a deal'],
+  ['dear', 'as expensive — say high or pricey'],
   ['afterwards', 'say afterward or after that'],
   ['straight away', 'say right away'],
   ['whilst|amongst', 'say while, among'],
@@ -151,6 +156,42 @@ function everythingAPlayerReads(): { where: string; text: string }[] {
   for (const [id, g] of Object.entries(GLOSSARY)) {
     add(`glossary ${id}`, g.term);
     add(`glossary ${id}`, g.plain);
+  }
+
+  for (const t of Object.values(TIERS)) {
+    add(`tier ${t.id}`, t.name);
+    add(`tier ${t.id}`, t.ages);
+    add(`tier ${t.id}`, t.blurb);
+  }
+  for (const [id, s] of Object.entries(SEASON_INFO)) add(`season ${id}`, s.label);
+  for (const [id, w] of Object.entries(WEATHER_INFO)) add(`weather ${id}`, w.label);
+
+  // The last Britishisms hid in the screens, not the cards: "on the dear side"
+  // next to the price slider, "the banker wants a word" on the recap. Config
+  // walking is not enough.
+  const uiSrc = {
+    ...(import.meta.glob('../../ui/**/*.{ts,tsx}', {
+      eager: true,
+      query: '?raw',
+      import: 'default',
+    }) as Record<string, string>),
+    ...(import.meta.glob('../../engine/simulateWeek.ts', {
+      eager: true,
+      query: '?raw',
+      import: 'default',
+    }) as Record<string, string>),
+  };
+  for (const [path, src] of Object.entries(uiSrc)) {
+    if (path.includes('__tests__')) continue;
+    const stripped = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, ' ');
+    const re = /(['"`])([^'"`\n]{10,})\1/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(stripped))) {
+      const text = m[2].replace(/\$\{[^}]+\}/g, ' ').trim();
+      if (!/[A-Za-z]{3,} [A-Za-z]{3,}/.test(text)) continue;
+      if (/^(https?:|data:|text\/|application\/)/.test(text)) continue;
+      add(`screen ${path}`, text);
+    }
   }
 
   return out;

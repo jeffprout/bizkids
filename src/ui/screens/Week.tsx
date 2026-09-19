@@ -895,14 +895,14 @@ function EventCard({
           const seats = Math.round((c.capacity ?? 0) * t.trafficScale);
           const shift = (mod: number | undefined) =>
             mod && mod !== 1 ? Math.round(Math.abs(mod - 1) * 100) : 0;
-          const dearer = shift(c.unitCostMod);
+          const costShift = shift(c.unitCostMod);
           const hands = shift(c.capacityMod);
           const tags = [
             cash < 0 ? `costs ${dollars(-cash)}` : '',
             cash > 0 ? `pays ${dollars(cash)}` : '',
             stock > 0 ? `+${stock} ${units}` : '',
             stock < 0 ? `${stock} ${units}` : '',
-            dearer ? `${units} cost ${dearer}% ${(c.unitCostMod ?? 1) > 1 ? 'more' : 'less'}` : '',
+            costShift ? `${units} cost ${costShift}% ${(c.unitCostMod ?? 1) > 1 ? 'more' : 'less'}` : '',
             hands ? `serve ${hands}% ${(c.capacityMod ?? 1) > 1 ? 'more' : 'fewer'}` : '',
             gear ? `${gear > 0 ? '+' : '-'}${dollars(Math.abs(gear))} of gear` : '',
             seats ? `serve ${seats} more from now on` : '',
@@ -951,6 +951,6 @@ function priceHint(price: number, reference: number): string {
   if (price <= reference * 0.6) return 'Very cheap. Crowds, but pennies on each one.';
   if (price <= reference * 0.85) return 'A bargain. You will be busy.';
   if (price >= reference * 1.6) return 'Very pricey. Expect a lot of people to walk on by.';
-  if (price >= reference * 1.15) return 'On the dear side. Fewer customers, more from each.';
+  if (price >= reference * 1.15) return 'A little high. Fewer customers, more from each.';
   return 'A normal price around here.';
 }

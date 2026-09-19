@@ -583,7 +583,7 @@ export function Recap({
       {r.bankerTalk ? (
         <div className="card card-tight" style={{ background: '#fff1f1' }}>
           <p style={{ margin: 0 }}>
-            🏦 The banker wants a word. Three rough weeks. Try a cheaper spot or a smaller order.
+            🏦 The banker wants to talk. Three rough weeks. Try a cheaper spot or a smaller order.
           </p>
         </div>
       ) : (

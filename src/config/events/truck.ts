@@ -240,7 +240,7 @@ export const TRUCK_EVENTS: GameEvent[] = [
     character: 'Your Supplier',
     emoji: '📦',
     title: 'Pallet Price',
-    line: 'Take the whole pallet today and I will do you a deal.',
+    line: 'Take the whole pallet today and I will cut you a deal.',
     weight: 7,
     concept: 'Economies of scale',
     choices: [
