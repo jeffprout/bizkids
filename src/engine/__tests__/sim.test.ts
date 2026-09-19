@@ -141,7 +141,9 @@ describe('simulateWeek', () => {
   it('charges rent for the chosen location', () => {
     const state = start();
     const next = simulateWeek(state, decide(state, { locationId: 'soccer' }));
-    expect(next.lastResult!.rent).toBe(10);
+    expect(next.lastResult!.rent).toBe(
+      LEMONADE.locations.find((l) => l.id === 'soccer')!.weeklyRent,
+    );
   });
 
   it('pays wages once a helper is hired', () => {

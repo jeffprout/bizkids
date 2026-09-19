@@ -703,7 +703,16 @@ export const TRUCK_EVENTS: GameEvent[] = [
     weight: 7,
     // Only at the seasonal destination. Bidding for a spot you are not
     // attending is not a decision, it is a non sequitur.
-    locations: ['ballpark', 'lake-resort', 'pumpkin-patch', 'ice-rink'],
+    locations: [
+      'farmers-market',
+      'ballpark',
+      'county-fair',
+      'lake-resort',
+      'pumpkin-patch',
+      'haunted-house',
+      'winter-market',
+      'ice-rink',
+    ],
     concept: 'Bidding for a spot with no guarantee',
     choices: [
       {
