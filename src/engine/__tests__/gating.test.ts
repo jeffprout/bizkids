@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { newGame } from '../newGame';
 import { simulateWeek } from '../simulateWeek';
 import { drawEvents } from '../events';
+import { sanitizeRun } from '../sanitize';
 import { ALL_EVENTS } from '../../config/events';
 import { FOOD_TRUCK } from '../../config/businesses';
 import type { GameState, WeekDecisions } from '../types';
@@ -169,5 +170,11 @@ describe('fame does not land on a truck nobody has seen', () => {
       d.some((e) => e.id === 'truck-viral'),
     );
     expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it('drops a fame card already in the hand if the doors just opened', () => {
+    const s = play(usedTycoon(), 4);
+    const loaded = sanitizeRun({ ...s, pendingEvents: [viral, blogger] });
+    expect(loaded.pendingEvents.map((e) => e.id)).toEqual([]);
   });
 });

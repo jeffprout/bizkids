@@ -3,7 +3,7 @@ import { makeRng, weightedPick } from './rng';
 
 const NO_REPEAT_WEEKS = 8;
 
-function meetsRequirement(event: GameEvent, state: GameState): boolean {
+export function eventFitsState(event: GameEvent, state: GameState): boolean {
   if (event.minStage && state.stage < event.minStage) return false;
   if (event.minOpenWeeks) {
     const openWeeks = state.history.filter((h) => !h.buildingOut).length;
@@ -66,7 +66,7 @@ export function drawEvents(
   const drawn: GameEvent[] = [];
   for (let i = 0; i < count; i++) {
     const candidates = pool.filter(
-      (e) => !blocked.has(e.id) && !drawn.some((d) => d.id === e.id) && meetsRequirement(e, state),
+      (e) => !blocked.has(e.id) && !drawn.some((d) => d.id === e.id) && eventFitsState(e, state),
     );
     if (candidates.length === 0) break;
     const picked = weightedPick(
