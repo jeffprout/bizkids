@@ -26,9 +26,9 @@ export function StandArt({
   const truck = businessId === 'truck';
   const src = truck
     ? buildingOut
-      ? '/art/truck-refit.jpg'
-      : '/art/truck-open.jpg'
-    : '/art/lemonade.jpg';
+      ? '/art/truck-shop.jpg'
+      : '/art/truck-street.jpg'
+    : '/art/lemonade-park.jpg';
 
   return (
     <div

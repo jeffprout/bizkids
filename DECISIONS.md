@@ -15,8 +15,8 @@ stainless truck, a boarded used truck on stands, a park lemonade stand —
 with weather as a tint and overlay, not a cartoon sky. Chrome picked up
 a real sky behind the cards. Event-card characters stay drawn.
 
-**FOR JEFF:** the photos have a little baked-in signage (a taco truck,
-a chalkboard). Say if you want those gone.
+The photos had taco-truck lettering and chalkboard menus. Jeff said gone;
+the boards and the sides are blank now.
 
 ---
 
