@@ -294,13 +294,23 @@ button {
   filter: brightness(0.9) saturate(0.7) hue-rotate(10deg);
 }
 .brand-art {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   width: 100%;
-  max-width: 420px;
-  height: auto;
-  display: block;
+  max-width: 560px;
   margin: 8px auto 0;
+}
+.brand-art img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+  display: block;
   border-radius: 12px;
   box-shadow: var(--shadow);
+  background: #b9dcf0;
 }
 
 /* ---------- event card ---------- */

@@ -7,6 +7,14 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — The title is two businesses, not a bumper
+
+Jeff: the landing showed the tail of a truck and a table. That is not a
+title screen. It is now two photographs side by side — the whole stand,
+the whole truck — which is what you came here to run.
+
+---
+
 ## 2026-09-18 — Preview looked empty
 
 The Vercel / GitHub preview card snapshots the HTML before React boots, so
