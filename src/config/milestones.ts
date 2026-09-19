@@ -94,14 +94,19 @@ export function badgeById(id: string): Badge | undefined {
   return BADGES.find((b) => b.id === id);
 }
 
+function roundCash(n: number): number {
+  return n >= 500 ? Math.round(n / 50) * 50 : Math.round(n / 5) * 5;
+}
+
+function profitBaseOf(state: GameState): number {
+  const typicalProfit = typicalOf(state.profitHistory, 0);
+  const typicalRevenue = typicalOf(state.revenueHistory, state.lastResult?.revenue ?? 0);
+  return Math.max(typicalProfit, typicalRevenue * 0.1, 5);
+}
+
 /** Weekly optional goal. Something to aim at — it pays nothing. */
 export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
-  // Truck-scale cash in the thousands looks silly rounded to $5. Lemonade-scale
-  // cash still wants a $5 grid so a $23 target does not become $0 or $50.
-  const roundCash = (n: number) =>
-    n >= 500 ? Math.round(n / 50) * 50 : Math.round(n / 5) * 5;
-
-  const typicalProfit = typicalOf(state.profitHistory, 5);
+  const profitBase = profitBaseOf(state);
   const typicalServed = typicalOf(
     state.history.map((h) => h.served),
     state.lastResult?.served ?? 20,
@@ -112,7 +117,7 @@ export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
     kind: 'cashEnd',
     // Grow the pile by a good week, not by 15% of whatever is already in it.
     // At $265k, 15% is $40k in seven days — not a goal, a taunt.
-    target: Math.max(20, roundCash(state.cash + Math.max(typicalProfit, 5) * 1.1)),
+    target: Math.max(20, roundCash(state.cash + profitBase * 1.1)),
     label: `End the week with ${'{target}'}`,
   };
 
@@ -145,7 +150,7 @@ export function rollMiniGoal(state: GameState, roll: number): MiniGoal {
     {
       id: 'profit',
       kind: 'profit',
-      target: Math.max(5, roundCash(Math.max(typicalProfit, 5) * 1.1)),
+      target: Math.max(5, roundCash(profitBase * 1.1)),
       label: `Make {target} profit`,
     },
     {
@@ -170,7 +175,26 @@ function typicalOf(series: number[], fallback: number): number {
   const sorted = [...window].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  return median > 0 ? median : fallback;
+  return median;
+}
+
+/**
+ * A goal already on a live run, resized to the business. Kind stays put so a
+ * hard refresh does not swap "make profit" for "get more stars" — only the
+ * number moves. Jeff was staring at "Make $5 profit" on week 46; waiting
+ * until week 47 to fix it would have been the same bug again.
+ */
+export function fitMiniGoal(state: GameState): MiniGoal {
+  const goal = state.miniGoal;
+  if (!goal?.kind || (state.weeksToOpen ?? 0) > 0) return goal;
+  const profitBase = profitBaseOf(state);
+  if (goal.kind === 'profit') {
+    return { ...goal, target: Math.max(5, roundCash(profitBase * 1.1)) };
+  }
+  if (goal.kind === 'cashEnd') {
+    return { ...goal, target: Math.max(20, roundCash(state.cash + profitBase * 1.1)) };
+  }
+  return goal;
 }
 
 export function miniGoalText(goal: MiniGoal): string {

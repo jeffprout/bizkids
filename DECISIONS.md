@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — A losing streak is not a $5 goal
+
+Jeff, week 46: still "Make $5 profit" on a $907k truck. Winter had been
+red, so the median was negative and the fallback was lemonade money. A
+thin profitable week is about a tenth of typical sales, and a live run
+resizes the chip on load so he does not wait until week 47.
+
+---
+
 ## 2026-09-18 — Weekly goals follow a typical week, not a disaster
 
 Jeff, week 43 of Tycoon: $265k in the bank, truck worth $920k, goal

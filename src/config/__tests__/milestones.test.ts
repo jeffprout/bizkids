@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { newGame } from '../../engine/newGame';
-import { rollMiniGoal } from '../milestones';
+import { rollMiniGoal, fitMiniGoal } from '../milestones';
 import type { GameState, WeekResult } from '../../engine/types';
 
 /**
@@ -29,6 +29,7 @@ function tycoonWeek43(): GameState {
     profitHistory: [4100, 4800, 3900, 4500, 5200, 4300, 4000, 628],
     history: Array.from({ length: 8 }, () => typical as WeekResult),
     lastResult: { served: 590, profit: 628, revenue: 6342 } as WeekResult,
+    revenueHistory: [12000, 11000, 13000, 10000, 12500, 11500, 10800, 6342],
   };
 }
 
@@ -69,5 +70,37 @@ describe('weekly goals scale with the business', () => {
     expect(profit.kind).toBe('profit');
     expect(profit.target).toBeGreaterThanOrEqual(10);
     expect(profit.target).toBeLessThan(40);
+  });
+
+  it('does not ask a winter-losing tycoon to make $5', () => {
+    const s = tycoonWeek43();
+    const winter: GameState = {
+      ...s,
+      week: 46,
+      cash: 270594,
+      profitHistory: [-1800, -400, 200, -2200, 80, -1500, 628, -2006],
+      revenueHistory: [7200, 6400, 8100, 5800, 6900, 6100, 6342, 5900],
+      lastResult: { served: 590, profit: -2006, revenue: 5900 } as WeekResult,
+    };
+    const goal = rollMiniGoal(winter, 0.5);
+    expect(goal.kind).toBe('profit');
+    // A tenth of a ~$6,400 week, plus a little stretch — not lemonade money.
+    expect(goal.target).toBeGreaterThan(500);
+    expect(goal.target).toBeLessThan(2000);
+  });
+
+  it('resizes a $5 profit chip on a live tycoon run', () => {
+    const winter = {
+      ...tycoonWeek43(),
+      week: 46,
+      cash: 270594,
+      profitHistory: [-1800, -400, 200, -2200, 80, -1500, 628, -2006],
+      revenueHistory: [7200, 6400, 8100, 5800, 6900, 6100, 6342, 5900],
+      miniGoal: { id: 'profit', kind: 'profit' as const, target: 5, label: 'Make {target} profit' },
+    };
+    const fitted = fitMiniGoal(winter);
+    expect(fitted.kind).toBe('profit');
+    expect(fitted.target).toBeGreaterThan(500);
+    expect(fitted.target).toBeLessThan(2000);
   });
 });
