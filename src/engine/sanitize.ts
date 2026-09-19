@@ -3,6 +3,7 @@ import { businessFor } from '../config/businesses';
 import { TIERS } from '../config/difficulty';
 import { eventBelongsInHand } from './events';
 import { money } from './loans';
+import { fitMiniGoal } from '../config/milestones';
 
 /**
  * Repair a run before it is used.
@@ -132,6 +133,10 @@ export function sanitizeRun(input: GameState): GameState {
     totalInterest: Math.max(0, num(l.totalInterest, 0)),
     missedPayments: Math.max(0, Math.round(num(l.missedPayments, 0))),
   }));
+
+  if (s.miniGoal && s.miniGoal.kind) {
+    s.miniGoal = fitMiniGoal(s);
+  }
 
   return s;
 }
