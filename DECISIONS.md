@@ -7,6 +7,16 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Four spots, and the packed ones cost like packed ones
+
+Jeff: more than three options, and if the lake produces significantly
+more revenue it should cost significantly more. Three was a compression.
+The card now has the two year-round spots plus two destinations that are
+actually in season. The lake fee is more than two and a half times
+Friday night — you pay for the crowd before you know they show.
+
+---
+
 ## 2026-09-18 — The map changes with the season
 
 Jeff: the locations are all static. Fall should be a pumpkin patch or a

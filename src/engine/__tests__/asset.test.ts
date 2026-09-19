@@ -323,7 +323,7 @@ describe('the food truck plays', () => {
     const lake = FOOD_TRUCK.locations.find((l) => l.id === 'lake-resort')!;
     const weekly = (l: (typeof FOOD_TRUCK.locations)[number]) =>
       l.weeklyRent + l.weeklyFixedCosts * t.fixedCostScale;
-    expect(weekly(lake)).toBeGreaterThan(weekly(night));
+    expect(weekly(lake)).toBeGreaterThan(weekly(night) * 2.5);
     expect(weekly(night)).toBeGreaterThan(weekly(office));
     expect(lake.baseTraffic).toBeGreaterThan(night.baseTraffic);
     expect(night.baseTraffic).toBeGreaterThan(office.baseTraffic);
