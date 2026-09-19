@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Gross on the last call to buy
+
+Jeff: on the supplies card, put expected gross income so the order is a
+decision, not a guess. The crowd is still the unit range. The dollars are
+what this order would take in — capped by stock and hands — so bumping the
+stepper moves the number until you have enough.
+
+---
+
 ## 2026-09-18 — A wrap is paint, not a campaign
 
 Jeff: wrap the truck is always a suggestion, but the blurb says expensive

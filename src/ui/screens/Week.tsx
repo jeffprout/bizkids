@@ -305,6 +305,17 @@ export function Week({
   // bought a second table watched the number sit still and reasonably concluded
   // the purchase had done nothing.
   const capacityAfter = servingCapacity;
+  /**
+   * What this order would take in, if the week lands in the expected band.
+   * Demand is the crowd; stock and hands cap what you actually sell. Watching
+   * the dollar figure move with the stepper is the whole reason it sits here.
+   */
+  const onHand = state.inventory + restockUnits;
+  const sellLow = Math.min(expected.low, onHand, capacityAfter);
+  const sellHigh = Math.min(expected.high, onHand, capacityAfter);
+  const grossLow = Math.round(sellLow * price * 100) / 100;
+  const grossHigh = Math.round(sellHigh * price * 100) / 100;
+  const grossBinds = onHand < expected.high || capacityAfter < expected.high;
 
   /**
    * A refit still running means there is nothing to decide: the doors are
@@ -481,6 +492,14 @@ export function Week({
               <b>
                 Expect about {expected.low}–{expected.high} {units}
               </b>
+            </p>
+            <p style={{ margin: 0 }}>
+              <b>
+                {grossLow === grossHigh
+                  ? `${dollars(grossLow)} gross`
+                  : `${dollars(grossLow)}–${dollars(grossHigh)} gross`}
+              </b>
+              {grossBinds ? ' with this order' : ''}
             </p>
             {expected.drivers.length > 0 && (
               <p className="muted" style={{ margin: 0, fontSize: '0.85em' }}>
