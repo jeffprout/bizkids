@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   amortizationSchedule,
   amortizedPayment,
+  applyExtraPayment,
   chargeWeek,
   payoffQuote,
   takeLoan,
@@ -117,5 +118,40 @@ describe('simple-interest (Pro) loans', () => {
     // Five weeks of principal have been paid, so the quote is under the balance.
     expect(quote).toBeLessThan(loan.balance);
     expect(quote).toBeCloseTo(150 - 5 * (150 / 26), 1);
+  });
+});
+
+describe('paying extra', () => {
+  const offer: LoanOffer = {
+    id: 'credit-union-150',
+    lender: 'Kids Credit Union',
+    emoji: '🏦',
+    principal: 150,
+    kind: 'simple',
+    annualRate: 0.14,
+    termWeeks: 26,
+    blurb: '',
+  };
+
+  it('clears the loan for the principal still owed, not the remaining schedule', () => {
+    let loan = takeLoan(offer);
+    for (let i = 0; i < 5; i++) loan = chargeWeek(loan, 1000).loan;
+    const quote = payoffQuote(loan);
+    const unearned = loan.balance - quote;
+    const out = applyExtraPayment(loan, quote);
+    expect(out.justPaidOff).toBe(true);
+    expect(out.paid).toBe(quote);
+    expect(out.saved).toBeCloseTo(unearned, 1);
+    expect(out.loan.paidOff).toBe(true);
+    expect(out.loan.balance).toBe(0);
+  });
+
+  it('a partial extra payment cuts principal and rebates a share of interest', () => {
+    const loan = takeLoan(offer);
+    const out = applyExtraPayment(loan, 50);
+    expect(out.loan.paidOff).toBe(false);
+    expect(out.loan.principalBalance).toBeCloseTo(100, 1);
+    expect(out.saved).toBeGreaterThan(0);
+    expect(out.loan.balance).toBeLessThan(loan.balance - 50);
   });
 });

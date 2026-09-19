@@ -451,12 +451,21 @@ export function Recap({
               showExplain={ex}
             />
           ))}
-          {r.loanPayment > 0 && (
+          {r.loanPayment - (r.extraLoanPayment ?? 0) > 0.004 && (
             <LedgerRow
               label="💳 Loan payment"
-              amount={`-${dollars(r.loanPayment)}`}
+              amount={`-${dollars(r.loanPayment - (r.extraLoanPayment ?? 0))}`}
               tone="out"
               explainId="loanPayment"
+              showExplain={ex}
+            />
+          )}
+          {(r.extraLoanPayment ?? 0) > 0.004 && (
+            <LedgerRow
+              label={r.extraLoanSaved > 0.5 ? `🏁 Extra toward the loan · saves ${dollars(r.extraLoanSaved)}` : '🏁 Extra toward the loan'}
+              amount={`-${dollars(r.extraLoanPayment)}`}
+              tone="out"
+              explainId="extraLoan"
               showExplain={ex}
             />
           )}

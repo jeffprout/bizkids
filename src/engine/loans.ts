@@ -164,3 +164,60 @@ export function payoffQuote(loan: ActiveLoan): number {
   if (loan.paidOff) return 0;
   return money(loan.principalBalance);
 }
+
+/**
+ * An extra payment toward principal. Full payoff rebates every dollar of
+ * interest that had not been earned yet. A partial payment on an add-on loan
+ * rebates that share. Amortized loans just shrink the principal; next week's
+ * interest is charged on what is left.
+ */
+export function applyExtraPayment(
+  loan: ActiveLoan,
+  amount: number,
+): { loan: ActiveLoan; paid: number; saved: number; justPaidOff: boolean } {
+  if (loan.paidOff || amount <= 0) {
+    return { loan, paid: 0, saved: 0, justPaidOff: false };
+  }
+  const quote = payoffQuote(loan);
+  const paid = money(Math.min(amount, quote));
+  if (paid <= 0) return { loan, paid: 0, saved: 0, justPaidOff: false };
+
+  const unearned = money(Math.max(0, loan.balance - loan.principalBalance));
+  const principalLeft = money(loan.principalBalance - paid);
+
+  if (principalLeft <= 0.005) {
+    return {
+      loan: {
+        ...loan,
+        principalBalance: 0,
+        balance: 0,
+        weeksRemaining: 0,
+        paidOff: true,
+      },
+      paid,
+      saved: unearned,
+      justPaidOff: true,
+    };
+  }
+
+  if (loan.kind === 'amortized') {
+    return {
+      loan: { ...loan, principalBalance: principalLeft, balance: principalLeft },
+      paid,
+      saved: 0,
+      justPaidOff: false,
+    };
+  }
+
+  const rebate = money(unearned * (paid / loan.principalBalance));
+  return {
+    loan: {
+      ...loan,
+      principalBalance: principalLeft,
+      balance: money(loan.balance - paid - rebate),
+    },
+    paid,
+    saved: rebate,
+    justPaidOff: false,
+  };
+}

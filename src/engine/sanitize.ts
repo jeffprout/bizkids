@@ -98,6 +98,8 @@ export function sanitizeRun(input: GameState): GameState {
       sideBatchSize: Math.max(0, Math.round(num(s.lastResult.sideBatchSize, 0))),
       assetPayment: Math.max(0, num(s.lastResult.assetPayment, 0)),
       buildingOut: Boolean(s.lastResult.buildingOut),
+      extraLoanPayment: Math.max(0, num(s.lastResult.extraLoanPayment, 0)),
+      extraLoanSaved: Math.max(0, num(s.lastResult.extraLoanSaved, 0)),
       orderedUnits: Math.max(
         0,
         Math.round(num(s.lastResult.orderedUnits, s.lastResult.suppliesUnits)),
