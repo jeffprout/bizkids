@@ -497,21 +497,50 @@ button {
   }
 }
 
-/* A quiet marker that a line can be explained. Decorative only — the tappable
-   control is the toggle button, so this never needs to be a 44px target. */
+/* The `?` on a ledger line. The whole row is the tap; this is the affordance
+   and must not wrap onto its own line. */
+.ledger-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding-right: 8px;
+}
 .ledger-q {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin-left: 5px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #e6ecf5;
   color: var(--ink-soft);
   font-size: 11px;
   font-weight: 800;
-  vertical-align: 1px;
+  line-height: 1;
+}
+.ledger-q.on {
+  background: var(--ink);
+  color: #fff;
+}
+button.ledger-btn {
+  appearance: none;
+  width: 100%;
+  margin: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+  border-radius: 6px;
+}
+button.ledger-btn:active {
+  background: #eef1f5;
 }
 .ledger-note {
   margin: 2px 0 7px;

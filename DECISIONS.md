@@ -7,6 +7,16 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Each `?` explains that line
+
+Jeff: the question marks no longer explain, and that is the learning.
+They had become decoration; the only tap was a dump of every definition
+at the bottom of the recap. Each line is now its own tap. The circle
+stays on the label so it does not wrap onto an orphan row. "What do
+these mean?" still opens the lot, for a teacher walking the ledger.
+
+---
+
 ## 2026-09-18 — The pallet is already in stock
 
 Jeff took Pallet Price, then the supplies card still asked him to buy a
