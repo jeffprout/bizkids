@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { Profile } from '../../storage/saves';
 import { exportAll, importAll } from '../../storage/saves';
+import { isFourDigitPin, pinMatches } from '../../storage/pin';
 import { sfx } from '../sfx';
 import { Choice } from '../components/bits';
 import { BrandArt } from '../components/BrandArt';
@@ -19,17 +20,23 @@ export function Title({
   profiles,
   onPick,
   onCreate,
+  onLock,
   onDelete,
   onImported,
 }: {
   profiles: Profile[];
   onPick: (p: Profile) => void;
-  onCreate: (name: string, emoji: string) => void;
+  onCreate: (name: string, emoji: string, pin: string) => void;
+  onLock: (p: Profile, pin: string) => void;
   onDelete: (id: string) => void;
   onImported: () => void;
 }) {
   const [adding, setAdding] = useState(profiles.length === 0);
   const [name, setName] = useState('');
+  const [pin, setPin] = useState('');
+  const [pinAgain, setPinAgain] = useState('');
+  const [unlocking, setUnlocking] = useState<Profile | null>(null);
+  const [locking, setLocking] = useState<Profile | null>(null);
   const [note, setNote] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +61,16 @@ export function Title({
     }
   }
 
+  function resetForm() {
+    setAdding(false);
+    setUnlocking(null);
+    setLocking(null);
+    setName('');
+    setPin('');
+    setPinAgain('');
+    setNote('');
+  }
+
   return (
     <div className="stack">
       <motion.div
@@ -67,7 +84,7 @@ export function Title({
         <p className="muted">Start a business. Run it. Sell it.</p>
       </motion.div>
 
-      {!adding && (
+      {!adding && !unlocking && !locking && (
         <div className="stack">
           {profiles.map((p) => (
             <div key={p.id} className="row" style={{ gap: 8 }}>
@@ -76,9 +93,33 @@ export function Title({
                   emoji={p.emoji}
                   title={p.name}
                   sub={p.lastRecap || 'No run yet — tap to start one'}
-                  onClick={() => onPick(p)}
+                  onClick={() => {
+                    sfx.tap();
+                    if (p.pinHash) {
+                      setUnlocking(p);
+                      setPin('');
+                      setNote('');
+                    } else {
+                      onPick(p);
+                    }
+                  }}
                 />
               </div>
+              {!p.pinHash && (
+                <button
+                  className="btn btn-ghost"
+                  aria-label={`Add a PIN for ${p.name}`}
+                  onClick={() => {
+                    sfx.tap();
+                    setLocking(p);
+                    setPin('');
+                    setPinAgain('');
+                    setNote('');
+                  }}
+                >
+                  🔒
+                </button>
+              )}
               <button
                 className="btn btn-ghost"
                 aria-label={`Delete ${p.name}`}
@@ -95,6 +136,10 @@ export function Title({
             onClick={() => {
               sfx.tap();
               setAdding(true);
+              setName('');
+              setPin('');
+              setPinAgain('');
+              setNote('');
             }}
           >
             ➕ New player
@@ -112,22 +157,99 @@ export function Title({
             maxLength={14}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            autoComplete="off"
           />
+          <p className="muted center" style={{ margin: 0 }}>
+            Pick a 4-digit PIN so nobody else opens your game on this device.
+          </p>
+          <PinPad value={pin} onChange={setPin} label="PIN" />
+          <PinPad value={pinAgain} onChange={setPinAgain} label="Type it again" />
+          {note && <p className="center muted">{note}</p>}
           <button
             className="btn btn-go"
-            disabled={!name.trim()}
+            disabled={!name.trim() || !isFourDigitPin(pin) || !isFourDigitPin(pinAgain)}
             onClick={() => {
+              if (pin !== pinAgain) {
+                setNote('Those did not match. Try again.');
+                setPin('');
+                setPinAgain('');
+                return;
+              }
               sfx.cheer();
-              onCreate(name.trim(), monogramFor(name));
+              onCreate(name.trim(), monogramFor(name), pin);
             }}
           >
             Start
           </button>
           {profiles.length > 0 && (
-            <button className="btn btn-ghost" onClick={() => setAdding(false)}>
+            <button className="btn btn-ghost" onClick={resetForm}>
               Back
             </button>
           )}
+        </div>
+      )}
+
+      {unlocking && (
+        <div className="card stack">
+          <h3>Hi {unlocking.name}</h3>
+          <p className="muted center" style={{ margin: 0 }}>
+            Type your PIN to open this game.
+          </p>
+          <PinPad
+            value={pin}
+            onChange={async (next) => {
+              setPin(next);
+              if (next.length < 4) return;
+              if (await pinMatches(unlocking.id, next, unlocking.pinHash)) {
+                sfx.cheer();
+                onPick(unlocking);
+              } else {
+                sfx.ouch();
+                setNote('Wrong PIN.');
+                setPin('');
+              }
+            }}
+            label="PIN"
+          />
+          {note && <p className="center muted">{note}</p>}
+          <p className="muted center" style={{ margin: 0, fontSize: 13 }}>
+            Forgot it? Delete this player and make a new one.
+          </p>
+          <button className="btn btn-ghost" onClick={resetForm}>
+            Back
+          </button>
+        </div>
+      )}
+
+      {locking && (
+        <div className="card stack">
+          <h3>Lock {locking.name}</h3>
+          <p className="muted center" style={{ margin: 0 }}>
+            Pick a 4-digit PIN. It stays on this device — this is not an account.
+          </p>
+          <PinPad value={pin} onChange={setPin} label="PIN" />
+          <PinPad value={pinAgain} onChange={setPinAgain} label="Type it again" />
+          {note && <p className="center muted">{note}</p>}
+          <button
+            className="btn btn-go"
+            disabled={!isFourDigitPin(pin) || !isFourDigitPin(pinAgain)}
+            onClick={() => {
+              if (pin !== pinAgain) {
+                setNote('Those did not match. Try again.');
+                setPin('');
+                setPinAgain('');
+                return;
+              }
+              sfx.cheer();
+              onLock(locking, pin);
+              resetForm();
+            }}
+          >
+            Lock it
+          </button>
+          <button className="btn btn-ghost" onClick={resetForm}>
+            Back
+          </button>
         </div>
       )}
 
@@ -150,11 +272,51 @@ export function Title({
           }}
         />
       </div>
-      {note && <p className="center muted">{note}</p>}
-      {/* Small, but it is how a playtester tells you which build they played. */}
+      {note && !adding && !unlocking && !locking && <p className="center muted">{note}</p>}
       <p className="center muted" style={{ fontSize: 12 }}>
         build {typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}
       </p>
+    </div>
+  );
+}
+
+function PinPad({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  label: string;
+}) {
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'back', '0'];
+  return (
+    <div className="stack" style={{ gap: 8 }}>
+      <div className="muted center" style={{ fontSize: 13 }}>
+        {label}
+      </div>
+      <div className="pin-dots" aria-label={label} aria-valuenow={value.length} aria-valuemax={4}>
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className={i < value.length ? 'on' : ''} />
+        ))}
+      </div>
+      <div className="pin-pad">
+        {keys.map((k) => (
+          <button
+            key={k}
+            type="button"
+            className="btn"
+            aria-label={k === 'back' ? 'Delete' : k}
+            onClick={() => {
+              sfx.tap();
+              if (k === 'back') onChange(value.slice(0, -1));
+              else if (value.length < 4) onChange(value + k);
+            }}
+          >
+            {k === 'back' ? '⌫' : k}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

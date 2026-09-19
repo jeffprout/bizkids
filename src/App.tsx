@@ -33,9 +33,10 @@ export default function App() {
         <Title
           profiles={game.profiles}
           onPick={(p) => void game.chooseProfile(p)}
-          onCreate={(name, emoji) =>
-            void game.createProfile(name, emoji).then(() => game.setScreen('setup'))
+          onCreate={(name, emoji, pin) =>
+            void game.createProfile(name, emoji, pin).then(() => game.setScreen('setup'))
           }
+          onLock={(p, pin) => void game.setProfilePin(p, pin)}
           onDelete={(id) => void game.removeProfile(id)}
           onImported={() => void game.refreshProfiles()}
         />
