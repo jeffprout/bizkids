@@ -272,6 +272,12 @@ export interface EventChoice {
    * Choices that ground the business say so, and the spot card is not dealt.
    */
   locksLocation?: boolean;
+  /**
+   * Writes whether this business has liability coverage. Buying sets true;
+   * skipping sets false. The claim card later reads it — that is the
+   * consequence that used to be missing.
+   */
+  setsInsured?: boolean;
   /** Line the mascot says after the choice. */
   result: string;
 }
@@ -299,7 +305,14 @@ export interface GameEvent {
   /** Only draw when the week's actual weather is one of these. */
   weathers?: Weather[];
   /** Only draw when this is true of the state. Named predicates live in events.ts. */
-  requires?: 'hasEmployee' | 'hasLoan' | 'hasInventory' | 'hasMarketing';
+  requires?:
+    | 'hasEmployee'
+    | 'hasLoan'
+    | 'hasInventory'
+    | 'hasMarketing'
+    | 'insured'
+    | 'uninsured'
+    | 'notInsured';
   /**
    * Only happens at these spots.
    *
@@ -536,6 +549,12 @@ export interface GameState {
   weeksToOpen: number;
   /** A lease payment that runs for the life of the business. */
   assetWeekly: number;
+  /**
+   * Liability coverage. `true` after they bought the policy, `false` after they
+   * were offered it and skipped. Missing means they have not been asked yet, so
+   * a claim cannot punish a player who never saw the card.
+   */
+  insured?: boolean;
   /** How the used-gear roll landed, 0 to 1. Undefined when nothing was rolled. */
   assetCondition?: number;
   /** Set when the run has ended (sold or week 50 passed in classic mode). */

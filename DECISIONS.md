@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Going without insurance has a later bill
+
+The policy card dinged reputation and nothing else, so "Go without"
+was free. Skipping now just keeps the money. Later, if they skipped,
+somebody slips — and they pay the bill. If they bought, the policy
+pays. That is the lesson.
+
+---
+
 ## 2026-09-18 — A PIN, not an account
 
 There is no cloud login. Players live on this device. A 4-digit PIN on

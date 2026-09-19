@@ -679,12 +679,13 @@ describe('no spot is right all year', () => {
 });
 
 describe('spend-or-skimp cards are real choices', () => {
-  const run = (eventId: string, choiceId: string) => {
+  const run = (eventId: string, choiceId: string, over: Record<string, unknown> = {}) => {
     const base = {
       ...start(),
       cash: 200,
       inventory: 150,
       pendingEvents: [ALL_EVENTS.find((e) => e.id === eventId)!],
+      ...over,
     };
     const next = simulateWeek(base, {
       ...decide(base, { restockUnits: 0, price: 1.5 }),
@@ -695,8 +696,10 @@ describe('spend-or-skimp cards are real choices', () => {
       equipment: next.equipmentValue,
       reputation: next.reputation,
       netWorth: next.cash + next.equipmentValue,
+      insured: next.insured,
     };
   };
+  const openWeeks = { history: Array.from({ length: 8 }, () => ({ buildingOut: false })) };
 
   it('makes the new cooler cost cash but buy something durable', () => {
     const fix = run('broken-cooler', 'fix');
@@ -709,11 +712,21 @@ describe('spend-or-skimp cards are real choices', () => {
   });
 
   it('leaves no free option on the insurance card', () => {
-    const buy = run('insurance', 'buy');
-    const risk = run('insurance', 'risk');
-    // Skipping cover used to cost nothing at all, so it was never a decision.
+    const buy = run('insurance', 'buy', openWeeks);
+    const risk = run('insurance', 'risk', openWeeks);
+    // Skipping is cheaper this week. That is the temptation, not the lesson.
     expect(risk.cash).toBeGreaterThan(buy.cash);
-    expect(risk.reputation).toBeLessThan(buy.reputation);
+  });
+
+  it('costs real money when someone slips and you went without', () => {
+    const uninsured = run('slip-claim', 'pay', { ...openWeeks, insured: false, cash: 400 });
+    const covered = run('slip-covered', 'file', { ...openWeeks, insured: true, cash: 400 });
+    expect(uninsured.cash).toBeLessThan(covered.cash);
+  });
+
+  it('remembers the skip so a later claim can find it', () => {
+    expect(run('insurance', 'risk', openWeeks).insured).toBe(false);
+    expect(run('insurance', 'buy', openWeeks).insured).toBe(true);
   });
 
   it('makes the lock box worth its extra cost', () => {

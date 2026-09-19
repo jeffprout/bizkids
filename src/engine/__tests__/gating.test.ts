@@ -178,3 +178,55 @@ describe('fame does not land on a truck nobody has seen', () => {
     expect(loaded.pendingEvents.map((e) => e.id)).toEqual([]);
   });
 });
+
+describe('a skipped policy has to be able to come due', () => {
+  const claim = card('slip-claim');
+  const covered = card('slip-covered');
+  const pitch = card('insurance');
+  const open = { buildingOut: false } as GameState['history'][number];
+
+  it('does not sue a player who was never offered coverage', () => {
+    const s = { ...truck(), businessId: 'lemonade', week: 12, history: Array(10).fill(open) };
+    const hits = Array.from({ length: 40 }, (_, i) => drawEvents(s, [claim], i + 1)).filter((d) =>
+      d.some((e) => e.id === 'slip-claim'),
+    );
+    expect(hits).toHaveLength(0);
+  });
+
+  it('can sue a player who skipped the policy', () => {
+    const s = {
+      ...truck(),
+      businessId: 'lemonade',
+      week: 12,
+      insured: false,
+      history: Array(10).fill(open),
+    };
+    const hits = Array.from({ length: 40 }, (_, i) => drawEvents(s, [claim], i + 1)).filter((d) =>
+      d.some((e) => e.id === 'slip-claim'),
+    );
+    expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it('covers a player who bought it, instead of charging them the whole bill', () => {
+    const s = {
+      ...truck(),
+      businessId: 'lemonade',
+      week: 12,
+      insured: true,
+      history: Array(10).fill(open),
+    };
+    expect(drawEvents(s, [claim], 7).some((e) => e.id === 'slip-claim')).toBe(false);
+    const hits = Array.from({ length: 40 }, (_, i) => drawEvents(s, [covered], i + 1)).filter((d) =>
+      d.some((e) => e.id === 'slip-covered'),
+    );
+    expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it('does not sell a second policy to someone who already has one', () => {
+    const s = { ...truck(), insured: true, history: Array(10).fill(open), week: 12 };
+    const hits = Array.from({ length: 20 }, (_, i) => drawEvents(s, [pitch], i + 1)).filter((d) =>
+      d.some((e) => e.id === 'insurance'),
+    );
+    expect(hits).toHaveLength(0);
+  });
+});

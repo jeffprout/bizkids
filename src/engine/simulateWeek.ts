@@ -535,6 +535,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     sideProductId: decisions.sideProductId ?? null,
     bonusCapacity,
     equipmentValue: money(Math.max(0, state.equipmentValue + ev.equipment)),
+    insured: ev.insured === null ? state.insured : ev.insured,
     price,
     loans,
     marketing: nextMarketing,
