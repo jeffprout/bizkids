@@ -41,33 +41,63 @@ const LOCATIONS: LocationDef[] = [
     id: 'night-district',
     name: 'Friday Night District',
     emoji: '🌃',
-    baseTraffic: 420,
+    baseTraffic: 400,
     weeklyRent: 85,
     weeklyFixedCosts: 70,
     // Bars and long lines. Great when it is warm and dry, dead when it is not.
-    seasonMods: { spring: 1.1, summer: 1.35, fall: 1, winter: 0.55 },
-    blurb: 'Late crowds and long lines. Weather makes or breaks it.',
-    // Was 0.4 and flat, which is a 2.3x spread between a good Friday and a bad
-    // one before any decision the player made. The character of this spot is
-    // meant to come from its SEASONS — dead in winter, packed in summer, which
-    // a player can learn and plan against — not from a coin flip.
+    // Cheaper than the seasonal destinations, so a solo truck should prefer
+    // this to paying a resort fee for a line it cannot serve.
+    seasonMods: { spring: 1.1, summer: 1.35, fall: 1.05, winter: 0.5 },
+    blurb: 'Late crowds, lower rent. Weather makes or breaks it.',
     volatility: 0.2,
   },
   {
-    id: 'festival',
-    name: 'Festival Grounds',
-    emoji: '🎪',
-    baseTraffic: 700,
-    // The entry fee is the lesson: enormous traffic you have to pay for up
-    // front, before you know whether anyone turns up.
-    weeklyRent: 260,
+    id: 'ballpark',
+    name: 'Ballpark Lot',
+    emoji: '⚾',
+    baseTraffic: 560,
+    weeklyRent: 210,
+    weeklyFixedCosts: 80,
+    seasons: ['spring'],
+    seasonMods: { spring: 1.2, summer: 0.25, fall: 0.2, winter: 0.15 },
+    blurb: 'Opening day crowds. You pay for the lot before game time.',
+    volatility: 0.26,
+  },
+  {
+    id: 'lake-resort',
+    name: 'Lake Resort',
+    emoji: '🏖️',
+    baseTraffic: 620,
+    weeklyRent: 240,
     weeklyFixedCosts: 90,
-    seasonMods: { spring: 1.15, summer: 1.5, fall: 0.9, winter: 0.2 },
-    blurb: 'Huge crowds, huge entry fee, paid before you sell a thing.',
-    // Still the swingiest spot, because paying up front for a crowd that may
-    // not come is its whole lesson — but 0.55 flat was a 3.4x spread, which is
-    // not a lesson, it is a slot machine.
-    volatility: 0.28,
+    seasons: ['summer'],
+    seasonMods: { spring: 0.3, summer: 1.25, fall: 0.35, winter: 0.1 },
+    blurb: 'Vacation traffic. Steep vendor fee, paid whether they swim or not.',
+    volatility: 0.26,
+  },
+  {
+    id: 'pumpkin-patch',
+    name: 'Pumpkin Patch',
+    emoji: '🎃',
+    baseTraffic: 540,
+    weeklyRent: 200,
+    weeklyFixedCosts: 75,
+    seasons: ['fall'],
+    seasonMods: { spring: 0.2, summer: 0.2, fall: 1.25, winter: 0.15 },
+    blurb: 'Families all afternoon. The fee is due before a single pie.',
+    volatility: 0.24,
+  },
+  {
+    id: 'ice-rink',
+    name: 'Ice Rink',
+    emoji: '⛸️',
+    baseTraffic: 500,
+    weeklyRent: 170,
+    weeklyFixedCosts: 80,
+    seasons: ['winter'],
+    seasonMods: { spring: 0.25, summer: 0.1, fall: 0.4, winter: 1.3 },
+    blurb: 'Skaters who want something hot. You pay for the window before they lace up.',
+    volatility: 0.22,
   },
 ];
 

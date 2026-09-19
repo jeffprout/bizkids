@@ -696,15 +696,14 @@ export const TRUCK_EVENTS: GameEvent[] = [
   {
     id: 'truck-slot',
     pool: 'truck',
-    character: 'Festival Organizer',
+    character: 'The Organizer',
     emoji: '🎟️',
     title: 'The Good Slot Is Up',
     line: 'Main gate spot, Saturday. Highest bidder takes it.',
     weight: 7,
-    seasons: ['spring', 'summer', 'fall'],
-    // Only at the festival. Bidding for a spot you are not attending is not a
-    // decision, it is a non sequitur.
-    locations: ['festival'],
+    // Only at the seasonal destination. Bidding for a spot you are not
+    // attending is not a decision, it is a non sequitur.
+    locations: ['ballpark', 'lake-resort', 'pumpkin-patch', 'ice-rink'],
     concept: 'Bidding for a spot with no guarantee',
     choices: [
       {

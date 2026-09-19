@@ -1,6 +1,7 @@
 import type { BusinessDef, GameState, Weather } from './types';
 import type { TierConfig } from '../config/difficulty';
 import { computeDemand, rivalShare } from './demand';
+import { resolveLocation } from './locations';
 
 /**
  * How many people to expect this week, and why.
@@ -52,7 +53,7 @@ export function expectDemand(inp: {
   weather?: Weather;
 }): DemandExpectation {
   const { state, biz, tier } = inp;
-  const location = biz.locations.find((l) => l.id === inp.locationId) ?? biz.locations[0];
+  const location = resolveLocation(biz.locations, inp.locationId, state.season);
   const quality = biz.qualities.find((q) => q.id === inp.qualityId) ?? biz.qualities[0];
   const weather = inp.weather ?? state.forecast;
 

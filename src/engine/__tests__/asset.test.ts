@@ -303,7 +303,8 @@ describe('the food truck plays', () => {
     const base: GameState = {
       ...open('new-build'),
       cash: 40000,
-      locationId: 'festival',
+      locationId: 'lake-resort',
+      season: 'summer',
       inventory: 4000,
       inventoryCost: 4000 * 2.6,
       reputation: 5,
@@ -315,17 +316,23 @@ describe('the food truck plays', () => {
     expect(wide.lastResult!.lostToCapacity).toBeGreaterThan(fast.lastResult!.lostToCapacity);
   });
 
-  it('prices the festival pitch so it needs the crowd to justify it', () => {
+  it('prices the seasonal destination so it needs the crowd to justify it', () => {
     const t = TIERS.pro;
-    const [office, night, festival] = FOOD_TRUCK.locations;
+    const office = FOOD_TRUCK.locations.find((l) => l.id === 'office-park')!;
+    const night = FOOD_TRUCK.locations.find((l) => l.id === 'night-district')!;
+    const lake = FOOD_TRUCK.locations.find((l) => l.id === 'lake-resort')!;
     const weekly = (l: (typeof FOOD_TRUCK.locations)[number]) =>
       l.weeklyRent + l.weeklyFixedCosts * t.fixedCostScale;
-    expect(weekly(festival)).toBeGreaterThan(weekly(night));
+    expect(weekly(lake)).toBeGreaterThan(weekly(night));
     expect(weekly(night)).toBeGreaterThan(weekly(office));
-    expect(festival.baseTraffic).toBeGreaterThan(night.baseTraffic);
+    expect(lake.baseTraffic).toBeGreaterThan(night.baseTraffic);
     expect(night.baseTraffic).toBeGreaterThan(office.baseTraffic);
-    // And the festival is nearly worthless in winter, so it cannot be camped.
-    expect(festival.seasonMods.winter).toBeLessThan(office.seasonMods.winter);
+    // Friday night is not the same rush as a resort. In winter the rink is
+    // where the people are; the bars are not.
+    const rink = FOOD_TRUCK.locations.find((l) => l.id === 'ice-rink')!;
+    expect(rink.baseTraffic * rink.seasonMods.winter).toBeGreaterThan(
+      night.baseTraffic * night.seasonMods.winter,
+    );
   });
 
   it('makes a truck wrap a one-time buy that keeps working', () => {

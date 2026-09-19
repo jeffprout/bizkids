@@ -32,6 +32,11 @@ export interface LocationDef {
    * simply the best spot all year and there is nothing to decide.
    */
   seasonMods: Record<Season, number>;
+  /**
+   * Seasons this spot is on the card. Omitted means all year. A pumpkin patch
+   * in July is not a quiet pumpkin patch — it is not there.
+   */
+  seasons?: Season[];
   /** One short line shown on the choice card. */
   blurb: string;
   /** Weekend-heavy spots swing harder week to week. */

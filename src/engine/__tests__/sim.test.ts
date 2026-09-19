@@ -587,17 +587,16 @@ describe('no spot is right all year', () => {
       .demand;
   };
 
-  it('fills the soccer field in league season and empties it in July', () => {
-    expect(demandAt('spring', 'soccer')).toBeGreaterThan(demandAt('summer', 'soccer'));
-    expect(demandAt('fall', 'soccer')).toBeGreaterThan(demandAt('summer', 'soccer'));
+  it('fills the soccer field in spring and puts a pool on the card in July', () => {
+    expect(demandAt('spring', 'soccer')).toBeGreaterThan(demandAt('spring', 'park'));
+    expect(demandAt('summer', 'pool')).toBeGreaterThan(demandAt('summer', 'park'));
   });
 
-  it('beats the soccer field with the park in summer', () => {
-    // The whole point: the busiest spot must not be the best spot every week.
-    expect(demandAt('summer', 'park')).toBeGreaterThan(demandAt('summer', 'soccer'));
+  it('beats the park with the pool in summer', () => {
+    expect(demandAt('summer', 'pool')).toBeGreaterThan(demandAt('summer', 'park'));
   });
 
-  it('beats both busy spots with the free front yard in winter', () => {
+  it('beats the park with the free front yard in winter', () => {
     // Not on demand — on what is left after overhead when nobody is out.
     const profitAt = (locationId: string) => {
       const base = {
@@ -611,24 +610,21 @@ describe('no spot is right all year', () => {
       return simulateWeek(base, decide(base, { restockUnits: 0, locationId, price: 1.5 }))
         .lastResult!.profit;
     };
-    expect(profitAt('front-yard')).toBeGreaterThan(profitAt('soccer'));
     expect(profitAt('front-yard')).toBeGreaterThan(profitAt('park'));
   });
 
-  it('gives every spot a season where it is the busiest', () => {
+  it('gives every season a different packed destination', () => {
     const seasons = ['spring', 'summer', 'fall', 'winter'] as const;
-    const winners = new Set(
-      seasons.map((season) => {
-        const scored = LEMONADE.locations.map((l) => ({
-          id: l.id,
-          score: l.baseTraffic * l.seasonMods[season],
-        }));
-        return scored.sort((a, b) => b.score - a.score)[0].id;
-      }),
-    );
-    // Soccer in spring and fall, park in summer — and the front yard wins on
-    // cost rather than traffic, so at least two spots take a turn on top.
-    expect(winners.size).toBeGreaterThanOrEqual(2);
+    const winners = seasons.map((season) => {
+      const open = LEMONADE.locations.filter((l) => !l.seasons || l.seasons.includes(season));
+      const scored = open.map((l) => ({
+        id: l.id,
+        score: l.baseTraffic * l.seasonMods[season],
+      }));
+      return scored.sort((a, b) => b.score - a.score)[0].id;
+    });
+    expect(new Set(winners).size).toBe(4);
+    expect(winners).toEqual(['soccer', 'pool', 'pumpkin-patch', 'ice-rink']);
   });
 });
 

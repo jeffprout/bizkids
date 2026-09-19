@@ -11,8 +11,8 @@ import type { GameState, WeekDecisions } from '../types';
  * Two cards that contradicted the week they were dealt into.
  *
  * Jeff's engine blew, he chose not to move, and the very next card asked where
- * he would like to park. Then a festival organizer auctioned him the main gate
- * pitch while he was outside an office block.
+ * he would like to park. Then an organizer auctioned him the main gate
+ * while he was outside an office block.
  */
 function truck(over: Partial<GameState> = {}): GameState {
   return {
@@ -53,10 +53,10 @@ describe('a card cannot contradict the week it was dealt into', () => {
       locationId: 'office-park',
       pendingEvents: [card('truck-engine')],
     });
-    // Asking for the festival while grounded must not move the truck.
+    // Asking for the lake while grounded must not move the truck.
     const next = simulateWeek(
       s,
-      decide(s, { locationId: 'festival', eventChoices: { 'truck-engine': 'skip' } }),
+      decide(s, { locationId: 'lake-resort', eventChoices: { 'truck-engine': 'skip' } }),
     );
     expect(next.locationId).toBe('office-park');
     // And it is charged for where it actually stood, not where it wanted to be.
@@ -68,12 +68,12 @@ describe('a card cannot contradict the week it was dealt into', () => {
     const s = truck({ locationId: 'office-park', pendingEvents: [card('truck-engine')] });
     const next = simulateWeek(
       s,
-      decide(s, { locationId: 'festival', eventChoices: { 'truck-engine': 'proper' } }),
+      decide(s, { locationId: 'night-district', eventChoices: { 'truck-engine': 'proper' } }),
     );
-    expect(next.locationId).toBe('festival');
+    expect(next.locationId).toBe('night-district');
   });
 
-  it('only runs the festival auction at the festival', () => {
+  it('only runs the slot auction at the destination', () => {
     const s = truck({ locationId: 'office-park', pendingEvents: [card('truck-slot')] });
 
     // Parked at the office block: the organizer is not there, so nothing happens
@@ -85,10 +85,10 @@ describe('a card cannot contradict the week it was dealt into', () => {
     expect(away.lastResult!.eventCash).toBe(0);
     expect(away.lastResult!.eventLines).toHaveLength(0);
 
-    // At the festival, the same bid is taken.
+    // At the lake, in summer, the same bid is taken.
     const there = simulateWeek(
-      s,
-      decide(s, { locationId: 'festival', eventChoices: { 'truck-slot': 'high' } }),
+      { ...s, season: 'summer' },
+      decide(s, { locationId: 'lake-resort', eventChoices: { 'truck-slot': 'high' } }),
     );
     expect(there.lastResult!.eventCash).toBeLessThan(0);
     expect(there.lastResult!.eventLines).toHaveLength(1);

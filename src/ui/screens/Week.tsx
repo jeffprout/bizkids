@@ -11,6 +11,7 @@ import { priceBandFor } from '../../engine/pricing';
 import { restockBounds } from '../../engine/restock';
 import { expectDemand } from '../../engine/expectDemand';
 import { resolveEventChoices } from '../../engine/events';
+import { locationsOpen, resolveLocation } from '../../engine/locations';
 import { sfx } from '../sfx';
 
 type CardId = string;
@@ -39,7 +40,9 @@ export function Week({
   // Until the player touches the stepper, supplies follow the suggestion — which
   // moves as they decide on advertising and helpers.
   const [restockTouched, setRestockTouched] = useState(false);
-  const [locationId, setLocationId] = useState(state.locationId);
+  const [locationId, setLocationId] = useState(() =>
+    resolveLocation(biz.locations, state.locationId, state.season).id,
+  );
   const [eventChoices, setEventChoices] = useState<Record<string, string>>({});
   const [buyMarketing, setBuyMarketing] = useState<string[]>([]);
   // A roster, not a single slot. The engine has always allowed more than one
@@ -56,7 +59,9 @@ export function Week({
     ) ??
     biz.qualities.find((q) => !q.seasons) ??
     biz.qualities[0];
-  const location = biz.locations.find((l) => l.id === locationId) ?? biz.locations[0];
+  const openSpots = locationsOpen(biz.locations, state.season);
+  const lastSpotClosed = !openSpots.some((l) => l.id === state.locationId);
+  const location = resolveLocation(biz.locations, locationId, state.season);
 
   // Younger players get a shorter menu. Which options each tier sees is config.
   const forTier = <T extends { tiers?: (typeof state.tier)[] }>(items: T[]) =>
@@ -641,9 +646,12 @@ export function Week({
         {card === 'location' && (
           <div className="card stack">
             <h2 className="center">Where will you sell?</h2>
+            {lastSpotClosed && (
+              <p className="muted center">Last week's spot packed up for the season.</p>
+            )}
             {/* Say how busy each spot is right now. Weekly relocation is only a
                 real decision if the player can see the season turning. */}
-            {biz.locations.map((l) => {
+            {openSpots.map((l) => {
               const busy = l.seasonMods[state.season];
               const note =
                 busy >= 1.2

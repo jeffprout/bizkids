@@ -5,6 +5,7 @@ import { eventsForBusiness } from '../config/events';
 import { BADGES, rollMiniGoal } from '../config/milestones';
 import { forecastFor, rollWeather, seasonForWeek } from './calendar';
 import { applySpoilage, computeDemand, rivalShare } from './demand';
+import { resolveLocation } from './locations';
 import { drawEvents, resolveEventChoices } from './events';
 import { conditionNoteOf, reliabilityOf } from './asset';
 import { chargeWeek, money } from './loans';
@@ -63,13 +64,14 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     state.pendingEvents.some((e) =>
       e.choices.some((c) => c.id === decisions.eventChoices[e.id] && c.locksLocation),
     );
-  const location =
-    biz.locations.find((l) => l.id === (grounded ? state.locationId : decisions.locationId)) ??
-    biz.locations[0];
+  const wantedId = grounded ? state.locationId : decisions.locationId;
+  const location = grounded
+    ? (biz.locations.find((l) => l.id === wantedId) ?? biz.locations[0])
+    : resolveLocation(biz.locations, wantedId, state.season);
 
   /**
    * A card tied to a spot only happens at that spot. Park somewhere else and the
-   * festival organizer is not there to talk to you, so the card does not fire
+   * organizer is not there to talk to you, so the card does not fire
    * and none of its effects land.
    */
   const eventsHappening = buildingOut
