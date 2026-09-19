@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { businessFor, getBusiness } from '../../config/businesses';
 import { TIERS } from '../../config/difficulty';
 import { computeDemand } from '../demand';
+import { resolveLocation } from '../locations';
 import { resolveEventChoices } from '../events';
 import { newGame } from '../newGame';
 import { simulateWeek } from '../simulateWeek';
@@ -55,9 +56,9 @@ describe('a tier scales the business, not just its bills', () => {
     const tycoon = businessFor('truck', 'tycoon');
     expect(tycoon.employees[0].weeklyWage).toBeGreaterThan(pro.employees[0].weeklyWage);
     expect(tycoon.employees[0].capacityBonus).toBeGreaterThan(pro.employees[0].capacityBonus);
-    // The festival's whole lesson is that you pay for footfall before you know
+    // The destination's whole lesson is that you pay for footfall before you know
     // it turns up. A flat pitch fee against triple the footfall erased it.
-    const fee = (b: typeof pro) => b.locations.find((l) => l.id === 'festival')!.weeklyRent;
+    const fee = (b: typeof pro) => b.locations.find((l) => l.id === 'lake-resort')!.weeklyRent;
     expect(fee(tycoon)).toBeGreaterThan(fee(pro));
   });
 
@@ -167,7 +168,7 @@ describe('a well-played truck makes money at every tier', () => {
     });
     for (let w = 0; w < 30 && !s.gameOver; w++) {
       const quality = biz.qualities.find((q) => q.id === s.qualityId)!;
-      const location = biz.locations.find((l) => l.id === s.locationId)!;
+      const location = resolveLocation(biz.locations, s.locationId, s.season);
       const price = biz.referencePrice[tier];
       const expected = computeDemand({
         state: s,
@@ -194,7 +195,7 @@ describe('a well-played truck makes money at every tier', () => {
         price,
         qualityId: s.qualityId,
         restockUnits: Math.max(0, Math.min(expected, capacity) - s.inventory),
-        locationId: s.locationId,
+        locationId: location.id,
         eventChoices: Object.fromEntries(
           s.pendingEvents.map((e) => [
             e.id,
@@ -219,7 +220,7 @@ describe('a well-played truck makes money at every tier', () => {
   ];
 
   for (const [tier, assetId, loan] of routes) {
-    for (const spot of ['office-park', 'night-district', 'festival']) {
+    for (const spot of ['office-park', 'night-district', 'lake-resort']) {
       it(`${tier} · ${assetId} · ${spot}`, () => {
         for (const seed of [7, 21, 44, 99]) {
           const end = playWell(tier, spot, assetId, loan ? [loan] : [], seed);

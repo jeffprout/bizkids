@@ -18,7 +18,7 @@ const LOCATIONS: LocationDef[] = [
     baseTraffic: 70,
     weeklyRent: 0,
     weeklyFixedCosts: 2,
-    // Your own street: the same neighbours all year, and they still walk past
+    // Your own street: the same neighbors all year, and they still walk past
     // when it is cold. Small, steady, and almost free.
     seasonMods: { spring: 1, summer: 1, fall: 1.1, winter: 1.25 },
     blurb: 'Tiny but steady all year. About 10 people a day.',
@@ -31,9 +31,8 @@ const LOCATIONS: LocationDef[] = [
     baseTraffic: 210,
     weeklyRent: 5,
     weeklyFixedCosts: 14,
-    // A park is a summer destination and quiet the rest of the year.
-    seasonMods: { spring: 1.05, summer: 1.25, fall: 0.85, winter: 0.6 },
-    blurb: 'Rent and a permit. Packed in summer, quiet in winter.',
+    seasonMods: { spring: 1.05, summer: 1.1, fall: 0.9, winter: 0.7 },
+    blurb: 'Rent and a permit. Fine most of the year, never a stampede.',
     volatility: 0.15,
   },
   {
@@ -43,12 +42,46 @@ const LOCATIONS: LocationDef[] = [
     baseTraffic: 350,
     weeklyRent: 10,
     weeklyFixedCosts: 22,
-    // The league calendar rules this spot: spring and fall seasons are packed,
-    // nobody is there in July, and the field is empty all winter.
+    seasons: ['spring'],
     seasonMods: { spring: 1.45, summer: 0.55, fall: 1.45, winter: 0.25 },
-    blurb: 'Rent and a pricey permit. Packed in season, empty in July.',
-    // Flat 0.35 was a 2.1x spread on top of every decision. See demand.ts.
+    blurb: 'Game day. Packed in spring, gone once the league ends.',
     volatility: 0.22,
+  },
+  {
+    id: 'pool',
+    name: 'Community Pool',
+    emoji: '🏊',
+    baseTraffic: 380,
+    weeklyRent: 12,
+    weeklyFixedCosts: 24,
+    seasons: ['summer'],
+    seasonMods: { spring: 0.4, summer: 1.4, fall: 0.3, winter: 0.1 },
+    blurb: 'Kids all day. Permit due whether they swim or not.',
+    volatility: 0.2,
+  },
+  {
+    id: 'pumpkin-patch',
+    name: 'Pumpkin Patch',
+    emoji: '🎃',
+    baseTraffic: 340,
+    weeklyRent: 12,
+    weeklyFixedCosts: 20,
+    seasons: ['fall'],
+    seasonMods: { spring: 0.2, summer: 0.2, fall: 1.4, winter: 0.15 },
+    blurb: 'Families, hayrides, and a fee before you pour a cup.',
+    volatility: 0.22,
+  },
+  {
+    id: 'ice-rink',
+    name: 'Ice Rink',
+    emoji: '⛸️',
+    baseTraffic: 280,
+    weeklyRent: 8,
+    weeklyFixedCosts: 18,
+    seasons: ['winter'],
+    seasonMods: { spring: 0.3, summer: 0.1, fall: 0.4, winter: 1.35 },
+    blurb: 'Skaters who want cocoa. You pay for the window before they lace up.',
+    volatility: 0.2,
   },
 ];
 

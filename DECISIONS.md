@@ -7,6 +7,20 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — The map changes with the season
+
+Jeff: the locations are all static. Fall should be a pumpkin patch or a
+haunted house, winter an ice rink, summer a lake resort. Friday night is
+the same rush as the festival, so the festival is a no-brainer.
+
+The third slot is now a destination that packs up when the season turns.
+The truck gets a ballpark, a lake, a pumpkin patch, an ice rink. The
+stand gets a soccer field, a pool, a pumpkin patch, an ice rink. Friday
+night stays — cheaper, so a solo truck that cannot serve the resort line
+should park there instead of paying the fee.
+
+---
+
 ## 2026-09-18 — American, not British, including the screens
 
 Jeff: this is an American game. Be sure there are no British references.
