@@ -130,9 +130,9 @@ export function Recap({
       </div>
 
       {r.buildingOut && (
-        <div className="card card-tight" style={{ background: '#fff6e5' }}>
+        <div className="card card-tight notice">
           <p style={{ margin: 0 }}>
-            🔧 A week of building out. Nothing sold
+            A week of building out. Nothing sold
             {r.loanPayment > 0 ? ' — and the loan still came due' : ''}.
           </p>
           {r.conditionReveal && (
@@ -555,14 +555,9 @@ export function Recap({
             its own. It still pops, and it costs a line instead of a block —
             which is the difference between fitting a small phone and not. */}
         {r.miniGoalMet && (
-          <motion.span
-            className="pill"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            style={{ background: '#eafbe7', fontWeight: 700 }}
-          >
-            🎯 Weekly goal hit!
-          </motion.span>
+          <span className="pill" style={{ fontWeight: 700 }}>
+            Weekly goal hit
+          </span>
         )}
       </div>
 

@@ -152,11 +152,19 @@ describe('the startup asset decision', () => {
     expect(s.discussionLog.some((d) => expected.has(d.note))).toBe(true);
   });
 
-  it('does not ask you to serve customers while the doors are closed', () => {
-    const s = open('used-refurb');
-    expect(s.miniGoal.kind).toBe('cashEnd');
-    expect(s.miniGoal.target % 50).toBe(0);
-    expect(s.miniGoal.target).toBeLessThanOrEqual(s.cash);
+  it('does not award goals or trophies while the doors are closed', () => {
+    let s = open('used-refurb');
+    expect(s.cash).toBeGreaterThan(100);
+    for (let w = 0; w < 4; w++) {
+      s = simulateWeek(s, decide(s));
+      expect(s.lastResult!.miniGoalMet, `week ${w + 1}`).toBe(false);
+      expect(s.miniGoalStreak, `week ${w + 1}`).toBe(0);
+      expect(s.badges, `week ${w + 1}`).toEqual([]);
+      expect(s.lastResult!.newBadges, `week ${w + 1}`).toEqual([]);
+    }
+    // Opening week can earn them — just not for sitting in the shop.
+    s = simulateWeek(s, decide(s));
+    expect(s.lastResult!.buildingOut).toBe(false);
   });
 
   it('weighs breakdowns by how reliable the truck is', () => {

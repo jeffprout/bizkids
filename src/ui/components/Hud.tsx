@@ -81,18 +81,20 @@ export function Hud({
         <span className="pill">
           {SEASON_INFO[state.season].emoji} {SEASON_INFO[state.season].label}
         </span>
-        {debt > 0 && <span className="pill">🏦 owe {dollars(Math.round(debt))}</span>}
+        {debt > 0 && <span className="pill">owe {dollars(Math.round(debt))}</span>}
         {state.assetWeekly > 0 && (
-          <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
+          <span className="pill">{dollars(state.assetWeekly)} lease</span>
         )}
-        {showRival && <span className="pill">😼 rival ${state.rivalPrice.toFixed(2)}</span>}
+        {showRival && <span className="pill">rival ${state.rivalPrice.toFixed(2)}</span>}
         <button className="pill pill-btn" onClick={onGoals}>
-          🎯 worth {dollars(Math.round(worth))} · goals
+          worth {dollars(Math.round(worth))} · goals
         </button>
-        <span className="pill">
-          🎯 {miniGoalText(state.miniGoal)}
-          {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak}`}
-        </span>
+        {(state.weeksToOpen ?? 0) === 0 && (
+          <span className="pill">
+            {miniGoalText(state.miniGoal)}
+            {state.miniGoalStreak > 0 && ` · ${state.miniGoalStreak} in a row`}
+          </span>
+        )}
       </div>
 
       <div className="bar" aria-label="Weeks played">

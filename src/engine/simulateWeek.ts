@@ -427,21 +427,29 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // Mini goal
   const goal = state.miniGoal;
   let miniGoalMet = false;
-  switch (goal.kind) {
-    case 'customers':
-      miniGoalMet = served >= goal.target;
-      break;
-    case 'cashEnd':
-      miniGoalMet = cash >= goal.target;
-      break;
-    case 'profit':
-      miniGoalMet = profit >= goal.target;
-      break;
-    case 'reputation':
-      miniGoalMet = reputation >= goal.target;
-      break;
+  if (!buildingOut) {
+    switch (goal.kind) {
+      case 'customers':
+        miniGoalMet = served >= goal.target;
+        break;
+      case 'cashEnd':
+        miniGoalMet = cash >= goal.target;
+        break;
+      case 'profit':
+        miniGoalMet = profit >= goal.target;
+        break;
+      case 'reputation':
+        miniGoalMet = reputation >= goal.target;
+        break;
+    }
   }
-  const miniGoalStreak = miniGoalMet ? state.miniGoalStreak + 1 : 0;
+  // Closed weeks pause the streak rather than resetting it. Counting them as
+  // hits is how a used truck earned "On A Roll" while it was still in the shop.
+  const miniGoalStreak = buildingOut
+    ? state.miniGoalStreak
+    : miniGoalMet
+      ? state.miniGoalStreak + 1
+      : 0;
 
   // Marketing decay
   const nextMarketing = marketing
@@ -534,10 +542,12 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     offerAvailable: nextWeek > FINAL_WEEK,
   };
 
-  // Badges are checked against the state after the week resolved.
-  const newBadges = BADGES.filter((b) => !state.badges.includes(b.id) && b.test(interim)).map(
-    (b) => b.id,
-  );
+  // Badges wait until the doors open. A used truck starts with thousands in
+  // the bank, so "$100 Club" and a free cash-goal streak used to fire in the
+  // shop — a trophy for standing still.
+  const newBadges = buildingOut
+    ? []
+    : BADGES.filter((b) => !state.badges.includes(b.id) && b.test(interim)).map((b) => b.id);
   if (justPaidOffAny) discussionFlags.push('Paid off a loan');
   if (stagedUp) discussionFlags.push(`Reached Stage ${stage}`);
 

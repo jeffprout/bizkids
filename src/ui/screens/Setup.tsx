@@ -113,7 +113,6 @@ export function Setup({
           />
         ))}
         <div className="card card-tight center">
-          <div style={{ fontSize: 44 }}>{biz.emoji}</div>
           <h3>{biz.name}</h3>
           <p className="muted">Build it up over 50 weeks, then sell it for as much as you can.</p>
         </div>
@@ -194,17 +193,17 @@ export function Setup({
           for out of this cushion. Saying so here is the difference between a
           lesson and an ambush. */}
       {asset && asset.weeksToOpen > 0 && (
-        <div className="card card-tight" style={{ background: '#fff6e5' }}>
+        <div className="card card-tight notice">
           <p style={{ margin: 0 }}>
-            🔧 The refit takes {asset.weeksToOpen} weeks. You sell nothing, and any loan still
+            The refit takes {asset.weeksToOpen} weeks. You sell nothing, and any loan still
             comes due.
           </p>
         </div>
       )}
       {asset && asset.weeklyPayment[tier] > 0 && (
-        <div className="card card-tight" style={{ background: '#fff6e5' }}>
+        <div className="card card-tight notice">
           <p style={{ margin: 0 }}>
-            📄 The lease is {dollars(asset.weeklyPayment[tier])} a week for the whole run, and you
+            The lease is {dollars(asset.weeklyPayment[tier])} a week for the whole run, and you
             own nothing at the end.
           </p>
         </div>
@@ -263,9 +262,9 @@ export function Setup({
 
 function Outdated() {
   return (
-    <div className="card card-tight" style={{ background: '#fff6e5' }}>
+    <div className="card card-tight notice">
       <p style={{ margin: 0 }}>
-        🔄 The game was updated, so your old run could not be carried over. Your trophies are still
+        The game was updated, so your old run could not be carried over. Your trophies are still
         on the shelf.
       </p>
     </div>

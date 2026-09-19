@@ -1,18 +1,17 @@
 import { motion } from 'framer-motion';
 import type { Stage, Weather } from '../../engine/types';
 
-const INK = '#21304a';
+const INK = '#16181e';
 
 /**
- * The business, drawn. It physically upgrades as the player grows, and it is
- * the business they are actually running — a lemonade stand that stays a
- * lemonade stand on a food-truck week was somebody else's game on screen.
+ * The business, drawn. Workshop shapes, not playground ones: a stainless truck
+ * or a folding table, the same 2px ink, no cartoon sky. It still upgrades as
+ * the player grows — wrap, awning, a second pair of hands.
  */
 export function StandArt({
   businessId = 'lemonade',
   stage,
   weather,
-  reputation,
   hasEmployee,
   hasSign,
   buildingOut = false,
@@ -29,28 +28,26 @@ export function StandArt({
   customers?: number;
   animateCustomers?: boolean;
 }) {
-  const shownCustomers = buildingOut ? 0 : Math.min(6, Math.max(0, Math.round(customers)));
-  const faces = ['🧒', '👦', '👩', '🧑', '👴', '👧'];
+  const shownCustomers = buildingOut ? 0 : Math.min(5, Math.max(0, Math.round(customers)));
   const truck = businessId === 'truck';
 
   return (
     <div className="scene" aria-label={truck ? 'Your food truck' : 'Your lemonade stand'}>
       <svg viewBox="0 0 320 190" role="img" aria-hidden="true">
         <Sky weather={weather} />
+        <Street />
         {truck ? (
           <Truck
             stage={stage}
             buildingOut={buildingOut}
             hasEmployee={hasEmployee}
             hasWrap={hasSign}
-            reputation={reputation}
           />
         ) : (
           <LemonadeStand
             stage={stage}
             hasEmployee={hasEmployee}
             hasSign={hasSign}
-            reputation={reputation}
           />
         )}
       </svg>
@@ -59,15 +56,35 @@ export function StandArt({
         <motion.div
           key={i}
           className="customer"
-          initial={animateCustomers ? { x: -60, opacity: 0 } : false}
-          animate={{ x: 20 + i * 40, opacity: 1 }}
-          transition={{ delay: i * 0.22, type: 'spring', stiffness: 90, damping: 14 }}
+          initial={animateCustomers ? { x: -50, opacity: 0 } : false}
+          animate={{ x: 18 + i * 36, opacity: 0.9 }}
+          transition={{ delay: i * 0.18, type: 'spring', stiffness: 110, damping: 16 }}
           style={{ left: 0 }}
         >
-          {faces[i % faces.length]}
+          <Silhouette />
         </motion.div>
       ))}
     </div>
+  );
+}
+
+function Silhouette() {
+  return (
+    <svg width="14" height="30" viewBox="0 0 14 30" aria-hidden="true">
+      <circle cx="7" cy="5" r="3.2" fill="#2a3140" />
+      <rect x="3.2" y="9" width="7.6" height="13" rx="2.4" fill="#2a3140" />
+      <rect x="3.6" y="21" width="2.6" height="8" rx="1" fill="#2a3140" />
+      <rect x="7.8" y="21" width="2.6" height="8" rx="1" fill="#2a3140" />
+    </svg>
+  );
+}
+
+function Figure({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`} fill={INK} opacity="0.92">
+      <circle cx="0" cy="-16" r="4" />
+      <rect x="-4.2" y="-11" width="8.4" height="14" rx="2.6" />
+    </g>
   );
 }
 
@@ -75,198 +92,176 @@ function LemonadeStand({
   stage,
   hasEmployee,
   hasSign,
-  reputation,
 }: {
   stage: Stage;
   hasEmployee: boolean;
   hasSign: boolean;
-  reputation: number;
 }) {
   return (
     <>
-      <g transform={stage >= 2 ? 'translate(150 96) scale(1.15)' : 'translate(150 100)'}>
-        {stage >= 2 && (
-          <>
-            <rect x="-62" y="-58" width="124" height="16" rx="6" fill="#ff6b6b" />
-            <rect x="-62" y="-42" width="124" height="6" fill="#ffffff" opacity="0.7" />
-            <rect x="-56" y="-42" width="6" height="34" fill="#c98a4b" />
-            <rect x="50" y="-42" width="6" height="34" fill="#c98a4b" />
-          </>
-        )}
-        <rect x="-58" y="-10" width="116" height="44" rx="6" fill="#d99a54" />
-        <rect x="-58" y="-10" width="116" height="10" rx="4" fill="#f0b877" />
-        <rect x="-64" y="-16" width="128" height="10" rx="5" fill="#b9793c" />
+      <g transform={stage >= 2 ? 'translate(160 118) scale(1.08)' : 'translate(160 122)'}>
+        {/* metal legs */}
+        <g stroke={INK} strokeWidth="2.5" fill="none" strokeLinecap="round">
+          <path d="M-48 8 L-40 -8" />
+          <path d="M48 8 L40 -8" />
+          <path d="M-44 8 H44" />
+        </g>
+        {/* crate counter */}
         <rect
-          x="-16"
-          y="-42"
-          width="26"
-          height="28"
-          rx="6"
-          fill="#fff4c1"
-          stroke="#e0b53c"
-          strokeWidth="2"
+          x="-52"
+          y="-16"
+          width="104"
+          height="22"
+          rx="2"
+          fill="#c4a574"
+          stroke={INK}
+          strokeWidth="2.5"
         />
-        <rect x="-14" y="-30" width="22" height="14" rx="4" fill="var(--lemon)" />
-        <circle cx="16" cy="-30" r="6" fill="none" stroke="#e0b53c" strokeWidth="3" />
-        <rect x="20" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />
-        <rect x="32" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />
-        {stage >= 3 && (
-          <rect x="-44" y="-26" width="10" height="12" rx="2" fill="#ffffff" stroke="#cfd9e6" />
+        <path d="M-48 -8 H48" stroke={INK} strokeWidth="1.5" opacity="0.35" />
+        {/* metal pitcher */}
+        <g stroke={INK} strokeWidth="2.2" strokeLinejoin="round">
+          <rect x="-10" y="-38" width="16" height="20" rx="2" fill="#cfd5dc" />
+          <path d="M6 -32 q8 4 0 12" fill="none" />
+          <path d="M-12 -38 h20" strokeLinecap="round" />
+        </g>
+        {/* cups */}
+        <rect x="12" y="-28" width="7" height="10" rx="1" fill="#f4f5f7" stroke={INK} strokeWidth="1.6" />
+        <rect x="21" y="-28" width="7" height="10" rx="1" fill="#f4f5f7" stroke={INK} strokeWidth="1.6" />
+        {stage >= 2 && (
+          <path
+            d="M-56 -44 h112 l-8 12 H-48 Z"
+            fill="#2c3340"
+            stroke={INK}
+            strokeWidth="2.2"
+          />
         )}
       </g>
 
       {hasSign && (
-        <g transform="translate(58 92)">
-          <rect x="-4" y="0" width="8" height="46" fill="#a9743d" />
-          <rect
-            x="-34"
-            y="-30"
-            width="68"
-            height="34"
-            rx="6"
-            fill="#fff"
-            stroke="var(--ink)"
-            strokeWidth="3"
-          />
-          <text x="0" y="-8" textAnchor="middle" fontSize="14" fontWeight="700" fill="var(--ink)">
-            LEMONADE
-          </text>
+        <g transform="translate(64 100)" stroke={INK} strokeWidth="2.2">
+          <rect x="-3" y="0" width="6" height="40" fill="#3d4450" />
+          <rect x="-32" y="-28" width="64" height="30" rx="2" fill="#2c3340" />
+          <path d="M-22 -14 h44" stroke="#e8edf3" strokeWidth="2" strokeLinecap="round" />
+          <path d="M-16 -8 h32" stroke="#e8edf3" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
         </g>
       )}
 
-      <text x="122" y="120" fontSize="26" textAnchor="middle">
-        🧑
-      </text>
-      {hasEmployee && (
-        <text x="196" y="120" fontSize="24" textAnchor="middle">
-          👧
-        </text>
-      )}
-
-      {reputation >= 4.5 && (
-        <text x="160" y="34" fontSize="16" textAnchor="middle">
-          ✨ ⭐ ✨
-        </text>
-      )}
+      <Figure x={118} y={124} />
+      {hasEmployee && <Figure x={196} y={124} scale={0.92} />}
     </>
   );
 }
 
-/**
- * Same language as the title art: 3px ink, the game's palette, sitting on the
- * ground line the CSS already paints. Stage upgrades the wrap and the awning;
- * a refit covers the window and puts the truck on blocks.
- */
 function Truck({
   stage,
   buildingOut,
   hasEmployee,
   hasWrap,
-  reputation,
 }: {
   stage: Stage;
   buildingOut: boolean;
   hasEmployee: boolean;
   hasWrap: boolean;
-  reputation: number;
 }) {
-  const scale = stage >= 2 ? 1.08 : 1;
+  const scale = stage >= 2 ? 1.06 : 1;
   return (
-    <g transform={`translate(160 118) scale(${scale})`}>
-      <g stroke={INK} strokeWidth="3" strokeLinejoin="round" fill="none">
-        <rect x="-92" y="-64" width="128" height="62" rx="6" fill="#ffffff" />
+    <g transform={`translate(158 116) scale(${scale})`}>
+      {/* body */}
+      <g stroke={INK} strokeWidth="2.4" strokeLinejoin="round">
+        <rect x="-96" y="-62" width="132" height="58" rx="3" fill={buildingOut ? '#b7bcc4' : '#e4e8ee'} />
+        {/* cab */}
         <path
-          d="M36 -42 h16 a4 4 0 0 1 3 1.5 l12 16 a5 5 0 0 1 1 3 V-2 h-32 z"
-          fill="#ff6b6b"
+          d="M36 -40 h18 a3 3 0 0 1 2.5 1.4 l11 15 a3 3 0 0 1 .6 1.8 V-4 h-32 z"
+          fill="#2c3340"
         />
-        <path d="M42 -38 h10 l8 12 h-18 z" fill="#6fc8ff" strokeWidth="2.5" />
-        <rect x="-54" y="-74" width="34" height="10" rx="3" fill="#e8eef7" />
-
-        {stage >= 2 && (
-          <>
-            <path d="M-86 -48 H0 L6 -62 H-80 Z" fill="#ffd43b" />
-            <path d="M-86 -48 H0" stroke={INK} strokeWidth="3" opacity="0.35" />
-            <path d="M3 -54 V-42" strokeWidth="2.5" strokeLinecap="round" />
-          </>
-        )}
-
+        <path d="M42 -35 h10 l8 12 h-18 z" fill="#7d93a8" strokeWidth="2" />
+        {/* vent */}
+        <rect x="-58" y="-70" width="28" height="8" rx="1" fill="#c5cad1" />
+        {/* window / plywood */}
         {buildingOut ? (
-          <rect x="-80" y="-42" width="74" height="26" rx="2" fill="#9aa7b8" />
+          <g>
+            <rect x="-84" y="-44" width="78" height="24" rx="1" fill="#8d7b62" />
+            <path d="M-78 -40 L-12 -24 M-78 -24 L-12 -40" stroke={INK} strokeWidth="2" opacity="0.55" />
+          </g>
         ) : (
           <>
-            <rect x="-80" y="-42" width="74" height="26" rx="2" fill="#21304a" />
-            <rect
-              x="-76"
-              y="-38"
-              width="66"
-              height="18"
-              rx="1"
-              fill="#2b8fd8"
-              opacity="0.45"
-              stroke="none"
-            />
+            <rect x="-84" y="-44" width="78" height="24" rx="1" fill="#1c2430" />
+            <rect x="-80" y="-40" width="70" height="16" fill="#3d5368" stroke="none" opacity="0.85" />
+            <path d="M-86 -46 H-4" strokeWidth="3" strokeLinecap="square" />
           </>
         )}
-
-        <rect x="6" y="-40" width="24" height="24" rx="2" fill="#3d5170" strokeWidth="2.5" />
-        <g stroke="#ffffff" strokeWidth="2" opacity="0.65" strokeLinecap="round">
-          <path d="M10 -34 h16" />
-          <path d="M10 -28 h16" />
-          <path d="M10 -22 h10" />
+        {/* menu board */}
+        <rect x="4" y="-40" width="22" height="22" rx="1" fill="#242a33" strokeWidth="2" />
+        <g stroke="#d7dde5" strokeWidth="1.6" opacity="0.7" strokeLinecap="round">
+          <path d="M8 -34 h14" />
+          <path d="M8 -29 h14" />
+          <path d="M8 -24 h8" />
         </g>
-        <path d="M-88 -14 H-4" strokeWidth="4" strokeLinecap="round" />
+        {/* bumper / shelf */}
+        <path d="M-92 -12 H8" strokeWidth="3.5" strokeLinecap="square" />
+        {/* stripe / wrap */}
         <path
-          d="M-88 -8 H32"
-          stroke={hasWrap || stage >= 3 ? '#58c06a' : '#c5d0de'}
-          strokeWidth="5"
-          strokeLinecap="round"
+          d="M-92 -6 H30"
+          stroke={hasWrap || stage >= 3 ? '#1f7a4c' : '#4a5160'}
+          strokeWidth="4"
+          strokeLinecap="square"
         />
+        {buildingOut && (
+          <g>
+            {/* caution stripe */}
+            <path d="M-90 -18 H10" stroke="#c9a227" strokeWidth="5" />
+            <g stroke={INK} strokeWidth="2" opacity="0.55">
+              <path d="M-86 -21 l8 8" />
+              <path d="M-74 -21 l8 8" />
+              <path d="M-62 -21 l8 8" />
+              <path d="M-50 -21 l8 8" />
+              <path d="M-38 -21 l8 8" />
+              <path d="M-26 -21 l8 8" />
+              <path d="M-14 -21 l8 8" />
+            </g>
+          </g>
+        )}
       </g>
 
       {buildingOut ? (
-        <g stroke={INK} strokeWidth="3">
-          <rect x="-62" y="-6" width="14" height="10" rx="1" fill="#c98a4b" />
-          <rect x="28" y="-6" width="14" height="10" rx="1" fill="#c98a4b" />
+        <g fill="#3d4450" stroke={INK} strokeWidth="2">
+          <path d="M-70 2 v10" />
+          <path d="M-78 12 h16" />
+          <path d="M20 2 v10" />
+          <path d="M12 12 h16" />
         </g>
       ) : (
-        <g stroke={INK} strokeWidth="3">
-          <circle cx="-56" cy="2" r="12" fill={INK} />
-          <circle cx="-56" cy="2" r="4.5" fill="#ffffff" stroke="none" />
-          <circle cx="40" cy="2" r="12" fill={INK} />
-          <circle cx="40" cy="2" r="4.5" fill="#ffffff" stroke="none" />
+        <g stroke={INK} strokeWidth="2.2">
+          <circle cx="-58" cy="4" r="11" fill="#1c1f26" />
+          <circle cx="-58" cy="4" r="4" fill="#c5cad1" stroke="none" />
+          <circle cx="38" cy="4" r="11" fill="#1c1f26" />
+          <circle cx="38" cy="4" r="4" fill="#c5cad1" stroke="none" />
         </g>
       )}
 
-      {!buildingOut && (
-        <text x="-48" y="-18" fontSize="18" textAnchor="middle">
-          🧑
-        </text>
-      )}
-      {!buildingOut && hasEmployee && (
-        <text x="-18" y="-18" fontSize="16" textAnchor="middle">
-          👧
-        </text>
-      )}
+      {!buildingOut && <Figure x={-46} y={-18} scale={0.85} />}
+      {!buildingOut && hasEmployee && <Figure x={-22} y={-18} scale={0.8} />}
+    </g>
+  );
+}
 
-      {buildingOut && (
-        <g>
-          <text x="-96" y="8" fontSize="16">
-            🚧
-          </text>
-          <text x="58" y="8" fontSize="16">
-            🚧
-          </text>
-          <text x="-10" y="-78" fontSize="18" textAnchor="middle">
-            🔧
-          </text>
-        </g>
-      )}
-
-      {reputation >= 4.5 && !buildingOut && (
-        <text x="-20" y="-84" fontSize="14" textAnchor="middle">
-          ✨ ⭐ ✨
-        </text>
-      )}
+function Street() {
+  return (
+    <g>
+      <g fill="#4a5562" opacity="0.4">
+        <rect x="8" y="48" width="36" height="54" />
+        <rect x="46" y="36" width="24" height="66" />
+        <rect x="72" y="52" width="30" height="50" />
+        <rect x="274" y="44" width="38" height="58" />
+      </g>
+      <rect x="0" y="148" width="320" height="5" fill="#3d4450" />
+      <g stroke="#d5dde6" strokeWidth="1.5" opacity="0.28" strokeLinecap="square">
+        <path d="M18 168 h44" />
+        <path d="M78 168 h44" />
+        <path d="M138 168 h44" />
+        <path d="M198 168 h44" />
+        <path d="M258 168 h44" />
+      </g>
     </g>
   );
 }
@@ -276,34 +271,34 @@ function Sky({ weather }: { weather: Weather }) {
     case 'hot':
       return (
         <g>
-          <circle cx="270" cy="34" r="24" fill="#ffd43b" />
-          <circle cx="270" cy="34" r="32" fill="#ffd43b" opacity="0.35" />
+          <circle cx="268" cy="32" r="18" fill="#e8c56b" />
+          <circle cx="268" cy="32" r="26" fill="#e8c56b" opacity="0.22" />
         </g>
       );
     case 'sunny':
-      return <circle cx="272" cy="32" r="20" fill="#ffd43b" />;
+      return <circle cx="270" cy="30" r="16" fill="#e0d08a" />;
     case 'cloudy':
       return (
-        <g fill="#ffffff" opacity="0.9">
-          <ellipse cx="250" cy="34" rx="34" ry="16" />
-          <ellipse cx="276" cy="30" rx="24" ry="14" />
-          <ellipse cx="76" cy="28" rx="28" ry="13" />
+        <g fill="#d5dce4" opacity="0.95">
+          <ellipse cx="248" cy="32" rx="32" ry="14" />
+          <ellipse cx="272" cy="28" rx="22" ry="12" />
+          <ellipse cx="78" cy="26" rx="26" ry="12" />
         </g>
       );
     case 'rain':
       return (
         <g>
-          <ellipse cx="250" cy="30" rx="38" ry="18" fill="#9fb3c8" />
-          <ellipse cx="90" cy="26" rx="30" ry="14" fill="#9fb3c8" />
+          <ellipse cx="248" cy="28" rx="36" ry="16" fill="#7d8b99" />
+          <ellipse cx="90" cy="24" rx="28" ry="12" fill="#7d8b99" />
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
             <line
               key={i}
               x1={40 + i * 34}
-              y1={54 + (i % 3) * 8}
+              y1={52 + (i % 3) * 8}
               x2={34 + i * 34}
-              y2={70 + (i % 3) * 8}
-              stroke="#5aa8e0"
-              strokeWidth="3"
+              y2={68 + (i % 3) * 8}
+              stroke="#4d5d6c"
+              strokeWidth="2"
               strokeLinecap="round"
             />
           ))}
@@ -311,12 +306,10 @@ function Sky({ weather }: { weather: Weather }) {
       );
     case 'cold':
       return (
-        <g fill="#ffffff">
-          <ellipse cx="252" cy="30" rx="34" ry="16" opacity="0.95" />
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <text key={i} x={30 + i * 50} y={60 + (i % 2) * 16} fontSize="14">
-              ❄️
-            </text>
+        <g fill="#e8edf3">
+          <ellipse cx="250" cy="28" rx="32" ry="14" opacity="0.9" />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <circle key={i} cx={40 + i * 52} cy={58 + (i % 2) * 10} r="2.2" />
           ))}
         </g>
       );

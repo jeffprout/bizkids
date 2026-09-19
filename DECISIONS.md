@@ -7,6 +7,33 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Closed weeks are not a trophy, and the look grew up
+
+Jeff, playtesting the used truck: *"I was playing the used truck while it was
+being built, but I was told I was on a roll and that I hit some goals."*
+
+The last slice made closed-week cash goals *achievable* — survive the loan
+instead of a 15% stretch you cannot hit. Combined with a truck that starts
+with thousands in the bank, that was three free hits and the "$100 Club"
+trophy, which is exactly "On A Roll" for standing still.
+
+Closed weeks now skip mini-goals and badges entirely. The streak pauses; it
+does not reset and it does not count. The HUD and the goals screen hide the
+weekly target until the doors open.
+
+**FOR JEFF:** "$100 Club" will still fire on the first *open* week of a truck
+run, because the test is "cash >= $100" and a Pro truck starts well above
+that. It is no longer a trophy for sitting in the shop. Say if you want it
+to require a sale, or to be lemonade-scale only.
+
+Jeff also: the graphics still looked elementary. Trebuchet is gone, the
+cartoon sky is gone, the walking emoji customers are silhouettes, the closed
+truck sits on jack stands with the window boarded, and the chrome is slate
+and paper instead of lemon buttons and 6px comic shadows. Event-card emoji
+stay — those are characters, not decoration.
+
+---
+
 ## 2026-09-16 — Used truck was having a secret operating week
 
 Playtest of the v2 food truck: buy used, sit through four closed weeks, and the

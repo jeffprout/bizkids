@@ -125,8 +125,9 @@ export function Goals({
         <div className="card card-tight">
           <h3>📅 This week</h3>
           <p style={{ margin: '4px 0' }}>
-            {miniGoalText(state.miniGoal)}
-            {state.miniGoalStreak > 0 && ` · 🔥 ${state.miniGoalStreak} in a row`}
+            {(state.weeksToOpen ?? 0) > 0
+              ? 'Closed this week. Goals wait until you open.'
+              : `${miniGoalText(state.miniGoal)}${state.miniGoalStreak > 0 ? ` · ${state.miniGoalStreak} in a row` : ''}`}
           </p>
         </div>
 

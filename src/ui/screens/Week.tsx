@@ -353,7 +353,6 @@ export function Week({
           buildingOut
         />
         <div className="card stack center">
-          <div style={{ fontSize: 52 }}>🔧</div>
           <h2>Still being built</h2>
           <p className="muted" style={{ margin: 0 }}>
             {weeksLeftShut === 1
@@ -362,9 +361,9 @@ export function Week({
           </p>
           {(loanDue > 0 || state.assetWeekly > 0) && (
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
-              {loanDue > 0 && <span className="pill">🏦 {dollars(loanDue)} loan due</span>}
+              {loanDue > 0 && <span className="pill">{dollars(loanDue)} loan due</span>}
               {state.assetWeekly > 0 && (
-                <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
+                <span className="pill">{dollars(state.assetWeekly)} lease</span>
               )}
             </div>
           )}
@@ -389,7 +388,7 @@ export function Week({
               })
             }
           >
-            ▶️ Get on with it
+            Next week
           </button>
         </div>
       </div>
