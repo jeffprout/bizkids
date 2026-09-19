@@ -275,31 +275,23 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 58%;
+  object-position: center 70%;
   display: block;
-}
-.scene-weather {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
 }
 .scene[data-weather='hot'] .scene-photo {
-  filter: saturate(1.12) sepia(0.12) brightness(1.04);
+  filter: saturate(1.12) sepia(0.1) brightness(1.04);
 }
 .scene[data-weather='sunny'] .scene-photo {
-  filter: saturate(1.06);
+  filter: saturate(1.05);
 }
 .scene[data-weather='cloudy'] .scene-photo {
-  filter: brightness(0.92) saturate(0.82);
+  filter: brightness(0.92) saturate(0.85);
 }
 .scene[data-weather='rain'] .scene-photo {
-  filter: brightness(0.8) saturate(0.7) hue-rotate(-8deg);
+  filter: brightness(0.8) saturate(0.72) hue-rotate(-8deg);
 }
 .scene[data-weather='cold'] .scene-photo {
-  filter: brightness(0.9) saturate(0.68) hue-rotate(12deg);
+  filter: brightness(0.9) saturate(0.7) hue-rotate(10deg);
 }
 .brand-art {
   width: 100%;

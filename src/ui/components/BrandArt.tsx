@@ -6,7 +6,7 @@ export function BrandArt() {
   return (
     <img
       className="brand-art"
-      src="/art/title-lot.jpg"
+      src="/art/lot-title.jpg"
       alt="A lemonade stand and a food truck"
       width={960}
       height={540}
