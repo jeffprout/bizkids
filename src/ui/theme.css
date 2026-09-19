@@ -1,26 +1,26 @@
 /* Touch-first. Every tappable thing is at least 44px tall, nothing depends on
    hover, and no font is loaded from the network.
 
-   The look is a workshop, not a playground: slate, paper, one green for money.
-   Middle school will sniff out Trebuchet and a cartoon sky in about a second. */
+   Color belongs to the world: a real sky, grass, a green for money. Chrome
+   stays quiet so the painted scene can do the talking. */
 
 :root {
-  --ink: #16181e;
-  --ink-soft: #5e6773;
-  --paper: #e7ebf0;
-  --card: #f7f8fa;
-  --line: #d3d9e2;
-  --sky: #8fa6bb;
-  --sky-deep: #5d7388;
+  --ink: #1a2433;
+  --ink-soft: #5a6a7c;
+  --paper: #e7f2fb;
+  --card: #fffdf8;
+  --line: #d3e0ea;
+  --sky: #5ba3d9;
+  --sky-deep: #2f7fb8;
   --ground: #6d7580;
-  --lemon: #c9a227;
-  --lemon-deep: #9a7a14;
-  --grass: #1f7a4c;
-  --grass-deep: #155a38;
+  --lemon: #e6b422;
+  --lemon-deep: #c49214;
+  --grass: #2a9a5c;
+  --grass-deep: #1e7344;
   --berry: #c4453c;
   --berry-deep: #9a312b;
-  --shadow: 0 1px 2px rgba(22, 24, 30, 0.08), 0 8px 24px rgba(22, 24, 30, 0.08);
-  --shadow-lg: 0 16px 40px rgba(22, 24, 30, 0.16);
+  --shadow: 0 1px 2px rgba(26, 36, 51, 0.08), 0 8px 24px rgba(26, 36, 51, 0.1);
+  --shadow-lg: 0 16px 40px rgba(26, 36, 51, 0.16);
   --radius: 12px;
   --tap: 48px;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -40,7 +40,7 @@ body,
 }
 
 body {
-  background: #d5dde6;
+  background: linear-gradient(180deg, #7ec8f0 0%, #c5e6f8 38%, #eef6e8 100%);
   color: var(--ink);
   overflow-x: hidden;
   user-select: none;
@@ -185,8 +185,8 @@ button {
   transform: scale(0.99);
 }
 .choice.selected {
-  background: #fff;
-  border-color: var(--ink);
+  background: #fff8e4;
+  border-color: var(--grass);
 }
 .choice .emoji {
   font-size: 22px;
@@ -255,24 +255,60 @@ button {
 }
 .bar-fill {
   height: 100%;
-  background: var(--ink);
+  background: linear-gradient(90deg, var(--grass), var(--lemon));
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- the business, drawn ---------- */
+/* ---------- the business, painted ---------- */
 .scene {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  background: linear-gradient(180deg, #9aafc2 0%, #c5d0dc 52%, #7a818c 52%, #5f666f 100%);
+  background: #4a90c2;
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
-  height: clamp(110px, 20vh, 168px);
+  height: clamp(128px, 22vh, 196px);
 }
-.scene svg {
+.scene-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 58%;
+  display: block;
+}
+.scene-weather {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
+  pointer-events: none;
+}
+.scene[data-weather='hot'] .scene-photo {
+  filter: saturate(1.12) sepia(0.12) brightness(1.04);
+}
+.scene[data-weather='sunny'] .scene-photo {
+  filter: saturate(1.06);
+}
+.scene[data-weather='cloudy'] .scene-photo {
+  filter: brightness(0.92) saturate(0.82);
+}
+.scene[data-weather='rain'] .scene-photo {
+  filter: brightness(0.8) saturate(0.7) hue-rotate(-8deg);
+}
+.scene[data-weather='cold'] .scene-photo {
+  filter: brightness(0.9) saturate(0.68) hue-rotate(12deg);
+}
+.brand-art {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 8px auto 0;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
 }
 
 /* ---------- event card ---------- */
@@ -288,9 +324,9 @@ button {
   gap: 12px;
   align-items: center;
   padding: 12px 14px;
-  background: var(--ink);
+  background: #1e4d6b;
   color: #f4f5f7;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid #163a52;
 }
 .event-top h3 {
   color: #f4f5f7;
@@ -423,7 +459,7 @@ button {
    touch minimum. */
 @media (max-height: 780px) {
   .scene {
-    height: clamp(64px, 11vh, 110px);
+    height: clamp(96px, 16vh, 140px);
   }
   :root {
     --tap: 46px;

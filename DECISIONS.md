@@ -7,7 +7,21 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Color and a real lot
+
+Jeff: the workshop pass was too gray, and he wanted graphics that looked
+real. The week scene is now a painted photograph of the actual lot — a
+stainless truck, a boarded used truck on stands, a park lemonade stand —
+with weather as a tint and overlay, not a cartoon sky. Chrome picked up
+a real sky behind the cards. Event-card characters stay drawn.
+
+**FOR JEFF:** the photos have a little baked-in signage (a taco truck,
+a chalkboard). Say if you want those gone.
+
+---
+
 ## 2026-09-18 — Closed weeks are not a trophy, and the look grew up
+
 
 Jeff, playtesting the used truck: *"I was playing the used truck while it was
 being built, but I was told I was on a roll and that I hit some goals."*
