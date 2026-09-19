@@ -7,6 +7,15 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — Setup is photographs, not stickers
+
+Jeff: the setup pages still had elementary avatars — a chick, a lemon, a
+sparkle — after the title and the lot had gone to photographs. The
+business and the truck you buy are the photos. Levels and loans are just
+words. The emoji stays on event cards, where it is a character.
+
+---
+
 ## 2026-09-18 — You cannot go viral on opening morning
 
 Jeff, Tycoon used truck, week 5: "it said I went viral. That's impossible."

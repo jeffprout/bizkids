@@ -316,6 +316,7 @@ export const LEMONADE: BusinessDef = {
   id: 'lemonade',
   name: 'Lemonade Stand',
   emoji: '🍋',
+  photo: '/art/brand-stand.jpg',
   tagline: 'Pricing and location. The classic first business.',
   unitName: 'cup',
   unitNamePlural: 'cups',
