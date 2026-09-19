@@ -13,9 +13,10 @@ import { sfx } from '../sfx';
  */
 export function RunWeek({ state, onDone }: { state: GameState; onDone: () => void }) {
   const r = state.lastResult!;
-  // What this business calls what it sells, capitalised for the counter label.
-  const plural = businessFor(state.businessId, state.tier).unitNamePlural;
+  const biz = businessFor(state.businessId, state.tier);
+  const plural = biz.unitNamePlural;
   const units = `${plural[0].toUpperCase()}${plural.slice(1)}`;
+  const sides = `${biz.sideNoun}s`;
   const [phase, setPhase] = useState(0);
   const [servedShown, setServedShown] = useState(0);
 
@@ -68,11 +69,13 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
       </div>
 
       <StandArt
+        businessId={state.businessId}
         stage={state.stage}
         weather={r.weather}
         reputation={r.reputationEnd}
         hasEmployee={state.employees.length > 0}
-        hasSign={state.marketing.some((m) => m.channelId === 'sign')}
+        hasSign={state.marketing.some((m) => m.channelId === 'sign' || m.channelId === 'wrap')}
+        buildingOut={r.buildingOut}
         customers={phase >= 1 ? Math.min(6, Math.ceil(r.served / 25)) : 0}
         animateCustomers
       />
@@ -82,7 +85,7 @@ export function RunWeek({ state, onDone }: { state: GameState; onDone: () => voi
         <div style={{ fontSize: 46, fontWeight: 800 }}>{servedShown}</div>
         {r.sideUnits > 0 && phase >= 1 && (
           <div className="pill" style={{ marginBottom: 4 }}>
-            🍭 {r.sideUnits} treats too
+            🍭 {r.sideUnits} {sides} too
           </div>
         )}
         <div className="hud-label">Money</div>

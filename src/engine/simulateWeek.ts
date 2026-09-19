@@ -6,6 +6,7 @@ import { BADGES, rollMiniGoal } from '../config/milestones';
 import { forecastFor, rollWeather, seasonForWeek } from './calendar';
 import { applySpoilage, computeDemand, rivalShare } from './demand';
 import { drawEvents, resolveEventChoices } from './events';
+import { conditionNoteOf, reliabilityOf } from './asset';
 import { chargeWeek, money } from './loans';
 import { priceBandFor } from './pricing';
 import { makeRng, nextSeed } from './rng';
@@ -48,10 +49,20 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
    * A card that grounds the business overrides whatever spot was asked for —
    * the engine is in pieces, it is not going anywhere. That is settled first,
    * because which cards even happen depends on where the week is spent.
+   *
+   * A business still being built out cannot sell anything, and it cannot have
+   * an operating week happen to it either. The closed-week screen sends no
+   * answers, and `resolveEventChoices` used to pick the first option on every
+   * card that had been drawn for a week the player never saw — so a used truck
+   * would silently buy a permit, dump a cooler, or nurse a fryer along while
+   * the doors were still shut. Demand is gated below; the cards are gated here.
    */
-  const grounded = state.pendingEvents.some((e) =>
-    e.choices.some((c) => c.id === decisions.eventChoices[e.id] && c.locksLocation),
-  );
+  const buildingOut = (state.weeksToOpen ?? 0) > 0;
+  const grounded =
+    !buildingOut &&
+    state.pendingEvents.some((e) =>
+      e.choices.some((c) => c.id === decisions.eventChoices[e.id] && c.locksLocation),
+    );
   const location =
     biz.locations.find((l) => l.id === (grounded ? state.locationId : decisions.locationId)) ??
     biz.locations[0];
@@ -61,9 +72,11 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
    * festival organizer is not there to talk to you, so the card does not fire
    * and none of its effects land.
    */
-  const eventsHappening = state.pendingEvents.filter(
-    (e) => !e.locations || e.locations.includes(location.id),
-  );
+  const eventsHappening = buildingOut
+    ? []
+    : state.pendingEvents.filter(
+        (e) => !e.locations || e.locations.includes(location.id),
+      );
 
   const ev = resolveEventChoices(
     eventsHappening,
@@ -93,7 +106,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
 
   // --- 1. Buy stock -------------------------------------------------------
   const unitCost = money(quality.unitCost * tier.unitCostScale * ev.unitCostMod);
-  const wantUnits = Math.max(0, Math.round(decisions.restockUnits));
+  const wantUnits = buildingOut ? 0 : Math.max(0, Math.round(decisions.restockUnits));
   const affordableUnits = unitCost > 0 ? Math.floor(Math.max(0, cash) / unitCost) : wantUnits;
   const boughtUnits = Math.min(wantUnits, affordableUnits);
   let suppliesBought = money(boughtUnits * unitCost);
@@ -104,41 +117,48 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // --- 2. Buy marketing ---------------------------------------------------
   let marketingSpend = 0;
   const marketing = [...state.marketing];
-  for (const channelId of decisions.buyMarketing) {
-    const channel = biz.marketing.find((m) => m.id === channelId);
-    if (!channel || cash < channel.cost) continue;
-    cash = money(cash - channel.cost);
-    marketingSpend = money(marketingSpend + channel.cost);
-    reputation += channel.reputationBonus ?? 0;
-    marketing.push({
-      channelId: channel.id,
-      weeksLeft: channel.durationWeeks,
-      boost: channel.boost,
-      customersBrought: 0,
-      spent: channel.cost,
-    });
-    discussionFlags.push(`Spent $${channel.cost} on ${channel.name}`);
+  if (!buildingOut) {
+    for (const channelId of decisions.buyMarketing) {
+      const channel = biz.marketing.find((m) => m.id === channelId);
+      if (!channel || cash < channel.cost) continue;
+      // A wrap is paint on the truck. You do not buy it twice, and a second
+      // tap this week is not a second wrap.
+      if (channel.kind === 'owned' && marketing.some((m) => m.channelId === channel.id)) continue;
+      cash = money(cash - channel.cost);
+      marketingSpend = money(marketingSpend + channel.cost);
+      reputation += channel.reputationBonus ?? 0;
+      marketing.push({
+        channelId: channel.id,
+        weeksLeft: channel.durationWeeks,
+        boost: channel.boost,
+        customersBrought: 0,
+        spent: channel.cost,
+      });
+      discussionFlags.push(`Spent $${channel.cost} on ${channel.name}`);
+    }
   }
 
   // --- 3. Hire and fire ---------------------------------------------------
   // A stand can run more than one pair of hands. Each is hired and let go on
   // its own, and each draws its own wage every week it stays.
   let employees = [...state.employees];
-  if (decisions.fireEmployee) employees = [];
-  const letGo = decisions.fireEmployeeIds ?? [];
-  for (const id of letGo) {
-    const gone = employees.find((e) => e.id === id);
-    if (gone) discussionFlags.push(`Let ${gone.name} go`);
-  }
-  employees = employees.filter((e) => !letGo.includes(e.id));
+  if (!buildingOut) {
+    if (decisions.fireEmployee) employees = [];
+    const letGo = decisions.fireEmployeeIds ?? [];
+    for (const id of letGo) {
+      const gone = employees.find((e) => e.id === id);
+      if (gone) discussionFlags.push(`Let ${gone.name} go`);
+    }
+    employees = employees.filter((e) => !letGo.includes(e.id));
 
-  const hiring =
-    decisions.hireEmployeeIds ?? (decisions.hireEmployeeId ? [decisions.hireEmployeeId] : []);
-  for (const id of hiring) {
-    const hire = biz.employees.find((e) => e.id === id);
-    if (hire && !employees.some((e) => e.id === hire.id)) {
-      employees.push(hire);
-      discussionFlags.push(`Hired ${hire.name} at $${hire.weeklyWage} a week`);
+    const hiring =
+      decisions.hireEmployeeIds ?? (decisions.hireEmployeeId ? [decisions.hireEmployeeId] : []);
+    for (const id of hiring) {
+      const hire = biz.employees.find((e) => e.id === id);
+      if (hire && !employees.some((e) => e.id === hire.id)) {
+        employees.push(hire);
+        discussionFlags.push(`Hired ${hire.name} at $${hire.weeklyWage} a week`);
+      }
     }
   }
 
@@ -204,7 +224,6 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
    * Gating demand here rather than sales means nobody is recorded as turned
    * away either: they never came, because there was nothing to come to.
    */
-  const buildingOut = (state.weeksToOpen ?? 0) > 0;
   const demandBeforeRival = buildingOut ? 0 : breakdown.demand;
   const demand = Math.max(0, Math.round(demandBeforeRival * rivalMod));
   const lostToRival = Math.max(0, demandBeforeRival - demand);
@@ -258,8 +277,13 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   }
 
   // --- 6. Rent and wages --------------------------------------------------
-  const rent = money(location.weeklyRent);
-  const fixedCosts = money(location.weeklyFixedCosts * tier.fixedCostScale);
+  // A truck in the shop is not parked at a lunch spot. The loan still comes
+  // due — that is the price of buying cheap with borrowed money — but the
+  // pitch fee is for a curb you are not on.
+  const rent = buildingOut ? 0 : money(location.weeklyRent);
+  const fixedCosts = buildingOut
+    ? 0
+    : money(location.weeklyFixedCosts * tier.fixedCostScale);
   // A leased asset costs the same every week for the life of the business,
   // whether it is open, being built out, or having a terrible July.
   const assetPayment = money(state.assetWeekly ?? 0);
@@ -406,31 +430,44 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
   // Mini goal
   const goal = state.miniGoal;
   let miniGoalMet = false;
-  switch (goal.kind) {
-    case 'customers':
-      miniGoalMet = served >= goal.target;
-      break;
-    case 'cashEnd':
-      miniGoalMet = cash >= goal.target;
-      break;
-    case 'profit':
-      miniGoalMet = profit >= goal.target;
-      break;
-    case 'reputation':
-      miniGoalMet = reputation >= goal.target;
-      break;
+  if (!buildingOut) {
+    switch (goal.kind) {
+      case 'customers':
+        miniGoalMet = served >= goal.target;
+        break;
+      case 'cashEnd':
+        miniGoalMet = cash >= goal.target;
+        break;
+      case 'profit':
+        miniGoalMet = profit >= goal.target;
+        break;
+      case 'reputation':
+        miniGoalMet = reputation >= goal.target;
+        break;
+    }
   }
-  const miniGoalStreak = miniGoalMet ? state.miniGoalStreak + 1 : 0;
+  // Closed weeks pause the streak rather than resetting it. Counting them as
+  // hits is how a used truck earned "On A Roll" while it was still in the shop.
+  const miniGoalStreak = buildingOut
+    ? state.miniGoalStreak
+    : miniGoalMet
+      ? state.miniGoalStreak + 1
+      : 0;
 
-  // Marketing decay
+  // Marketing decay. A rented campaign fades. Paint on the truck does not.
   const nextMarketing = marketing
-    .map((m) => ({ ...m, weeksLeft: m.weeksLeft - 1 }))
+    .map((m) => {
+      const channel = biz.marketing.find((c) => c.id === m.channelId);
+      if (channel?.kind === 'owned') return m;
+      return { ...m, weeksLeft: m.weeksLeft - 1 };
+    })
     .filter((m) => m.weeksLeft > 0)
     .map((m) => {
       const channel = biz.marketing.find((c) => c.id === m.channelId);
-      const total = channel?.durationWeeks ?? 1;
+      if (!channel || channel.kind === 'owned') return m;
+      const total = channel.durationWeeks ?? 1;
       // Awareness decays: the boost fades toward zero over the campaign's life.
-      return { ...m, boost: (channel?.boost ?? m.boost) * (m.weeksLeft / total) };
+      return { ...m, boost: (channel.boost ?? m.boost) * (m.weeksLeft / total) };
     });
 
   // Stage-up
@@ -513,12 +550,21 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     offerAvailable: nextWeek > FINAL_WEEK,
   };
 
-  // Badges are checked against the state after the week resolved.
-  const newBadges = BADGES.filter((b) => !state.badges.includes(b.id) && b.test(interim)).map(
-    (b) => b.id,
-  );
+  // Badges wait until the doors open. A used truck starts with thousands in
+  // the bank, so "$100 Club" and a free cash-goal streak used to fire in the
+  // shop — a trophy for standing still.
+  const newBadges = buildingOut
+    ? []
+    : BADGES.filter((b) => !state.badges.includes(b.id) && b.test(interim)).map((b) => b.id);
   if (justPaidOffAny) discussionFlags.push('Paid off a loan');
   if (stagedUp) discussionFlags.push(`Reached Stage ${stage}`);
+
+  // The last closed week is when you find out what the used-gear roll actually
+  // bought. Saying it at purchase would spoil the gamble; saying it never would
+  // make the roll a secret number on the books.
+  const conditionReveal =
+    buildingOut && interim.weeksToOpen === 0 ? conditionNoteOf(state) : undefined;
+  if (conditionReveal) discussionFlags.push(conditionReveal);
 
   const result: WeekResult = {
     week,
@@ -536,6 +582,7 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     price,
     assetPayment,
     buildingOut,
+    conditionReveal,
     rent,
     fixedCosts,
     wages,
@@ -588,6 +635,9 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
       price,
       ref,
       bought: boughtUnits,
+      buildingOut,
+      conditionReveal,
+      placeName: biz.placeName,
     }),
     newBadges,
     stagedUp,
@@ -608,7 +658,10 @@ export function simulateWeek(input: GameState, decisions: WeekDecisions): GameSt
     discussionLog: [...state.discussionLog, ...discussionFlags.map((note) => ({ week, note }))],
   };
 
-  nextState.pendingEvents = drawEvents(nextState, pool, seedAfterSim);
+  nextState.pendingEvents =
+    nextState.weeksToOpen > 0
+      ? []
+      : drawEvents(nextState, pool, seedAfterSim, reliabilityOf(state));
   nextState.miniGoal = rollMiniGoal(nextState, makeRng(nextSeed(seedAfterSim))());
 
   return nextState;
@@ -631,11 +684,16 @@ function coachFor(x: {
   price: number;
   ref: number;
   bought: number;
+  buildingOut: boolean;
+  conditionReveal?: string;
+  placeName: string;
 }): string {
   if (x.emergencyAdvance > 0)
     return 'You ran out of money. The bank covered it — that costs extra.';
   if (x.missedPayment) return 'You missed a loan payment. The banker is watching.';
-  if (x.stagedUp) return 'Your stand just levelled up!';
+  if (x.conditionReveal) return x.conditionReveal;
+  if (x.buildingOut) return 'Closed this week. No sales.';
+  if (x.stagedUp) return `Your ${x.placeName} just leveled up!`;
   if (x.lostToStockout > x.served * 0.2) return 'You sold out early. Buy more supplies next week.';
   if (x.lostToCapacity > x.served * 0.2) {
     return x.hasHelper
@@ -648,12 +706,12 @@ function coachFor(x: {
     // lesson is about holding it, not about ordering it.
     return x.bought > 0
       ? 'You threw out a lot. Buy a little less next week.'
-      : 'Your leftover stock went bad. Drinks do not keep — sell them or lose them.';
+      : 'Your leftover stock went bad. It does not keep — sell it or lose it.';
   }
   if (x.forecastWasWrong && x.profit <= 0)
     return 'The forecast was wrong and it cost you. That happens.';
   if (x.lostToRival > x.served * 0.25)
-    return 'The stand across the street is cheaper. People noticed.';
+    return `The ${x.placeName} across the street is cheaper. People noticed.`;
   if (x.grossProfit > 0 && x.profit <= 0) return 'You sold plenty but costs ate all of it.';
   if (x.price > x.ref * 1.8) return 'High price, fewer customers. Is it worth it?';
   if (x.profit <= 0) return 'You lost money this week. Check your costs.';

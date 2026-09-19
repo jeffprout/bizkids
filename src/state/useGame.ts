@@ -137,7 +137,7 @@ export function useGame() {
       ...profile,
       hasRun: false,
       badges: Array.from(new Set([...profile.badges, ...sold.badges, 'sold'])),
-      lastRecap: `Sold the stand for $${Math.round(v.offer)} in week ${state.week}.`,
+      lastRecap: `Sold the ${biz.placeName} for $${Math.round(v.offer)} in week ${state.week}.`,
       highScores: [
         ...profile.highScores,
         {
@@ -201,7 +201,8 @@ export function recapLine(s: GameState): string {
   const r = s.lastResult;
   if (!r) return `Week ${s.week} — just getting started.`;
   const bits: string[] = [`Week ${s.week}`];
-  if (r.stagedUp) bits.push('your stand just levelled up');
+  const place = businessFor(s.businessId, s.tier).placeName;
+  if (r.stagedUp) bits.push(`your ${place} just leveled up`);
   else if (r.newBadges.length) bits.push('you earned a trophy');
   else if (r.profit > 0) bits.push(`you banked $${Math.round(r.profit)}`);
   else bits.push('a tough week');

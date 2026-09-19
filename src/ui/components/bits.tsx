@@ -93,7 +93,7 @@ export function Stars({ value }: { value: number }) {
 
 /** Full-screen confetti burst. Pure CSS transforms, no library. */
 export function Confetti({ pieces = 60 }: { pieces?: number }) {
-  const colors = ['#ffd43b', '#ff6b6b', '#58c06a', '#6fc8ff', '#c78bff'];
+  const colors = ['#16181e', '#c4453c', '#1f7a4c', '#5d7388', '#c9a227'];
   const items = useRef(
     Array.from({ length: pieces }, (_, i) => ({
       left: Math.random() * 100,

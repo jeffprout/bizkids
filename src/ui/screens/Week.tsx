@@ -101,13 +101,15 @@ export function Week({
     const debt = state.loans
       .filter((l) => !l.paidOff)
       .reduce((sum, l) => sum + Math.min(l.weeklyPayment, l.balance), 0);
-    return Math.round((rent + wages + ads + debt) * 100) / 100;
+    const lease = state.assetWeekly ?? 0;
+    return Math.round((rent + wages + ads + debt + lease) * 100) / 100;
   }, [
     location,
     tier.fixedCostScale,
     letGo,
     state.employees,
     state.loans,
+    state.assetWeekly,
     employeeOptions,
     hireIds,
     buyMarketing,
@@ -303,6 +305,17 @@ export function Week({
   // bought a second table watched the number sit still and reasonably concluded
   // the purchase had done nothing.
   const capacityAfter = servingCapacity;
+  /**
+   * What this order would take in, if the week lands in the expected band.
+   * Demand is the crowd; stock and hands cap what you actually sell. Watching
+   * the dollar figure move with the stepper is the whole reason it sits here.
+   */
+  const onHand = state.inventory + restockUnits;
+  const sellLow = Math.min(expected.low, onHand, capacityAfter);
+  const sellHigh = Math.min(expected.high, onHand, capacityAfter);
+  const grossLow = Math.round(sellLow * price * 100) / 100;
+  const grossHigh = Math.round(sellHigh * price * 100) / 100;
+  const grossBinds = onHand < expected.high || capacityAfter < expected.high;
 
   /**
    * A refit still running means there is nothing to decide: the doors are
@@ -335,38 +348,40 @@ export function Week({
   }
 
   if (weeksLeftShut > 0) {
+    const loanDue = state.loans
+      .filter((l) => !l.paidOff)
+      .reduce((sum, l) => sum + Math.min(l.weeklyPayment, l.balance), 0);
     return (
       <div className="stack">
         <Hud state={state} showRival={false} onMenu={onMenu} onGoals={onGoals} />
         <StandArt
+          businessId={state.businessId}
           stage={state.stage}
           weather={state.forecast}
           reputation={state.reputation}
           hasEmployee={state.employees.length > 0}
-          hasSign={false}
+          hasSign={state.marketing.some((m) => m.channelId === 'sign' || m.channelId === 'wrap')}
+          buildingOut
         />
         <div className="card stack center">
-          <div style={{ fontSize: 52 }}>🔧</div>
           <h2>Still being built</h2>
           <p className="muted" style={{ margin: 0 }}>
             {weeksLeftShut === 1
               ? 'One more week of work. You open next week.'
               : `${weeksLeftShut} more weeks of work before you can open.`}
           </p>
-          <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
-            <span className="pill">
-              {location.emoji} {location.name}
-            </span>
-            <span className="pill">
-              🏠 {dollars(location.weeklyRent + location.weeklyFixedCosts * tier.fixedCostScale)} a
-              week
-            </span>
-            {state.assetWeekly > 0 && (
-              <span className="pill">📄 {dollars(state.assetWeekly)} lease</span>
-            )}
-          </div>
+          {(loanDue > 0 || state.assetWeekly > 0) && (
+            <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
+              {loanDue > 0 && <span className="pill">{dollars(loanDue)} loan due</span>}
+              {state.assetWeekly > 0 && (
+                <span className="pill">{dollars(state.assetWeekly)} lease</span>
+              )}
+            </div>
+          )}
           <p className="muted" style={{ margin: 0 }}>
-            The bills arrive anyway. That is what the cheap way in costs.
+            {loanDue > 0
+              ? 'No sales, and the loan still comes due. That is what buying cheap with borrowed money costs.'
+              : 'No sales until it opens. You bought time instead of paying up front.'}
           </p>
           <button
             className="btn btn-go"
@@ -384,7 +399,7 @@ export function Week({
               })
             }
           >
-            ▶️ Get on with it
+            Next week
           </button>
         </div>
       </div>
@@ -395,11 +410,12 @@ export function Week({
     <div className="stack">
       <Hud state={state} showRival={facesRival} onMenu={onMenu} onGoals={onGoals} />
       <StandArt
+        businessId={state.businessId}
         stage={state.stage}
         weather={state.forecast}
         reputation={state.reputation}
         hasEmployee={state.employees.length > 0}
-        hasSign={state.marketing.some((m) => m.channelId === 'sign')}
+        hasSign={state.marketing.some((m) => m.channelId === 'sign' || m.channelId === 'wrap')}
       />
 
       <Dots count={cards.length} index={index} />
@@ -477,6 +493,14 @@ export function Week({
                 Expect about {expected.low}–{expected.high} {units}
               </b>
             </p>
+            <p style={{ margin: 0 }}>
+              <b>
+                {grossLow === grossHigh
+                  ? `${dollars(grossLow)} gross`
+                  : `${dollars(grossLow)}–${dollars(grossHigh)} gross`}
+              </b>
+              {grossBinds ? ' with this order' : ''}
+            </p>
             {expected.drivers.length > 0 && (
               <p className="muted" style={{ margin: 0, fontSize: '0.85em' }}>
                 {expected.drivers
@@ -486,7 +510,9 @@ export function Week({
               </p>
             )}
             <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: 6 }}>
-              <span className="pill">🥤 {state.inventory} left over</span>
+              <span className="pill">
+                {biz.emoji} {state.inventory} left over
+              </span>
               {state.inventory > 0 && (
                 <span className="pill">
                   🏷️ stock cost {dollars(state.inventoryCost / state.inventory, true)} a {unit}
@@ -713,21 +739,25 @@ export function Week({
         {card === 'marketing' && (
           <div className="card stack">
             <h2 className="center">Tell people about it?</h2>
-            {marketingOptions.map((m) => (
-              <Choice
-                key={m.id}
-                emoji={m.emoji}
-                title={`${m.name} · ${dollars(m.cost)}`}
-                sub={m.blurb}
-                selected={buyMarketing.includes(m.id)}
-                disabled={state.cash < m.cost && !buyMarketing.includes(m.id)}
-                onClick={() =>
-                  setBuyMarketing((ids) =>
-                    ids.includes(m.id) ? ids.filter((i) => i !== m.id) : [...ids, m.id],
-                  )
-                }
-              />
-            ))}
+            {marketingOptions.map((m) => {
+              const owned =
+                m.kind === 'owned' && state.marketing.some((a) => a.channelId === m.id);
+              return (
+                <Choice
+                  key={m.id}
+                  emoji={m.emoji}
+                  title={owned ? `${m.name} · already paid` : `${m.name} · ${dollars(m.cost)}`}
+                  sub={m.blurb}
+                  selected={owned || buyMarketing.includes(m.id)}
+                  disabled={owned || (state.cash < m.cost && !buyMarketing.includes(m.id))}
+                  onClick={() =>
+                    setBuyMarketing((ids) =>
+                      ids.includes(m.id) ? ids.filter((i) => i !== m.id) : [...ids, m.id],
+                    )
+                  }
+                />
+              );
+            })}
             <button className="btn btn-go" onClick={next}>
               Next ➡️
             </button>
@@ -742,7 +772,7 @@ export function Week({
                 💲 {dollars(price, true)} a {unit}
               </span>
               <span className="pill">
-                🥤 {state.inventory + restockUnits} {units}
+                {biz.emoji} {state.inventory + restockUnits} {units}
               </span>
               <span className="pill">
                 {location.emoji} {location.name}

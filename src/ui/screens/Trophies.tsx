@@ -1,5 +1,6 @@
 import type { Profile } from '../../storage/saves';
 import { BADGES } from '../../config/milestones';
+import { BUSINESSES } from '../../config/businesses';
 import { dollars } from '../components/bits';
 
 export function Trophies({ profile, onBack }: { profile: Profile; onBack: () => void }) {
@@ -28,7 +29,7 @@ export function Trophies({ profile, onBack }: { profile: Profile; onBack: () => 
       {profile.highScores.slice(0, 5).map((h, i) => (
         <div key={i} className="card card-tight row-between">
           <span>
-            {i + 1}. 🍋 {h.tier}
+            {i + 1}. {BUSINESSES[h.businessId]?.emoji ?? '💼'} {h.tier}
           </span>
           <b>{dollars(h.soldFor)}</b>
         </div>

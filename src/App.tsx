@@ -20,7 +20,7 @@ export default function App() {
   if (!game.ready) {
     return (
       <div className="app center">
-        <div style={{ fontSize: 56, marginTop: '30vh' }}>🍋</div>
+        <div style={{ fontSize: 56, marginTop: '30vh' }}>💼</div>
       </div>
     );
   }

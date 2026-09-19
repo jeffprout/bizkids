@@ -7,6 +7,126 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-18 — The title is two businesses, not a bumper
+
+Jeff: the landing showed the tail of a truck and a table. That is not a
+title screen. It is now two photographs side by side — the whole stand,
+the whole truck — which is what you came here to run.
+
+---
+
+## 2026-09-18 — Preview looked empty
+
+The Vercel / GitHub preview card snapshots the HTML before React boots, so
+it captured a blank sky. The game was on the URL. A title is now in the
+HTML itself so that card is not empty, and a visitor with JS still off
+sees the name of the game.
+
+---
+
+## 2026-09-18 — Gross on the last call to buy
+
+Jeff: on the supplies card, put expected gross income so the order is a
+decision, not a guess. The crowd is still the unit range. The dollars are
+what this order would take in — capped by stock and hands — so bumping the
+stepper moves the number until you have enough.
+
+---
+
+## 2026-09-18 — A wrap is paint, not a campaign
+
+Jeff: wrap the truck is always a suggestion, but the blurb says expensive
+once, then it advertises for itself.
+
+It was a 26-week decaying ad that came back for another $700 when it
+ran out. A wrap is paint on the truck. You buy it once; the boost stays;
+the card says "already paid" instead of asking again. Same treatment for
+the lemonade painted sign — that was the same lesson, also a lie.
+
+---
+
+## 2026-09-18 — Color and a real lot
+
+Jeff: the workshop pass was too gray, and he wanted graphics that looked
+real. The week scene is now a painted photograph of the actual lot — a
+stainless truck, a boarded used truck on stands, a park lemonade stand —
+with weather as a tint and overlay, not a cartoon sky. Chrome picked up
+a real sky behind the cards. Event-card characters stay drawn.
+
+The photos had taco-truck lettering and chalkboard menus. Jeff said gone;
+the boards and the sides are blank now.
+
+---
+
+## 2026-09-18 — Closed weeks are not a trophy, and the look grew up
+
+
+Jeff, playtesting the used truck: *"I was playing the used truck while it was
+being built, but I was told I was on a roll and that I hit some goals."*
+
+The last slice made closed-week cash goals *achievable* — survive the loan
+instead of a 15% stretch you cannot hit. Combined with a truck that starts
+with thousands in the bank, that was three free hits and the "$100 Club"
+trophy, which is exactly "On A Roll" for standing still.
+
+Closed weeks now skip mini-goals and badges entirely. The streak pauses; it
+does not reset and it does not count. The HUD and the goals screen hide the
+weekly target until the doors open.
+
+**FOR JEFF:** "$100 Club" will still fire on the first *open* week of a truck
+run, because the test is "cash >= $100" and a Pro truck starts well above
+that. It is no longer a trophy for sitting in the shop. Say if you want it
+to require a sale, or to be lemonade-scale only.
+
+Jeff also: the graphics still looked elementary. Trebuchet is gone, the
+cartoon sky is gone, the walking emoji customers are silhouettes, the closed
+truck sits on jack stands with the window boarded, and the chrome is slate
+and paper instead of lemon buttons and 6px comic shadows. Event-card emoji
+stay — those are characters, not decoration.
+
+---
+
+## 2026-09-16 — Used truck was having a secret operating week
+
+Playtest of the v2 food truck: buy used, sit through four closed weeks, and the
+recap still charged a permit, dumped a cooler, or nursed a fryer along. The
+closed-week screen correctly deals no cards and sends empty answers. The engine
+then picked choice[0] on whatever had been drawn for a week the player never
+saw.
+
+Two gates, both required:
+
+1. Do not *resolve* operating cards while `weeksToOpen > 0`. Demand was already
+   zeroed; the cards were not.
+2. Do not *draw* cards for a week that will still be shut. Drawing at the end of
+   closed week 1 is what seeded the silent week 2.
+
+The used-gear roll was the other half of the same miss. `reliability` lived on
+the asset and was never read. `conditionNotes` lived on the asset and were never
+shown. The roll now does both jobs the comment always claimed: a poor truck is
+worth less *and* its breakdown cards (engine, fryer, cooler) weigh more; the
+note is revealed on the last closed week, which is when you find out what you
+bought.
+
+Propane price spikes are a market shock, not a mechanical failure of *this*
+truck, so they stay unweighted. **FOR JEFF** if you would rather propane count
+as a breakdown too.
+
+The week scene was still a lemonade stand. It is a truck now, on blocks during
+the refit. Copy that still said "the stand", "drink sales", or a soda-cup next
+to "meals" is gone. Lease sits on the operating HUD, in the supplies "bills
+due" chip, and in the bills glossary. Construction weeks only roll a cash
+mini-goal, rounded to $50 at truck scale.
+
+The pitch fee is for a curb you are standing on. A truck in the shop is not
+standing on one, so closed weeks no longer charge Office Park $95. The loan
+still comes due — that is the spec's "loan clock is already ticking." Pay cash
+and you wait for free, which is the other half of the same trade.
+
+No `SAVE_VERSION` bump: every new field is optional.
+
+---
+
 ## 2026-08-25 (fourth pass) — No more British idiom
 
 Jeff: *"No more British idiom. Not sure how that even happened."*

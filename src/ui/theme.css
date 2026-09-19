@@ -1,24 +1,30 @@
 /* Touch-first. Every tappable thing is at least 44px tall, nothing depends on
-   hover, and no font is loaded from the network. */
+   hover, and no font is loaded from the network.
+
+   Color belongs to the world: a real sky, grass, a green for money. Chrome
+   stays quiet so the painted scene can do the talking. */
 
 :root {
-  --lemon: #ffd43b;
-  --lemon-deep: #f6b60b;
-  --sky: #6fc8ff;
-  --sky-deep: #2b8fd8;
-  --grass: #58c06a;
-  --grass-deep: #2f9a45;
-  --berry: #ff6b6b;
-  --berry-deep: #d94141;
-  --ink: #21304a;
-  --ink-soft: #5a6b85;
-  --paper: #fffaf0;
-  --card: #ffffff;
-  --shadow: 0 6px 0 rgba(33, 48, 74, 0.16);
-  --shadow-lg: 0 12px 32px rgba(33, 48, 74, 0.22);
-  --radius: 18px;
-  --tap: 52px;
-  font-family: 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --ink: #1a2433;
+  --ink-soft: #5a6a7c;
+  --paper: #e7f2fb;
+  --card: #fffdf8;
+  --line: #d3e0ea;
+  --sky: #5ba3d9;
+  --sky-deep: #2f7fb8;
+  --ground: #6d7580;
+  --lemon: #e6b422;
+  --lemon-deep: #c49214;
+  --grass: #2a9a5c;
+  --grass-deep: #1e7344;
+  --berry: #c4453c;
+  --berry-deep: #9a312b;
+  --shadow: 0 1px 2px rgba(26, 36, 51, 0.08), 0 8px 24px rgba(26, 36, 51, 0.1);
+  --shadow-lg: 0 16px 40px rgba(26, 36, 51, 0.16);
+  --radius: 12px;
+  --tap: 48px;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-feature-settings: 'ss01' on;
 }
 
 * {
@@ -34,7 +40,7 @@ body,
 }
 
 body {
-  background: linear-gradient(180deg, var(--sky) 0%, #bfe9ff 45%, #eaf9ff 100%);
+  background: linear-gradient(180deg, #7ec8f0 0%, #c5e6f8 38%, #eef6e8 100%);
   color: var(--ink);
   overflow-x: hidden;
   user-select: none;
@@ -54,22 +60,26 @@ body {
 
 /* ---------- type ---------- */
 h1 {
-  font-size: clamp(28px, 7vw, 44px);
+  font-size: clamp(28px, 7vw, 40px);
   margin: 4px 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.04em;
+  font-weight: 700;
 }
 h2 {
-  font-size: clamp(19px, 4.6vw, 24px);
+  font-size: clamp(18px, 4.4vw, 22px);
   margin: 0;
+  letter-spacing: -0.02em;
+  font-weight: 650;
 }
 h3 {
-  font-size: clamp(16px, 4vw, 20px);
+  font-size: clamp(15px, 3.8vw, 18px);
   margin: 0;
+  font-weight: 650;
 }
 p {
   margin: 3px 0;
-  font-size: clamp(14px, 3.6vw, 17px);
-  line-height: 1.3;
+  font-size: clamp(14px, 3.5vw, 16px);
+  line-height: 1.4;
 }
 .muted {
   color: var(--ink-soft);
@@ -88,50 +98,54 @@ button {
 
 .btn {
   min-height: var(--tap);
-  min-width: 52px;
-  padding: 11px 18px;
-  font-size: 18px;
-  border-radius: 16px;
+  min-width: 48px;
+  padding: 10px 16px;
+  font-size: 16px;
+  border-radius: 10px;
   background: var(--card);
   color: var(--ink);
-  box-shadow: var(--shadow);
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  border: 1px solid var(--line);
+  box-shadow: none;
+  transition: transform 0.08s ease, background 0.12s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 .btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(33, 48, 74, 0.16);
+  transform: scale(0.98);
 }
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--lemon);
-  box-shadow: 0 6px 0 var(--lemon-deep);
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
 }
 .btn-primary:active {
-  box-shadow: 0 2px 0 var(--lemon-deep);
+  background: #2a2e38;
 }
 .btn-go {
   background: var(--grass);
   color: #fff;
-  box-shadow: 0 6px 0 var(--grass-deep);
-  font-size: 22px;
+  border-color: var(--grass-deep);
+  font-size: 18px;
+  font-weight: 650;
   width: 100%;
 }
 .btn-go:active {
-  box-shadow: 0 2px 0 var(--grass-deep);
+  background: var(--grass-deep);
 }
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: none;
-  font-size: 16px;
+  background: transparent;
+  border-color: transparent;
+  font-size: 15px;
+  font-weight: 600;
   min-height: 44px;
   padding: 10px 14px;
+  color: var(--ink-soft);
 }
 .btn-row {
   display: flex;
@@ -143,43 +157,45 @@ button {
 .card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
 .card-tight {
-  padding: 10px 12px;
+  padding: 10px 14px;
 }
 
 .choice {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   text-align: left;
   min-height: var(--tap);
-  padding: 9px 12px;
-  border-radius: 16px;
-  background: #f4f7fb;
-  box-shadow: inset 0 0 0 3px transparent;
-  font-size: 17px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #eef1f5;
+  border: 1px solid transparent;
+  box-shadow: none;
+  font-size: 16px;
   color: var(--ink);
-  transition: transform 0.08s ease, box-shadow 0.1s ease, background 0.1s ease;
+  transition: transform 0.08s ease, background 0.1s ease, border-color 0.1s ease;
 }
 .choice:active {
-  transform: scale(0.98);
+  transform: scale(0.99);
 }
 .choice.selected {
-  background: #fff6d6;
-  box-shadow: inset 0 0 0 3px var(--lemon-deep);
+  background: #fff8e4;
+  border-color: var(--grass);
 }
 .choice .emoji {
-  font-size: 30px;
+  font-size: 22px;
   line-height: 1;
 }
 .choice .sub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--ink-soft);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ---------- top bar ---------- */
@@ -187,30 +203,31 @@ button {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 16px;
-  padding: 7px 8px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
   box-shadow: var(--shadow);
   position: sticky;
   top: 8px;
   z-index: 20;
-  backdrop-filter: blur(6px);
 }
 .hud-cell {
   text-align: center;
   min-width: 0;
 }
 .hud-label {
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.08em;
   color: var(--ink-soft);
-  font-weight: 800;
+  font-weight: 650;
 }
 .hud-value {
-  font-size: clamp(16px, 4.6vw, 22px);
-  font-weight: 800;
+  font-size: clamp(15px, 4.2vw, 20px);
+  font-weight: 700;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .hud-value.flash-up {
   animation: popGreen 0.5s ease;
@@ -231,11 +248,10 @@ button {
 
 /* ---------- net worth bar ---------- */
 .bar {
-  height: 7px;
-  background: rgba(255, 255, 255, 0.7);
+  height: 4px;
+  background: var(--line);
   border-radius: 999px;
   overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(33, 48, 74, 0.12);
 }
 .bar-fill {
   height: 100%;
@@ -243,67 +259,102 @@ button {
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- the stand ---------- */
+/* ---------- the business, painted ---------- */
 .scene {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  background: linear-gradient(180deg, #bfe9ff 0%, #d9f5ff 60%, var(--grass) 60%, #4fb562 100%);
+  background: #4a90c2;
+  border: 1px solid var(--line);
   box-shadow: var(--shadow);
-  /* Shrinks on short screens so the decision card always clears the fold. */
-  height: clamp(96px, 17vh, 150px);
+  height: clamp(128px, 22vh, 196px);
 }
-.scene svg {
+.scene-photo {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  object-position: center 70%;
   display: block;
+}
+.scene[data-weather='hot'] .scene-photo {
+  filter: saturate(1.12) sepia(0.1) brightness(1.04);
+}
+.scene[data-weather='sunny'] .scene-photo {
+  filter: saturate(1.05);
+}
+.scene[data-weather='cloudy'] .scene-photo {
+  filter: brightness(0.92) saturate(0.85);
+}
+.scene[data-weather='rain'] .scene-photo {
+  filter: brightness(0.8) saturate(0.72) hue-rotate(-8deg);
+}
+.scene[data-weather='cold'] .scene-photo {
+  filter: brightness(0.9) saturate(0.7) hue-rotate(10deg);
+}
+.brand-art {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+  margin: 8px auto 0;
+}
+.brand-art img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  background: #b9dcf0;
 }
 
 /* ---------- event card ---------- */
 .event-card {
-  background: #fff;
+  background: var(--card);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
   overflow: hidden;
-  border: 4px solid var(--ink);
+  border: 1px solid var(--ink);
 }
 .event-top {
   display: flex;
   gap: 12px;
   align-items: center;
   padding: 12px 14px;
-  background: var(--lemon);
-  border-bottom: 4px solid var(--ink);
+  background: #1e4d6b;
+  color: #f4f5f7;
+  border-bottom: 1px solid #163a52;
+}
+.event-top h3 {
+  color: #f4f5f7;
+  margin: 0;
+}
+.event-top .sub {
+  color: #a8b0bc;
+  font-weight: 500;
 }
 .event-avatar {
-  font-size: 42px;
+  font-size: 28px;
   line-height: 1;
 }
 .speech {
   background: #fff;
-  border: 3px solid var(--ink);
-  border-radius: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 10px 12px;
   margin: 12px 14px;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   position: relative;
 }
-.speech::before {
-  content: '';
-  position: absolute;
-  top: -12px;
-  left: 26px;
-  border: 8px solid transparent;
-  border-bottom-color: var(--ink);
-}
+.speech::before,
 .speech::after {
-  content: '';
-  position: absolute;
-  top: -7px;
-  left: 28px;
-  border: 6px solid transparent;
-  border-bottom-color: #fff;
+  display: none;
 }
 
 /* ---------- confetti / celebration ---------- */
@@ -410,7 +461,7 @@ button {
    touch minimum. */
 @media (max-height: 780px) {
   .scene {
-    height: clamp(64px, 11vh, 110px);
+    height: clamp(96px, 16vh, 140px);
   }
   :root {
     --tap: 46px;
@@ -478,31 +529,33 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-weight: 800;
-  font-size: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.01em;
 }
 .pill-btn {
   min-height: 44px;
   cursor: pointer;
-  box-shadow: var(--shadow);
 }
 .pill-btn:active {
-  transform: translateY(2px);
+  transform: scale(0.98);
 }
 .stars {
   letter-spacing: 1px;
-  font-size: 18px;
+  font-size: 14px;
 }
 .ledger {
   display: flex;
   justify-content: space-between;
   padding: 5px 0;
-  border-bottom: 2px dotted #e3e9f2;
-  font-size: 16px;
-  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .ledger:last-child {
   border-bottom: none;
@@ -514,8 +567,8 @@ button {
   color: var(--berry-deep);
 }
 .ledger.total {
-  font-size: 19px;
-  border-top: 3px solid var(--ink);
+  font-size: 17px;
+  border-top: 1px solid var(--ink);
   margin-top: 3px;
   padding-top: 7px;
 }
@@ -524,10 +577,10 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: #fff;
-  border-radius: 16px;
+  background: var(--card);
+  border-radius: 10px;
   padding: 12px 8px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
   text-align: center;
 }
 .badge-tile.locked {
@@ -546,29 +599,29 @@ button {
   justify-content: center;
 }
 .stepper button {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  font-size: 30px;
-  background: var(--sky);
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 22px;
+  background: var(--ink);
   color: #fff;
-  box-shadow: 0 5px 0 var(--sky-deep);
+  border: none;
 }
 .stepper button:active {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 var(--sky-deep);
+  transform: scale(0.96);
+  background: #2a2e38;
 }
 .stepper .value {
-  font-size: 32px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 700;
   min-width: 120px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .customer {
   position: absolute;
-  bottom: 14px;
-  font-size: 26px;
+  bottom: 10px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -614,9 +667,16 @@ button {
    took cannot appear in a profit line and a child cannot infer it from "11
    left". */
 .judgement {
-  background: #fff6e5;
-  border-color: #f6b60b;
+  background: #f3f0e7;
+  border: 1px solid #cfc6ae;
 }
 .judgement .ledger {
   padding: 2px 0;
+}
+
+/* A fact that is not a warning sticker. Peach boxes read as a worksheet. */
+.notice {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--ink);
 }
