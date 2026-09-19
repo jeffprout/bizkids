@@ -27,10 +27,10 @@ export const TRUCK_EVENTS: GameEvent[] = [
     choices: [
       {
         id: 'raise',
-        label: 'Put prices up today',
+        label: 'Raise prices today',
         priceMod: 1.25,
         reputation: -0.15,
-        result: 'You charge more. Some grumble, and the line stays long.',
+        result: 'Surge pricing. Some grumble, and the line stays long.',
       },
       {
         id: 'normal',
