@@ -23,6 +23,7 @@ export function Title({
   onLock,
   onDelete,
   onImported,
+  onAdmin,
 }: {
   profiles: Profile[];
   onPick: (p: Profile) => void;
@@ -30,6 +31,7 @@ export function Title({
   onLock: (p: Profile, pin: string) => void;
   onDelete: (id: string) => void;
   onImported: () => void;
+  onAdmin?: () => void;
 }) {
   const [adding, setAdding] = useState(profiles.length === 0);
   const [name, setName] = useState('');
@@ -39,6 +41,8 @@ export function Title({
   const [locking, setLocking] = useState<Profile | null>(null);
   const [note, setNote] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const adminTaps = useRef(0);
+  const adminTapTimer = useRef<number | null>(null);
 
   async function doExport() {
     const bundle = await exportAll();
@@ -273,7 +277,22 @@ export function Title({
         />
       </div>
       {note && !adding && !unlocking && !locking && <p className="center muted">{note}</p>}
-      <p className="center muted" style={{ fontSize: 12 }}>
+      <p
+        className="center muted"
+        style={{ fontSize: 12 }}
+        onClick={() => {
+          if (!onAdmin) return;
+          adminTaps.current += 1;
+          if (adminTapTimer.current) window.clearTimeout(adminTapTimer.current);
+          adminTapTimer.current = window.setTimeout(() => {
+            adminTaps.current = 0;
+          }, 900);
+          if (adminTaps.current >= 5) {
+            adminTaps.current = 0;
+            onAdmin();
+          }
+        }}
+      >
         build {typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev'}
       </p>
     </div>

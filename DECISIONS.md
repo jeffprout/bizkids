@@ -7,6 +7,22 @@ Anything a player would notice and that the spec did not settle is flagged
 
 ---
 
+## 2026-09-20 — Anonymous play counters, password on the admin tab
+
+Jeff wanted lemonade vs truck, and which cards people pick, without names.
+The school site now posts a start, each open week, and a sale — business,
+level, truck, spot, menu, helper, extra on the loan, and the card they
+tapped. No name, no PIN, no cash, no device id.
+
+The consumer / Kids Category wrap never sends a thing. That is still
+off-device zero.
+
+The admin tab is not on the player menu. Open
+`https://www.bossmodegame.com/#admin`, or tap the build stamp on the title
+five times. Password is in Vercel, not in the repo.
+
+---
+
 ## 2026-09-18 — Going without insurance has a later bill
 
 The policy card dinged reputation and nothing else, so "Go without"

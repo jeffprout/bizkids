@@ -18,6 +18,7 @@ import {
 } from '../storage/saves';
 import { hashPin } from '../storage/pin';
 import { setSoundEnabled } from '../ui/sfx';
+import { track } from '../analytics/track';
 
 export type Screen =
   | 'title'
@@ -27,7 +28,8 @@ export type Screen =
   | 'recap'
   | 'sell'
   | 'goals'
-  | 'trophies';
+  | 'trophies'
+  | 'admin';
 
 export function useGame() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -114,6 +116,12 @@ export function useGame() {
         financing,
         seed: Math.floor(Math.random() * 2 ** 31) || 7,
       });
+      track({
+        type: 'start',
+        business: businessId,
+        tier,
+        asset: financing.assetId ?? 'none',
+      });
       setState(fresh);
       await persist(fresh);
       setScreen('week');
@@ -124,6 +132,21 @@ export function useGame() {
   const endWeek = useCallback(
     async (decisions: WeekDecisions) => {
       if (!state) return;
+      if ((state.weeksToOpen ?? 0) === 0) {
+        track({
+          type: 'week',
+          business: state.businessId,
+          tier: state.tier,
+          location: decisions.locationId,
+          quality: decisions.qualityId,
+          hired:
+            state.employees.length > 0 ||
+            (decisions.hireEmployeeIds?.length ?? 0) > 0 ||
+            Boolean(decisions.hireEmployeeId),
+          extraLoan: (decisions.extraLoanPayment ?? 0) > 0,
+          events: Object.entries(decisions.eventChoices).map(([id, choice]) => `${id}:${choice}`),
+        });
+      }
       const next = simulateWeek(state, decisions);
       setState(next);
       await persist(next);
@@ -140,6 +163,12 @@ export function useGame() {
       multipleLow: biz.valuationMultiple.low,
       multipleHigh: biz.valuationMultiple.high,
       inventoryUnitCost: quality.unitCost * TIERS[state.tier].unitCostScale,
+    });
+    track({
+      type: 'sold',
+      business: state.businessId,
+      tier: state.tier,
+      week: state.week,
     });
     const sold: GameState = { ...state, soldFor: v.offer, gameOver: true };
     const updated: Profile = {

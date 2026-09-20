@@ -1,8 +1,9 @@
 # Sending Boss Mode to playtesters
 
-The game is a static web page. No server, no accounts, no database — so sharing
-it is just hosting a folder and sending a link. Saves live in each tester's own
-browser.
+The game is a static web page. Saves live in each tester's own browser. The
+school site also posts anonymous play counters (no names, no PIN, no money)
+so you can see what testers pick. That review screen is password-protected
+and is not on the player menu.
 
 ## Where it lives
 
