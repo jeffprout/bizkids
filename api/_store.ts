@@ -1,5 +1,5 @@
 import { list, put } from '@vercel/blob';
-import { applyEvent, emptyStats, hydrateStats, type PlayEvent, type PlayStats } from './model';
+import { applyEvent, emptyStats, hydrateStats, type PlayEvent, type PlayStats } from './model.js';
 
 const PATH = 'play-stats.json';
 
