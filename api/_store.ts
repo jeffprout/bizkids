@@ -1,21 +1,13 @@
-import { list, put } from '@vercel/blob';
-import {
-  applyEvent,
-  emptyStats,
-  hydrateStats,
-  type PlayEvent,
-  type PlayStats,
-} from '../src/analytics/model';
+import { get, put } from '@vercel/blob';
+import { applyEvent, emptyStats, hydrateStats, type PlayEvent, type PlayStats } from './model.js';
 
 const PATH = 'play-stats.json';
 
 export async function loadStats(): Promise<PlayStats> {
-  const { blobs } = await list({ prefix: PATH });
-  const found = blobs.find((b) => b.pathname === PATH);
-  if (!found?.downloadUrl) return emptyStats();
-  const res = await fetch(found.downloadUrl);
-  if (!res.ok) return emptyStats();
-  return hydrateStats(await res.json());
+  const found = await get(PATH, { access: 'private', useCache: false });
+  if (!found?.stream) return emptyStats();
+  const text = await new Response(found.stream).text();
+  return hydrateStats(JSON.parse(text));
 }
 
 export async function saveStats(stats: PlayStats): Promise<void> {
@@ -24,6 +16,7 @@ export async function saveStats(stats: PlayStats): Promise<void> {
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
+    cacheControlMaxAge: 60,
   });
 }
 

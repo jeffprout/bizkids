@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { loadStats } from './_store';
+import { loadStats } from './_store.js';
 
 function passwordOk(got: string): boolean {
   const want = process.env.STATS_PASSWORD ?? '';

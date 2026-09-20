@@ -1,5 +1,5 @@
-import { parseEvent } from '../src/analytics/model';
-import { record } from './_store';
+import { parseEvent } from './model.js';
+import { record } from './_store.js';
 
 export async function POST(request: Request) {
   let raw: unknown = null;
