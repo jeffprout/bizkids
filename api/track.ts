@@ -1,4 +1,4 @@
-import { parseEvent } from './model';
+import { parseEvent } from './model.js';
 
 export async function POST(request: Request) {
   let raw: unknown = null;
