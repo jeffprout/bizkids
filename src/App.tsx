@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './ui/theme.css';
 import { useGame } from './state/useGame';
 import { Title } from './ui/screens/Title';
@@ -9,13 +9,30 @@ import { Recap } from './ui/screens/Recap';
 import { Sell } from './ui/screens/Sell';
 import { Trophies } from './ui/screens/Trophies';
 import { Goals } from './ui/screens/Goals';
+import { Admin } from './ui/screens/Admin';
 import { FEATURES } from './config/edition';
 import { exportAll } from './storage/saves';
 import { sfx } from './ui/sfx';
 
+function clearAdminHash() {
+  if (window.location.hash === '#admin') {
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+  }
+}
+
 export default function App() {
   const game = useGame();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!FEATURES.analytics) return;
+    const sync = () => {
+      if (window.location.hash === '#admin') game.setScreen('admin');
+    };
+    sync();
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, [game.setScreen]);
 
   if (!game.ready) {
     return (
@@ -39,6 +56,14 @@ export default function App() {
           onLock={(p, pin) => void game.setProfilePin(p, pin)}
           onDelete={(id) => void game.removeProfile(id)}
           onImported={() => void game.refreshProfiles()}
+          onAdmin={
+            FEATURES.analytics
+              ? () => {
+                  window.location.hash = 'admin';
+                  game.setScreen('admin');
+                }
+              : undefined
+          }
         />
       )}
 
@@ -92,6 +117,15 @@ export default function App() {
 
       {screen === 'trophies' && profile && (
         <Trophies profile={profile} onBack={() => game.setScreen(state ? 'week' : 'title')} />
+      )}
+
+      {screen === 'admin' && FEATURES.analytics && (
+        <Admin
+          onBack={() => {
+            clearAdminHash();
+            game.setScreen('title');
+          }}
+        />
       )}
 
       {menuOpen && (

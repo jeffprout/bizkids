@@ -14,4 +14,9 @@ export const FEATURES = {
   parentalGate: EDITION === 'consumer',
   /** Save export/import to a JSON file. Hidden in the consumer build for now. */
   fileExport: true,
+  /**
+   * Anonymous play counters for the school site. Off in the consumer / Kids
+   * Category wrap — that build must not send anything off the device.
+   */
+  analytics: EDITION === 'school',
 };

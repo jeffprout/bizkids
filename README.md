@@ -29,7 +29,9 @@ npm test
 | `npm run build:consumer` | Consumer Edition — the build Capacitor wraps for iOS |
 
 One codebase. `VITE_EDITION` toggles the feature set in `src/config/edition.ts`.
-Neither build loads anything over the network.
+The consumer build never phones home. The school build posts anonymous play
+counters (no names, no PIN, no money) so testers can be reviewed from a
+password-protected admin tab.
 
 ## Layout
 
