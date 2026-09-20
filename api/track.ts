@@ -12,8 +12,9 @@ export async function POST(request: Request) {
   if (!event) return Response.json({ ok: false }, { status: 400 });
   try {
     await record(event);
-  } catch {
-    // Storage hiccup. The week already happened; do not make the game look broken.
+    return new Response(null, { status: 204 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return Response.json({ ok: false, message }, { status: 503 });
   }
-  return new Response(null, { status: 204 });
 }
